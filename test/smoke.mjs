@@ -33,7 +33,23 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => mode === 'mix' && [...document.querySelectorAll('[data-to-mode]')].map((b) => b.dataset.toMode).join() === 'mix,synth,beat') && await page() === 'home', 'it opens on mix, the keys in the order mix, synth, beat');
   check(await pg.evaluate(() => document.querySelectorAll('#m-pats .m-pat').length === 8) && await fits('home'), 'the patterns page has eight pads and fits');
   await pg.click('#m-pats .m-pat >> nth=1');
-  check(await pg.evaluate(() => pCur === PATS[1] && document.querySelector('#m-pats .m-pat:nth-child(2)').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
+  check(await pg.evaluate(() => pCur === patPreset(1) && document.querySelector('#m-pats .m-pat:nth-child(2)').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
+  // a long press on a pad opens the picker; a tap there puts that preset on the pad, kept in the browser
+  const pr = await box('#m-pats .m-pat >> nth=4');
+  await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
+  check(await pg.evaluate(() => !document.getElementById('m-pick').hidden && document.querySelectorAll('#m-picklist .m-pload').length >= 9), 'a long press on a pad opens the preset picker');
+  await pg.click('#m-picklist .m-pload >> text=Acid Line');
+  check(await pg.evaluate(() => document.getElementById('m-pick').hidden && patPreset(4).name === 'Acid Line' && JSON.parse(localStorage.getItem('elixir-synth-pats'))[4] === 'Acid Line' && document.querySelector('#m-pats .m-pat:nth-child(5) small').textContent === 'Acid Line'), 'picking a preset puts it on the pad and keeps it');
+  // and the picker saves: save new makes a preset of what's playing and puts it on the pad; save over writes it again
+  await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
+  check(await pg.evaluate(() => document.getElementById('m-picksover').disabled), 'save over is off for a built-in preset');
+  await pg.click('#m-picksave');
+  check(await pg.evaluate(() => { const k = patPreset(4); return k.saved && JSON.parse(localStorage.getItem('elixir-synth-presets')).some((p) => p.name === k.name) && document.getElementById('m-pick').hidden; }), 'save new on a pad saves a preset and puts it on the pad');
+  await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
+  await pg.evaluate(() => { tempo = 133; window.confirm = () => true; });
+  await pg.click('#m-picksover');
+  check(await pg.evaluate(() => patPreset(4).tempo === 133 && JSON.parse(localStorage.getItem('elixir-synth-presets')).find((p) => p.name === patPreset(4).name).tempo === 133), 'save over writes the pad\'s own preset');
+  await pg.evaluate(() => { tempo = 120; localStorage.removeItem('elixir-synth-presets'); presetList.splice(presetList.indexOf(patPreset(4)), 1); localStorage.removeItem('elixir-synth-pats'); patNames = PAT0.slice(); patDraw(); });
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = -100; x.dispatchEvent(new Event('input')); });
   check(await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1 && document.getElementById('m-xfv').textContent === 'beat only'), 'the crossfader all the way left is the beat alone');
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = 0; x.dispatchEvent(new Event('input')); });
@@ -136,7 +152,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   // presets: load a built-in one, save a new one
   await pg.click('[data-m-tab="presets"]');
   const beatWas = await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]]));
-  await pg.click('.m-pload >> text=Acid Line');
+  await pg.click('#m-plist .m-pload >> text=Acid Line');
   await pg.waitForTimeout(1500);
   check(await pg.evaluate(() => tempo === 128 && seq.root === 9), 'a built-in preset loads (at the next bar)');
   check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');

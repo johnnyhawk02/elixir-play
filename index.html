@@ -529,7 +529,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
+.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
@@ -544,11 +544,21 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-xf::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 48px; margin-top: -21px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); box-shadow: inset 0 0 0 6px var(--panel), inset 0 0 0 8px var(--ink); }
 .m .m-xf::-moz-range-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: transparent; }
 .m .m-xf::-moz-range-thumb { width: 30px; height: 44px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); }
+/* the pad's preset picker: over the whole page, a list of every preset */
+.m-pick { position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; padding: 8px 2px; background: var(--panel); }
+.m-pick[hidden] { display: none; }
+.m-pickhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: var(--rule); padding-bottom: 6px; }
+.m-pickhead b { font-size: var(--fs-m); text-transform: uppercase; }
+.m .m-pickhead .m-btn { min-height: 44px; padding: 0 16px; }
+.m-picklist { overflow-y: auto; overscroll-behavior: contain; margin: 0; }
+.m .m-pat { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">15</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">16</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -652,6 +662,11 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
   <div class="m-panel" data-m-panel="home" data-modes="mix">
     <section class="m-card m-home-card">
       <div class="m-pats" id="m-pats" aria-label="patterns"></div>
+      <div class="m-pick" id="m-pick" hidden>
+        <div class="m-pickhead"><b id="m-pickt">pad 1 plays</b><button class="m-btn" id="m-pickx" type="button">done</button></div>
+        <div class="m-pickbtns"><button class="m-btn" id="m-picksave" type="button">save preset</button><button class="m-btn" id="m-picksover" type="button">save over</button></div>
+        <ul class="m-plist m-picklist" id="m-picklist"></ul>
+      </div>
       <div class="m-xfade">
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
@@ -704,7 +719,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v15, 31 Oct, 08:54</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v16, 31 Oct, 08:59</footer>
     </section>
   </div>
   </div>
@@ -5018,7 +5033,7 @@ document.querySelectorAll('[data-to-mode]').forEach((b) => b.addEventListener('c
 document.querySelectorAll('[data-m-tab]').forEach((b) => b.addEventListener('click', () => mGo(PANELS.findIndex((p) => p.dataset.mPanel === b.dataset.mTab))));
 addEventListener('resize', () => mGo(mCur));
 {
-  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, .m-bgrid, select, input';
+  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, .m-bgrid, .m-pick, select, input';
   let sw = null;
   mPages.addEventListener('pointerdown', (e) => {
     if (sw || e.target.closest(NOSWIPE)) return;
@@ -6373,19 +6388,83 @@ let pDraw = function () {
   presetList.filter((k) => k.builtin).forEach(row);
 };
 pageHooks.push((t) => { if (t === 'presets') pDraw(); });
-// mix's patterns page: eight pads, for now the first eight built-in presets. A tap loads one (at the next bar while
-// playing): the one playing is lit, the one waiting flashes
-const PATS = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8);
-const patBtns = PATS.map((k, i) => {
+// mix's patterns page: eight pads, each loading a preset (at the next bar while playing): the one playing is lit, the
+// one waiting flashes. They start as the first eight built-in presets; a long press on a pad opens a list of every
+// preset (mine and built in) to pick the one it loads, with save preset and save over. The picks are kept in this
+// browser, by name
+const PATS_KEY = 'elixir-synth-pats';
+const PAT0 = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8).map((k) => k.name);
+let patNames = PAT0.slice();
+try { const n = JSON.parse(localStorage.getItem(PATS_KEY)); if (Array.isArray(n)) n.slice(0, 8).forEach((x, i) => { if (typeof x === 'string') patNames[i] = x; }); } catch (e) {}
+// a pad whose preset has gone (deleted) falls back to its built-in one
+const patPreset = (i) => presetList.find((k) => k.name === patNames[i]) || presetList.find((k) => k.name === PAT0[i]) || presetList[0];
+let patPicking = -1;
+const patBtns = PAT0.map((_, i) => {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'm-btn m-pat';
-  b.innerHTML = `<b>${i + 1}</b><small></small>`; b.querySelector('small').textContent = k.name;
-  b.addEventListener('click', () => pLoad(k));
+  b.innerHTML = `<b>${i + 1}</b><small></small>`;
+  let hold = null, held = false;
+  const cancel = () => { clearTimeout(hold); hold = null; };
+  b.addEventListener('pointerdown', (e) => {
+    held = false; const x = e.clientX, y = e.clientY;
+    hold = setTimeout(() => { hold = null; held = true; patPick(i); }, 550);
+    const move = (m) => { if (Math.hypot(m.clientX - x, m.clientY - y) > 12) cancel(); };
+    b.addEventListener('pointermove', move);
+    const up = () => { cancel(); b.removeEventListener('pointermove', move); };
+    b.addEventListener('pointerup', up, { once: true }); b.addEventListener('pointercancel', up, { once: true });
+  });
+  b.addEventListener('contextmenu', (e) => e.preventDefault());
+  b.addEventListener('click', () => { if (held) { held = false; return; } pLoad(patPreset(i)); });
   $('m-pats').append(b); return b;
 });
 function patDraw() {
   const cur = pPending ? pShown : pCur;
-  patBtns.forEach((b, i) => { b.setAttribute('aria-pressed', PATS[i] === cur); b.classList.toggle('pending', PATS[i] === pPending); });
+  patBtns.forEach((b, i) => {
+    const k = patPreset(i);
+    b.querySelector('small').textContent = k.name;
+    b.setAttribute('aria-label', `pattern ${i + 1}: ${k.name} (hold to change)`);
+    b.setAttribute('aria-pressed', k === cur); b.classList.toggle('pending', k === pPending);
+  });
 }
+// the picker: over the pads, a list of every preset; a tap puts it on the pad (without loading it)
+function patPick(i) {
+  patPicking = i;
+  $('m-pickt').textContent = `pad ${i + 1} plays`;
+  const list = $('m-picklist'); list.innerHTML = '';
+  const group = (t) => { const li = document.createElement('li'); li.className = 'm-pgroup'; li.textContent = t; list.append(li); };
+  const row = (k) => {
+    const li = document.createElement('li'); li.classList.toggle('cur', k === patPreset(i));
+    li.innerHTML = '<button class="m-pload" type="button"><b></b><small></small></button>';
+    li.querySelector('b').textContent = k.name; li.querySelector('small').textContent = `${k.tempo} bpm`;
+    li.querySelector('button').addEventListener('click', () => {
+      patSet(patPicking, k); patClose(); patDraw();
+    });
+    list.append(li);
+  };
+  const mine = presetList.filter((k) => k.saved);
+  if (mine.length) { group('mine'); mine.slice().reverse().forEach(row); }
+  group('built in'); presetList.filter((k) => k.builtin).forEach(row);
+  const k = patPreset(i);
+  $('m-picksover').disabled = !k.saved; $('m-picksover').textContent = k.saved ? `save over ${k.name}` : 'save over';
+  $('m-pick').hidden = false;
+  const c = list.querySelector('.cur'); if (c) c.scrollIntoView({ block: 'center' });
+}
+function patClose() { patPicking = -1; $('m-pick').hidden = true; }
+$('m-pickx').addEventListener('click', patClose);
+// save preset: what's playing now as a new preset (two made-up words), on this pad; save over: what's playing now into
+// the pad's own preset (only one of mine; a built-in one can't be written over)
+const patSet = (i, k) => { patNames[i] = k.name; try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (e) {} };
+$('m-picksave').addEventListener('click', () => {
+  const k = { name: newName(), ...snapshot(), saved: true };
+  presetList.push(k); storePresets(); pCur = k; pPending = null;
+  patSet(patPicking, k); patClose(); pDraw();
+});
+$('m-picksover').addEventListener('click', () => {
+  const k = patPreset(patPicking);
+  if (!k.saved || !confirm(`Save what's playing over ${k.name}?`)) return;
+  Object.assign(k, snapshot()); storePresets(); pCur = k; pPending = null;
+  patClose(); pDraw();
+});
+modeHooks.push(patClose);
 { const d = pDraw; pDraw = function () { d(); patDraw(); }; }
 patDraw();
 $('m-psave').addEventListener('click', () => {

@@ -514,7 +514,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
+.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
@@ -529,3 +529,13 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-xf::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 48px; margin-top: -21px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); box-shadow: inset 0 0 0 6px var(--panel), inset 0 0 0 8px var(--ink); }
 .m .m-xf::-moz-range-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: transparent; }
 .m .m-xf::-moz-range-thumb { width: 30px; height: 44px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); }
+/* the pad's preset picker: over the whole page, a list of every preset */
+.m-pick { position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; padding: 8px 2px; background: var(--panel); }
+.m-pick[hidden] { display: none; }
+.m-pickhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: var(--rule); padding-bottom: 6px; }
+.m-pickhead b { font-size: var(--fs-m); text-transform: uppercase; }
+.m .m-pickhead .m-btn { min-height: 44px; padding: 0 16px; }
+.m-picklist { overflow-y: auto; overscroll-behavior: contain; margin: 0; }
+.m .m-pat { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

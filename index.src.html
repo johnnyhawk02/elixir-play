@@ -122,6 +122,11 @@
   <div class="m-panel" data-m-panel="home" data-modes="mix">
     <section class="m-card m-home-card">
       <div class="m-pats" id="m-pats" aria-label="patterns"></div>
+      <div class="m-pick" id="m-pick" hidden>
+        <div class="m-pickhead"><b id="m-pickt">pad 1 plays</b><button class="m-btn" id="m-pickx" type="button">done</button></div>
+        <div class="m-pickbtns"><button class="m-btn" id="m-picksave" type="button">save preset</button><button class="m-btn" id="m-picksover" type="button">save over</button></div>
+        <ul class="m-plist m-picklist" id="m-picklist"></ul>
+      </div>
       <div class="m-xfade">
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">

@@ -60,19 +60,83 @@ let pDraw = function () {
   presetList.filter((k) => k.builtin).forEach(row);
 };
 pageHooks.push((t) => { if (t === 'presets') pDraw(); });
-// mix's patterns page: eight pads, for now the first eight built-in presets. A tap loads one (at the next bar while
-// playing): the one playing is lit, the one waiting flashes
-const PATS = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8);
-const patBtns = PATS.map((k, i) => {
+// mix's patterns page: eight pads, each loading a preset (at the next bar while playing): the one playing is lit, the
+// one waiting flashes. They start as the first eight built-in presets; a long press on a pad opens a list of every
+// preset (mine and built in) to pick the one it loads, with save preset and save over. The picks are kept in this
+// browser, by name
+const PATS_KEY = 'elixir-synth-pats';
+const PAT0 = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8).map((k) => k.name);
+let patNames = PAT0.slice();
+try { const n = JSON.parse(localStorage.getItem(PATS_KEY)); if (Array.isArray(n)) n.slice(0, 8).forEach((x, i) => { if (typeof x === 'string') patNames[i] = x; }); } catch (e) {}
+// a pad whose preset has gone (deleted) falls back to its built-in one
+const patPreset = (i) => presetList.find((k) => k.name === patNames[i]) || presetList.find((k) => k.name === PAT0[i]) || presetList[0];
+let patPicking = -1;
+const patBtns = PAT0.map((_, i) => {
   const b = document.createElement('button'); b.type = 'button'; b.className = 'm-btn m-pat';
-  b.innerHTML = `<b>${i + 1}</b><small></small>`; b.querySelector('small').textContent = k.name;
-  b.addEventListener('click', () => pLoad(k));
+  b.innerHTML = `<b>${i + 1}</b><small></small>`;
+  let hold = null, held = false;
+  const cancel = () => { clearTimeout(hold); hold = null; };
+  b.addEventListener('pointerdown', (e) => {
+    held = false; const x = e.clientX, y = e.clientY;
+    hold = setTimeout(() => { hold = null; held = true; patPick(i); }, 550);
+    const move = (m) => { if (Math.hypot(m.clientX - x, m.clientY - y) > 12) cancel(); };
+    b.addEventListener('pointermove', move);
+    const up = () => { cancel(); b.removeEventListener('pointermove', move); };
+    b.addEventListener('pointerup', up, { once: true }); b.addEventListener('pointercancel', up, { once: true });
+  });
+  b.addEventListener('contextmenu', (e) => e.preventDefault());
+  b.addEventListener('click', () => { if (held) { held = false; return; } pLoad(patPreset(i)); });
   $('m-pats').append(b); return b;
 });
 function patDraw() {
   const cur = pPending ? pShown : pCur;
-  patBtns.forEach((b, i) => { b.setAttribute('aria-pressed', PATS[i] === cur); b.classList.toggle('pending', PATS[i] === pPending); });
+  patBtns.forEach((b, i) => {
+    const k = patPreset(i);
+    b.querySelector('small').textContent = k.name;
+    b.setAttribute('aria-label', `pattern ${i + 1}: ${k.name} (hold to change)`);
+    b.setAttribute('aria-pressed', k === cur); b.classList.toggle('pending', k === pPending);
+  });
 }
+// the picker: over the pads, a list of every preset; a tap puts it on the pad (without loading it)
+function patPick(i) {
+  patPicking = i;
+  $('m-pickt').textContent = `pad ${i + 1} plays`;
+  const list = $('m-picklist'); list.innerHTML = '';
+  const group = (t) => { const li = document.createElement('li'); li.className = 'm-pgroup'; li.textContent = t; list.append(li); };
+  const row = (k) => {
+    const li = document.createElement('li'); li.classList.toggle('cur', k === patPreset(i));
+    li.innerHTML = '<button class="m-pload" type="button"><b></b><small></small></button>';
+    li.querySelector('b').textContent = k.name; li.querySelector('small').textContent = `${k.tempo} bpm`;
+    li.querySelector('button').addEventListener('click', () => {
+      patSet(patPicking, k); patClose(); patDraw();
+    });
+    list.append(li);
+  };
+  const mine = presetList.filter((k) => k.saved);
+  if (mine.length) { group('mine'); mine.slice().reverse().forEach(row); }
+  group('built in'); presetList.filter((k) => k.builtin).forEach(row);
+  const k = patPreset(i);
+  $('m-picksover').disabled = !k.saved; $('m-picksover').textContent = k.saved ? `save over ${k.name}` : 'save over';
+  $('m-pick').hidden = false;
+  const c = list.querySelector('.cur'); if (c) c.scrollIntoView({ block: 'center' });
+}
+function patClose() { patPicking = -1; $('m-pick').hidden = true; }
+$('m-pickx').addEventListener('click', patClose);
+// save preset: what's playing now as a new preset (two made-up words), on this pad; save over: what's playing now into
+// the pad's own preset (only one of mine; a built-in one can't be written over)
+const patSet = (i, k) => { patNames[i] = k.name; try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (e) {} };
+$('m-picksave').addEventListener('click', () => {
+  const k = { name: newName(), ...snapshot(), saved: true };
+  presetList.push(k); storePresets(); pCur = k; pPending = null;
+  patSet(patPicking, k); patClose(); pDraw();
+});
+$('m-picksover').addEventListener('click', () => {
+  const k = patPreset(patPicking);
+  if (!k.saved || !confirm(`Save what's playing over ${k.name}?`)) return;
+  Object.assign(k, snapshot()); storePresets(); pCur = k; pPending = null;
+  patClose(); pDraw();
+});
+modeHooks.push(patClose);
 { const d = pDraw; pDraw = function () { d(); patDraw(); }; }
 patDraw();
 $('m-psave').addEventListener('click', () => {

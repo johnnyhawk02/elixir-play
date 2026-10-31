@@ -45,7 +45,7 @@ document.querySelectorAll('[data-to-mode]').forEach((b) => b.addEventListener('c
 document.querySelectorAll('[data-m-tab]').forEach((b) => b.addEventListener('click', () => mGo(PANELS.findIndex((p) => p.dataset.mPanel === b.dataset.mTab))));
 addEventListener('resize', () => mGo(mCur));
 {
-  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, .m-bgrid, select, input';
+  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, .m-bgrid, .m-pick, select, input';
   let sw = null;
   mPages.addEventListener('pointerdown', (e) => {
     if (sw || e.target.closest(NOSWIPE)) return;
