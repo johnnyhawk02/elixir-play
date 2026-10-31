@@ -4,17 +4,18 @@
 // ---- pages: swipe across the screen, or tap a page button. A swipe starts anywhere but on a fader, the x/y pad, the
 // steps or a list, so dragging those never turns the page ----
 // ---- modes: elixir-synth, elixir-beat and elixir-mix, three sets of pages over the one engine and clock, all playing at
-// once. The synth, beat and mix buttons at the top go straight to one, and a tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
+// once. The mix, synth and beat buttons at the top go straight to one, and a tap on the cauldron steps mix → synth → beat → mix; each mode keeps the page it was on, and the mode and pages
 // are kept in this browser. A page (and its button) can belong to more than one mode (data-modes) ----
 const mPages = $('m-pages'), ALL_PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
-const MODES = ['synth', 'beat', 'mix'];
+const MODES = ['mix', 'synth', 'beat'];
 const PAGE_NAMES = { play: 'perform', seq: 'notes', voice: 'voice', xy: 'x/y', fx: 'effects', comp: 'master', presets: 'presets',
-  beat: 'pattern', bsteps: 'steps', kit: 'kit', mix: 'mixer' };
+  beat: 'pattern', bsteps: 'steps', kit: 'kit', mix: 'mixer', home: 'patterns' };
 const MODE_KEY = 'elixir-synth-mode';
 const inMode = (el, m) => el.dataset.modes.split(' ').includes(m);
-let mode = 'synth', PANELS = ALL_PANELS, mCur = 0;
-const modePage = { synth: 'play', beat: 'beat', mix: 'mix' };
-try { const k = JSON.parse(localStorage.getItem(MODE_KEY)); if (k && MODES.includes(k.mode)) { mode = k.mode; Object.assign(modePage, k.pages); } } catch (e) {}
+let mode = 'mix', PANELS = ALL_PANELS, mCur = 0;
+const modePage = { synth: 'play', beat: 'beat', mix: 'home' };
+// it opens on mix's patterns page; the synth and beat keep the page they were on
+try { const k = JSON.parse(localStorage.getItem(MODE_KEY)); if (k && k.pages) Object.assign(modePage, k.pages, { mix: 'home' }); } catch (e) {}
 const pageHooks = [], modeHooks = [];
 function mGo(i, smooth) {
   mCur = Math.max(0, Math.min(PANELS.length - 1, i));

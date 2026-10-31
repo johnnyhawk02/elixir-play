@@ -526,20 +526,38 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-top .m-modes-top { flex: none; }
 .m .m-top .m-modes-top .m-btn { min-height: 44px; font-size: min(.72rem, 3.1vw) !important; letter-spacing: .08em; }
 .m .m-top .m-steps-led { grid-column: 1 / -1; grid-template-columns: repeat(16, 1fr); grid-template-rows: 5px; gap: 3px; padding: 4px 6px; }
+
+/* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
+   under them the crossfader, beat to synth */
+.m-home-card { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
+.m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
+.m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
+.m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
+.m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.m .m-pat[aria-pressed="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m .m-pat.pending { animation: m-blink .5s steps(1) infinite; }
+.m-xfade { display: grid; gap: 6px; border-top: var(--rule); padding-top: 8px; }
+.m-xfhead { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-s); text-transform: uppercase; }
+.m-xfhead output { font-size: var(--fs-xs); opacity: .8; }
+.m .m-xf { -webkit-appearance: none; appearance: none; width: 100%; height: 56px; margin: 0; background: transparent; touch-action: none; }
+.m .m-xf::-webkit-slider-runnable-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: linear-gradient(90deg, transparent calc(50% - 1px), var(--ink) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)); }
+.m .m-xf::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 48px; margin-top: -21px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); box-shadow: inset 0 0 0 6px var(--panel), inset 0 0 0 8px var(--ink); }
+.m .m-xf::-moz-range-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: transparent; }
+.m .m-xf::-moz-range-thumb { width: 30px; height: 44px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">synth</span></span><small class="m-ver">13</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">14</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
       <button class="m-rec" id="m-rec" type="button" aria-pressed="false" aria-label="Record"><i></i><span id="m-rec-t">rec</span></button>
     </div>
     <div class="m-modes-top" role="tablist" aria-label="mode">
-      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="true">mix</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="false">synth</button>
       <button class="m-btn" type="button" role="tab" data-to-mode="beat" aria-selected="false">beat</button>
-      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="false">mix</button>
     </div>
     <output class="m-steps-led" id="m-led" aria-hidden="true"></output>
   </header>
@@ -631,6 +649,16 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     </section>
   </div>
 
+  <div class="m-panel" data-m-panel="home" data-modes="mix">
+    <section class="m-card m-home-card">
+      <div class="m-pats" id="m-pats" aria-label="patterns"></div>
+      <div class="m-xfade">
+        <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
+        <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
+      </div>
+    </section>
+  </div>
+
   <div class="m-panel" data-m-panel="mix" data-modes="mix">
     <section class="m-card m-mix-card">
       <div class="m-faders m-row m-mixlvl" id="m-mixlvl"></div>
@@ -676,7 +704,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v13, 31 Oct, 08:31</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v14, 31 Oct, 08:48</footer>
     </section>
   </div>
   </div>
@@ -701,6 +729,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     <button type="button" role="tab" data-m-tab="beat" data-modes="beat" aria-selected="false">beat</button>
     <button type="button" role="tab" data-m-tab="bsteps" data-modes="beat" aria-selected="false">steps</button>
     <button type="button" role="tab" data-m-tab="kit" data-modes="beat" aria-selected="false">kit</button>
+    <button type="button" role="tab" data-m-tab="home" data-modes="mix" aria-selected="false">pats</button>
     <button type="button" role="tab" data-m-tab="mix" data-modes="mix" aria-selected="false">mix</button>
     <button type="button" role="tab" data-m-tab="fx" data-modes="mix" aria-selected="false">fx</button>
     <button type="button" role="tab" data-m-tab="comp" data-modes="mix" aria-selected="false">mstr</button>
@@ -4948,17 +4977,18 @@ function useSnapshot(p, keepTempo) {
 // ---- pages: swipe across the screen, or tap a page button. A swipe starts anywhere but on a fader, the x/y pad, the
 // steps or a list, so dragging those never turns the page ----
 // ---- modes: elixir-synth, elixir-beat and elixir-mix, three sets of pages over the one engine and clock, all playing at
-// once. The synth, beat and mix buttons at the top go straight to one, and a tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
+// once. The mix, synth and beat buttons at the top go straight to one, and a tap on the cauldron steps mix → synth → beat → mix; each mode keeps the page it was on, and the mode and pages
 // are kept in this browser. A page (and its button) can belong to more than one mode (data-modes) ----
 const mPages = $('m-pages'), ALL_PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
-const MODES = ['synth', 'beat', 'mix'];
+const MODES = ['mix', 'synth', 'beat'];
 const PAGE_NAMES = { play: 'perform', seq: 'notes', voice: 'voice', xy: 'x/y', fx: 'effects', comp: 'master', presets: 'presets',
-  beat: 'pattern', bsteps: 'steps', kit: 'kit', mix: 'mixer' };
+  beat: 'pattern', bsteps: 'steps', kit: 'kit', mix: 'mixer', home: 'patterns' };
 const MODE_KEY = 'elixir-synth-mode';
 const inMode = (el, m) => el.dataset.modes.split(' ').includes(m);
-let mode = 'synth', PANELS = ALL_PANELS, mCur = 0;
-const modePage = { synth: 'play', beat: 'beat', mix: 'mix' };
-try { const k = JSON.parse(localStorage.getItem(MODE_KEY)); if (k && MODES.includes(k.mode)) { mode = k.mode; Object.assign(modePage, k.pages); } } catch (e) {}
+let mode = 'mix', PANELS = ALL_PANELS, mCur = 0;
+const modePage = { synth: 'play', beat: 'beat', mix: 'home' };
+// it opens on mix's patterns page; the synth and beat keep the page they were on
+try { const k = JSON.parse(localStorage.getItem(MODE_KEY)); if (k && k.pages) Object.assign(modePage, k.pages, { mix: 'home' }); } catch (e) {}
 const pageHooks = [], modeHooks = [];
 function mGo(i, smooth) {
   mCur = Math.max(0, Math.min(PANELS.length - 1, i));
@@ -6232,8 +6262,12 @@ snapParts.push({ key: 'beat', get: () => ({ ...bs, groove: { ...groove }, patter
 const MIX_CH = ['synth', 'kick', 'tom', 'snare', 'cymbal', 'hats'];
 const CHAN0 = () => MIX_CH.map(() => ({ lvl: 100, mute: false, echo: 0, verb: 0 }));
 const chans = CHAN0();
+// the crossfader on the patterns page: -100 is the beat alone, 100 the synth alone, both at full in the middle (not kept
+// in presets: it's played live)
+let xf = 0;
+const xfGain = (n) => (n ? Math.min(1, 1 - xf / 100) : Math.min(1, 1 + xf / 100));
 function sendChans() {
-  send({ type: 'chans', chans: chans.map((c, n) => ({ lvl: (c.lvl / 100) ** 2, mute: c.mute, echo: n ? c.echo / 100 : 0, verb: n ? c.verb / 100 : 0 })) });
+  send({ type: 'chans', chans: chans.map((c, n) => ({ lvl: (c.lvl / 100) ** 2 * xfGain(n), mute: c.mute, echo: n ? c.echo / 100 : 0, verb: n ? c.verb / 100 : 0 })) });
 }
 sendHooks.push(sendChans);
 const lvlDb = (v) => { if (!v) return '-∞'; const d = 40 * Math.log10(v / 100); return (d > 0.05 ? '+' : '') + (Math.abs(d) < 0.05 ? '0.0' : d.toFixed(1)); };
@@ -6269,6 +6303,13 @@ drawHooks.push(() => [...$('m-mixmutes').children].forEach((b, n) => b.setAttrib
 // presets keep the mixer
 snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   put: (c) => { const d = CHAN0(); chans.forEach((ch, n) => Object.assign(ch, d[n], (Array.isArray(c) && c[n]) || {})); } });
+{
+  const el = $('m-xf');
+  const show = () => { $('m-xfv').textContent = Math.abs(xf) < 3 ? 'beat + synth' : xf < 0 ? `beat ${100 + xf < 1 ? 'only' : '+ synth ' + (100 + xf) + '%'}` : `synth ${100 - xf < 1 ? 'only' : '+ beat ' + (100 - xf) + '%'}`; };
+  el.addEventListener('input', () => { xf = +el.value; if (Math.abs(xf) < 3) xf = 0; sendChans(); show(); });
+  el.addEventListener('dblclick', () => { xf = 0; el.value = 0; sendChans(); show(); });
+  show();
+}
 
 // ---- presets: everything (the sound, perf macros, notes, tempo, effects, master and the fader sequencers) under a
 // two-word name, kept in this browser under elixir-synth's own key. Save new, save over the loaded one, load, delete,
@@ -6302,7 +6343,7 @@ eventHandlers.push((ev) => {
   const p = pPending; setTimeout(() => { if (pPending === p) { pPending = null; pDraw(); } }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
 });
 stopHooks.push(() => { if (pPending) { pPending = null; pDraw(); } });
-function pDraw() {
+let pDraw = function () {
   const over = !pPending && pCur.saved ? pCur : null;
   $('m-pover').disabled = !over; $('m-pover').textContent = over ? `save over ${over.name}` : 'save over';
   const list = $('m-plist'), cur = pPending ? pShown : pCur;
@@ -6330,8 +6371,23 @@ function pDraw() {
   if (mine.length) { group('mine'); mine.slice().reverse().forEach(row); } else group('mine: none yet, save makes one');
   group('built in');
   presetList.filter((k) => k.builtin).forEach(row);
-}
+};
 pageHooks.push((t) => { if (t === 'presets') pDraw(); });
+// mix's patterns page: eight pads, for now the first eight built-in presets. A tap loads one (at the next bar while
+// playing): the one playing is lit, the one waiting flashes
+const PATS = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8);
+const patBtns = PATS.map((k, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'm-btn m-pat';
+  b.innerHTML = `<b>${i + 1}</b><small></small>`; b.querySelector('small').textContent = k.name;
+  b.addEventListener('click', () => pLoad(k));
+  $('m-pats').append(b); return b;
+});
+function patDraw() {
+  const cur = pPending ? pShown : pCur;
+  patBtns.forEach((b, i) => { b.setAttribute('aria-pressed', PATS[i] === cur); b.classList.toggle('pending', PATS[i] === pPending); });
+}
+{ const d = pDraw; pDraw = function () { d(); patDraw(); }; }
+patDraw();
 $('m-psave').addEventListener('click', () => {
   const k = { name: newName(), ...snapshot(), saved: true };
   presetList.push(k); storePresets(); pCur = k; pPending = null;

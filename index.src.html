@@ -18,16 +18,16 @@
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">synth</span></span><small class="m-ver">@VER@</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">@VER@</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
       <button class="m-rec" id="m-rec" type="button" aria-pressed="false" aria-label="Record"><i></i><span id="m-rec-t">rec</span></button>
     </div>
     <div class="m-modes-top" role="tablist" aria-label="mode">
-      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="true">mix</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="false">synth</button>
       <button class="m-btn" type="button" role="tab" data-to-mode="beat" aria-selected="false">beat</button>
-      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="false">mix</button>
     </div>
     <output class="m-steps-led" id="m-led" aria-hidden="true"></output>
   </header>
@@ -119,6 +119,16 @@
     </section>
   </div>
 
+  <div class="m-panel" data-m-panel="home" data-modes="mix">
+    <section class="m-card m-home-card">
+      <div class="m-pats" id="m-pats" aria-label="patterns"></div>
+      <div class="m-xfade">
+        <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
+        <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
+      </div>
+    </section>
+  </div>
+
   <div class="m-panel" data-m-panel="mix" data-modes="mix">
     <section class="m-card m-mix-card">
       <div class="m-faders m-row m-mixlvl" id="m-mixlvl"></div>
@@ -189,6 +199,7 @@
     <button type="button" role="tab" data-m-tab="beat" data-modes="beat" aria-selected="false">beat</button>
     <button type="button" role="tab" data-m-tab="bsteps" data-modes="beat" aria-selected="false">steps</button>
     <button type="button" role="tab" data-m-tab="kit" data-modes="beat" aria-selected="false">kit</button>
+    <button type="button" role="tab" data-m-tab="home" data-modes="mix" aria-selected="false">pats</button>
     <button type="button" role="tab" data-m-tab="mix" data-modes="mix" aria-selected="false">mix</button>
     <button type="button" role="tab" data-m-tab="fx" data-modes="mix" aria-selected="false">fx</button>
     <button type="button" role="tab" data-m-tab="comp" data-modes="mix" aria-selected="false">mstr</button>

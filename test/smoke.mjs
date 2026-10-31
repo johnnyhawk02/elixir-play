@@ -29,6 +29,15 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const drag = async (x0, y0, x1, y1, steps = 12) => { await pg.mouse.move(x0, y0); await pg.mouse.down(); await pg.mouse.move(x1, y1, { steps }); await pg.mouse.up(); await pg.waitForTimeout(450); };
   const tabs = () => pg.evaluate(() => [...document.querySelectorAll('[data-m-tab]')].filter((x) => !x.hidden).map((x) => x.dataset.mTab).join(' '));
   const fits = (t) => pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth].every((v) => v <= 0); }, t);
+  // it opens on mix's patterns page: eight pads, and the crossfader
+  check(await pg.evaluate(() => mode === 'mix' && [...document.querySelectorAll('[data-to-mode]')].map((b) => b.dataset.toMode).join() === 'mix,synth,beat') && await page() === 'home', 'it opens on mix, the keys in the order mix, synth, beat');
+  check(await pg.evaluate(() => document.querySelectorAll('#m-pats .m-pat').length === 8) && await fits('home'), 'the patterns page has eight pads and fits');
+  await pg.click('#m-pats .m-pat >> nth=1');
+  check(await pg.evaluate(() => pCur === PATS[1] && document.querySelector('#m-pats .m-pat:nth-child(2)').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
+  await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = -100; x.dispatchEvent(new Event('input')); });
+  check(await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1 && document.getElementById('m-xfv').textContent === 'beat only'), 'the crossfader all the way left is the beat alone');
+  await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = 0; x.dispatchEvent(new Event('input')); });
+  await pg.click('[data-to-mode="synth"]');
   // the case: the cauldron, play, rec and the mode keys all on one line, the cauldron carrying the version
   check(await pg.evaluate(() => { const ts = ['#m-mode', '#m-play', '#m-rec', '[data-to-mode="synth"]', '[data-to-mode="mix"]'].map((q) => document.querySelector(q).getBoundingClientRect());
     return ts.every((r) => Math.abs(r.top - ts[0].top) < 4 && r.right <= innerWidth) && /^\d+$/.test(document.querySelector('#m-mode .m-ver').textContent); }), 'the case controls are on one line, with the version on the cauldron');
@@ -133,7 +142,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');
-  // modes: the title steps elixir-synth → beat → mix → synth, each with its own pages
+  // modes: the cauldron steps mix → synth → beat → mix, each with its own pages
   await pg.click('#m-mode');
   check(await pg.evaluate(() => mode) === 'beat' && await tabs() === 'beat bsteps kit presets' && await page() === 'beat' && await pg.textContent('#m-modename') === 'beat', 'the title turns to elixir-beat');
   for (const t of ['beat', 'bsteps', 'kit']) { await pg.click(`[data-m-tab="${t}"]`); check(await fits(t), `${t}: fits the screen`); }
@@ -150,7 +159,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('[data-m-tab="kit"]'); await pg.click('#m-knext');
   check(await pg.evaluate(() => bs.kit === 1 && document.getElementById('m-kitname').textContent.startsWith('2 ')), 'the kit steps to the next one');
   await pg.click('#m-mode');
-  check(await pg.evaluate(() => mode) === 'mix' && await tabs() === 'mix fx comp presets' && await page() === 'mix', 'then to elixir-mix');
+  check(await pg.evaluate(() => mode) === 'mix' && await tabs() === 'home mix fx comp presets' && await page() === 'mix', 'then to elixir-mix');
   check(await fits('mix'), 'mix: fits the screen');
   await pg.waitForTimeout(600);
   check(await pg.evaluate(() => [...document.querySelectorAll('.m-meter b')].filter((x) => parseFloat(x.style.width) > 0).length >= 3), 'the meters show the synth and the beat playing together');

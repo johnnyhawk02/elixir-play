@@ -4,8 +4,12 @@
 const MIX_CH = ['synth', 'kick', 'tom', 'snare', 'cymbal', 'hats'];
 const CHAN0 = () => MIX_CH.map(() => ({ lvl: 100, mute: false, echo: 0, verb: 0 }));
 const chans = CHAN0();
+// the crossfader on the patterns page: -100 is the beat alone, 100 the synth alone, both at full in the middle (not kept
+// in presets: it's played live)
+let xf = 0;
+const xfGain = (n) => (n ? Math.min(1, 1 - xf / 100) : Math.min(1, 1 + xf / 100));
 function sendChans() {
-  send({ type: 'chans', chans: chans.map((c, n) => ({ lvl: (c.lvl / 100) ** 2, mute: c.mute, echo: n ? c.echo / 100 : 0, verb: n ? c.verb / 100 : 0 })) });
+  send({ type: 'chans', chans: chans.map((c, n) => ({ lvl: (c.lvl / 100) ** 2 * xfGain(n), mute: c.mute, echo: n ? c.echo / 100 : 0, verb: n ? c.verb / 100 : 0 })) });
 }
 sendHooks.push(sendChans);
 const lvlDb = (v) => { if (!v) return '-∞'; const d = 40 * Math.log10(v / 100); return (d > 0.05 ? '+' : '') + (Math.abs(d) < 0.05 ? '0.0' : d.toFixed(1)); };
@@ -41,3 +45,10 @@ drawHooks.push(() => [...$('m-mixmutes').children].forEach((b, n) => b.setAttrib
 // presets keep the mixer
 snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   put: (c) => { const d = CHAN0(); chans.forEach((ch, n) => Object.assign(ch, d[n], (Array.isArray(c) && c[n]) || {})); } });
+{
+  const el = $('m-xf');
+  const show = () => { $('m-xfv').textContent = Math.abs(xf) < 3 ? 'beat + synth' : xf < 0 ? `beat ${100 + xf < 1 ? 'only' : '+ synth ' + (100 + xf) + '%'}` : `synth ${100 - xf < 1 ? 'only' : '+ beat ' + (100 - xf) + '%'}`; };
+  el.addEventListener('input', () => { xf = +el.value; if (Math.abs(xf) < 3) xf = 0; sendChans(); show(); });
+  el.addEventListener('dblclick', () => { xf = 0; el.value = 0; sendChans(); show(); });
+  show();
+}

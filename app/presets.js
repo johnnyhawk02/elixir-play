@@ -30,7 +30,7 @@ eventHandlers.push((ev) => {
   const p = pPending; setTimeout(() => { if (pPending === p) { pPending = null; pDraw(); } }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
 });
 stopHooks.push(() => { if (pPending) { pPending = null; pDraw(); } });
-function pDraw() {
+let pDraw = function () {
   const over = !pPending && pCur.saved ? pCur : null;
   $('m-pover').disabled = !over; $('m-pover').textContent = over ? `save over ${over.name}` : 'save over';
   const list = $('m-plist'), cur = pPending ? pShown : pCur;
@@ -58,8 +58,23 @@ function pDraw() {
   if (mine.length) { group('mine'); mine.slice().reverse().forEach(row); } else group('mine: none yet, save makes one');
   group('built in');
   presetList.filter((k) => k.builtin).forEach(row);
-}
+};
 pageHooks.push((t) => { if (t === 'presets') pDraw(); });
+// mix's patterns page: eight pads, for now the first eight built-in presets. A tap loads one (at the next bar while
+// playing): the one playing is lit, the one waiting flashes
+const PATS = presetList.filter((k) => k.builtin && k.name !== 'Init').slice(0, 8);
+const patBtns = PATS.map((k, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'm-btn m-pat';
+  b.innerHTML = `<b>${i + 1}</b><small></small>`; b.querySelector('small').textContent = k.name;
+  b.addEventListener('click', () => pLoad(k));
+  $('m-pats').append(b); return b;
+});
+function patDraw() {
+  const cur = pPending ? pShown : pCur;
+  patBtns.forEach((b, i) => { b.setAttribute('aria-pressed', PATS[i] === cur); b.classList.toggle('pending', PATS[i] === pPending); });
+}
+{ const d = pDraw; pDraw = function () { d(); patDraw(); }; }
+patDraw();
 $('m-psave').addEventListener('click', () => {
   const k = { name: newName(), ...snapshot(), saved: true };
   presetList.push(k); storePresets(); pCur = k; pPending = null;
