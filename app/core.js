@@ -74,7 +74,7 @@ function setValue(par, v) {
   if (par === PAR.TARGET_LFO1) send({ type: 'param', par: PAR.VOICE_LFO1, value: 1 });
 }
 
-// ---- the note sequence: 16 steps, each a degree of the scale (0 the root, up two octaves and more), a gate (0 rests, 1-4
+// ---- the note sequence: four pages of 16 steps, played in turn a bar each; each step a degree of the scale (0 the root, up two octaves and more), a gate (0 rests, 1-4
 // a quarter to all of the step, 5 rings), an accent and a slide into the next; root and scale say which notes those are ----
 const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 10]], ['dorian', [0, 2, 3, 5, 7, 9, 10]],
   ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
@@ -83,6 +83,10 @@ const DEG_MAX = 15;
 const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100,
   steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
     [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
+const PAGES = 4, NSTEPS = PAGES * 16;
+// a sequence with fewer pages (one, from before there were four) is repeated to fill them, so it plays as it did
+const fillPages = (steps) => Array.from({ length: NSTEPS }, (_, i) => ({ ...steps[i % steps.length] }));
+SEQ0.steps = fillPages(SEQ0.steps);
 const seq = structuredClone(SEQ0);
 // a degree's semitones above the root's C (the note heard: the voice's coarse, plus this, plus pitch)
 const degSemis = (d, sc = seq.scale, root = seq.root) => { const s = SCALES[sc][1]; return root + s[d % s.length] + 12 * Math.floor(d / s.length); };
@@ -195,6 +199,7 @@ function useSnapshot(p, keepTempo) {
   Object.assign(macro, MACRO0, p.macro);
   if (!keepTempo && p.tempo) tempo = p.tempo;
   Object.assign(seq, structuredClone(SEQ0), structuredClone(p.seq || {}));
+  seq.steps = fillPages(seq.steps.length ? seq.steps.slice(0, NSTEPS) : SEQ0.steps);
   Object.assign(fx, FX0, p.fx);
   delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
   Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));

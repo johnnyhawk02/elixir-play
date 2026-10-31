@@ -1,7 +1,9 @@
-// ---- the seq page: the note sequencer. Sixteen steps in two rows of eight; the strip over them picks what a touch
-// sets: note (the step's height is its note in the scale; a resting step comes on), gate (bottom rests, top rings),
+// ---- the seq page: the note sequencer. Four pages of sixteen steps, played in turn a bar each; the page tabs pick
+// the page shown (the one playing is underlined), and copy makes pages 2 to 4 slight variations of page 1. A page's
+// steps sit in two rows of eight; the strip over them picks what a touch sets: note (the step's height is its note in the scale; a resting step comes on), gate (bottom rests, top rings),
 // accent or slide (tap, or drag across, to switch). Under them: root, scale, accent and glide, and random, alter, undo ----
-let nsMode = 'note';
+let nsMode = 'note', nsPage = 0;
+const nsStep = (i) => seq.steps[nsPage * 16 + i];
 const nsCells = Array.from({ length: 16 }, (_, i) => {
   const c = document.createElement('div'); c.className = 'm-step'; c.dataset.i = i; c.setAttribute('role', 'gridcell');
   c.innerHTML = '<span class="m-sn"></span><i class="m-sbar"></i><span class="m-sm"><b class="a">A</b><b class="s">S</b></span>';
@@ -9,7 +11,7 @@ const nsCells = Array.from({ length: 16 }, (_, i) => {
 });
 function nsDraw() {
   nsCells.forEach((c, i) => {
-    const st = seq.steps[i];
+    const st = nsStep(i);
     c.querySelector('.m-sn').textContent = st.gate ? noteName(stepNote(st)) : '—';
     const f = nsMode === 'gate' ? st.gate / 5 : nsMode === 'note' ? (st.d + 1) / (DEG_MAX + 1) : 0;
     c.style.setProperty('--f', f);
@@ -18,9 +20,11 @@ function nsDraw() {
   });
   $('m-steps').dataset.mode = nsMode;
   [...$('m-modes').children].forEach((b) => b.setAttribute('aria-selected', b.dataset.mode === nsMode));
+  document.querySelectorAll('#m-npages [data-page]').forEach((b) => b.setAttribute('aria-selected', +b.dataset.page === nsPage));
 }
 drawHooks.push(nsDraw);
 $('m-modes').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) { nsMode = b.dataset.mode; nsDraw(); } });
+$('m-npages').addEventListener('click', (e) => { const b = e.target.closest('[data-page]'); if (b) { nsPage = +b.dataset.page; nsDraw(); nsNow(); } });
 // hear a note as it's set, while stopped
 function nsHear(st) { if (!playing && st.gate) { startAudio(); send({ type: 'note', n: degSemis(st.d), acc: st.acc, gate: st.gate }); } }
 {
@@ -33,7 +37,7 @@ function nsHear(st) { if (!playing && st.gate) { startAudio(); send({ type: 'not
     return row * 8 + col;
   };
   const at = (e, first) => {
-    const i = cellAt(e), st = seq.steps[i], c = nsCells[i], cr = c.getBoundingClientRect();
+    const i = cellAt(e), st = nsStep(i), c = nsCells[i], cr = c.getBoundingClientRect();
     const y = Math.max(0, Math.min(1, (cr.bottom - e.clientY) / cr.height));
     let hear = false;
     if (nsMode === 'note') {
@@ -57,12 +61,17 @@ function nsHear(st) { if (!playing && st.gate) { startAudio(); send({ type: 'not
   const stop = () => { paint = null; };
   box.addEventListener('pointerup', stop); box.addEventListener('pointercancel', stop);
 }
-// the step playing, marked as it's heard
+// the step playing (if its page is shown) and its page, marked as they're heard
+let nsAt = null;
+function nsNow() {
+  nsCells.forEach((c, i) => c.classList.toggle('now', !!nsAt && nsAt.page === nsPage && i === nsAt.step));
+  document.querySelectorAll('#m-npages [data-page]').forEach((b) => b.classList.toggle('now', !!nsAt && +b.dataset.page === nsAt.page));
+}
 eventHandlers.push((ev) => {
   if (ev.type !== 'step') return;
-  setTimeout(() => { if (playing) nsCells.forEach((c, i) => c.classList.toggle('now', i === ev.step)); }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
+  setTimeout(() => { if (playing) { nsAt = ev; nsNow(); } }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
 });
-stopHooks.push(() => nsCells.forEach((c) => c.classList.remove('now')));
+stopHooks.push(() => { nsAt = null; nsNow(); });
 
 const ROOTS = NOTE_NAMES;
 mFader($('m-seqf'), 'root', { min: 0, max: 11, get: () => seq.root, set: (v) => { seq.root = v; sendSeq(); nsDraw(); }, show: (v) => ROOTS[v], dflt: 0 });
@@ -70,31 +79,38 @@ mFader($('m-seqf'), 'scale', { min: 0, max: SCALES.length - 1, get: () => seq.sc
 mFader($('m-seqf'), 'accent', { min: 0, max: 12, get: () => seq.accent, set: (v) => { seq.accent = v; sendSeq(); }, show: (v) => `+${v}dB`, dflt: SEQ0.accent });
 mFader($('m-seqf'), 'glide', { min: 0, max: 100, step: 5, get: () => seq.glide, set: (v) => { seq.glide = v; sendSeq(); }, show: (v) => v + '%', dflt: SEQ0.glide });
 
-// random: a new line in the key: mostly the root and the notes near it, now and then an octave up; about one step in
-// five rests, one in five accented and one in six sliding. The first step always plays
-function randomNotes() {
+// random: a new line in the key for a page: mostly the root and the notes near it, now and then an octave up; about
+// one step in five rests, one in five accented and one in six sliding. The page's first step always plays
+function randomPage(pg) {
   const n = SCALES[seq.scale][1].length;
   const near = [0, 0, 0, 1, 2, 2, 3, 4, 4, n - 1, n - 2].map((d) => (d + n) % n);
-  seq.steps = seq.steps.map((_, i) => {
+  for (let i = 0; i < 16; i++) {
     let d = pick(near);
     if (chance(0.18)) d += n;
     if (chance(0.06)) d += n;
-    return { d: Math.min(DEG_MAX, d), gate: i && chance(0.22) ? 0 : pick([2, 3, 4, 4, 5]), acc: chance(0.2), slide: chance(0.17) };
-  });
-  sendSeq();
+    seq.steps[pg * 16 + i] = { d: Math.min(DEG_MAX, d), gate: i && chance(0.22) ? 0 : pick([2, 3, 4, 4, 5]), acc: chance(0.2), slide: chance(0.17) };
+  }
 }
-// alter: two to four steps changed a little: a note a step or two up or down the scale, a rest played or a note rested,
-// an accent or a slide switched
-function alterNotes() {
-  const k = rIn(2, 4);
+// alter: k steps of a page changed a little: a note a step or two up or down the scale, a rest played or a note
+// rested, an accent or a slide switched
+function alterPage(pg, k = rIn(2, 4)) {
   for (let j = 0; j < k; j++) {
-    const st = seq.steps[rIn(0, 15)], what = rIn(0, 3);
+    const st = seq.steps[pg * 16 + rIn(0, 15)], what = rIn(0, 3);
     if (what === 0 || (what === 1 && !st.gate)) { st.d = Math.max(0, Math.min(DEG_MAX, st.d + pick([-2, -1, 1, 2]))); if (!st.gate) st.gate = 4; }
     else if (what === 1) st.gate = chance(0.4) ? 0 : rIn(1, 5);
     else if (what === 2) st.acc = !st.acc;
     else st.slide = !st.slide;
   }
-  sendSeq();
 }
-$('m-nrand').addEventListener('click', (e) => mRandomise(e.currentTarget, randomNotes));
-$('m-nalter').addEventListener('click', (e) => mRandomise(e.currentTarget, alterNotes));
+// copy: page 1 onto pages 2 to 4, each changed a little (two or three steps; the last page, the turnaround, a few more)
+function copyVary() {
+  for (let pg = 1; pg < PAGES; pg++) {
+    for (let i = 0; i < 16; i++) seq.steps[pg * 16 + i] = { ...seq.steps[i] };
+    alterPage(pg, pg === PAGES - 1 ? rIn(3, 5) : rIn(2, 3));
+  }
+}
+// the whole sequence, for the perf page's randomisers: a new page 1 and its variations
+function randomNotes() { randomPage(0); copyVary(); sendSeq(); }
+$('m-nrand').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomPage(nsPage); sendSeq(); }));
+$('m-nalter').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { alterPage(nsPage); sendSeq(); }));
+$('m-ncopy').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { copyVary(); sendSeq(); }));

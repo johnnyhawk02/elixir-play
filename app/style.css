@@ -202,10 +202,16 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 @media (prefers-reduced-motion: reduce) { .m .m-btn.pending { animation: none; outline: 2px dashed var(--ink); outline-offset: 2px; } }
 
 /* ---- seq: what a touch sets, the sixteen steps in two rows, then root, scale, accent, glide and the buttons ---- */
-.m-seqpage { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(120px, 34%); gap: 8px; min-height: 0; padding: 6px 2px; }
+.m-seqpage { display: grid; grid-template-rows: auto auto minmax(0, 1fr) minmax(120px, 34%); gap: 8px; min-height: 0; padding: 6px 2px; }
 .m-modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
 .m .m-modes .m-btn { min-height: 44px; padding: 0 2px; font-size: min(var(--fs-xs), 3.9vw, 16px) !important; letter-spacing: .02em; }
 .m .m-modes .m-btn[aria-selected="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+/* the pages: four tabs (the one playing underlined) and the copy button */
+.m-npages { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 2.4fr); gap: 4px; }
+.m .m-npages .m-btn { min-height: 40px; padding: 0 2px; font-size: min(var(--fs-xs), 3.9vw, 16px) !important; letter-spacing: .02em; white-space: nowrap; overflow: hidden; }
+.m .m-npages .m-btn[aria-selected="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m .m-npages .m-btn.now { box-shadow: inset 0 -5px 0 var(--ink); }
+.m .m-npages .m-btn.now[aria-selected="true"] { box-shadow: inset 0 -5px 0 var(--panel); }
 .m-steps { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px 4px; min-height: 0; touch-action: none; }
 /* a step: its note on top, a bar for its note (or gate) filling from the bottom, A and S lit when accented or sliding */
 .m-step { --f: 0; position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 2px; min-height: 0; padding: 3px 2px; border: 2px solid var(--ink); border-radius: 2px; }

@@ -3,7 +3,8 @@
 //   node test/engine.mjs [index.html]
 // - a note on a whole semitone is bit-exact: the voice renders exactly what the engine's own trigger on that note does
 // - pitch between semitones is continuous (cents), and back on a semitone it's exact again
-// - the sequencer: rests don't play, a slide glides into the next step without a retrigger, a short gate closes
+// - the sequencer: rests don't play, a slide glides into the next step without a retrigger, a short gate closes;
+//   four pages play in turn
 // - the reverb leaves a finite tail, and holds at the top of its decay
 // - every built-in preset loads and plays at a sane level
 import { readFileSync } from 'node:fs';
@@ -58,6 +59,16 @@ const check = (ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if
   check(JSON.stringify(played) === JSON.stringify([[0, 0], [2, 3], [4, 7]]), `steps 0, 2 and 4 trigger; the rest and the slid-into step don't (${JSON.stringify(played)})`);
   check(slid, 'step 2 slides into step 3');
   check(minGain === 0, 'a quarter gate closes before its step is out');
+}
+// four pages: they play in turn, a bar each, then page 1 again
+{
+  const p = new Player(LXR.REAL_FS), hits = [];
+  const trig = p.e.trigger.bind(p.e);
+  p.e.trigger = (v, vel, note) => { hits.push(note - 60); trig(v, vel, note); };
+  const steps = Array.from({ length: 64 }, (_, i) => ({ n: Math.floor(i / 16), gate: i % 16 === 0 ? 4 : 0, acc: false, slide: false }));
+  p.msg({ type: 'seq', playing: true, bpm: 120, vel: 100, glide: 0.5, accentDb: 6, steps });
+  for (let b = 0; b < Math.ceil(LXR.REAL_FS * 2 * 4.5 / 64); b++) p._render(p.A);
+  check(JSON.stringify(hits) === '[0,1,2,3,0]', `four pages play in turn (${JSON.stringify(hits)})`);
 }
 // the reverb: a note sent to it leaves a tail after the voice has stopped, finite and at a sane level, and at the top
 // of its decay (with the tone in the middle) it holds

@@ -56,6 +56,13 @@ function setPlaying(on) {
 }
 const stopHooks = [];
 $('m-play').addEventListener('click', async () => { await startAudio(); setPlaying(!playing); });
+// the space bar starts and stops (but still types in a text box); it never presses the button that has the focus
+addEventListener('keydown', (e) => {
+  if (e.code !== 'Space' || e.target.closest('input[type="text"], textarea, select')) return;
+  e.preventDefault();
+  if (!e.repeat) $('m-play').click();
+}, true);
+addEventListener('keyup', (e) => { if (e.code === 'Space' && !e.target.closest('input[type="text"], textarea, select')) e.preventDefault(); }, true);
 // the step light: sixteen segments, the one playing lit
 const mLedCells = Array.from({ length: 16 }, () => { const i = document.createElement('i'); $('m-led').append(i); return i; });
 function mLed(s) { mLedCells.forEach((c, i) => c.classList.toggle('on', i === s)); }

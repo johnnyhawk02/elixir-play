@@ -12,7 +12,7 @@ Elixir Synth is unofficial: it is not made, approved or endorsed by Erica Synths
 
 ## Pages
 
-Swipe across the screen, or tap the page buttons along the bottom. Dragging a fader, the x/y pad or the steps never
+Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
 turns the page. Play, record and the step light sit at the top.
 
 - **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, random fx, alter fx, undo, and
@@ -27,9 +27,12 @@ turns the page. Play, record and the step light sit at the top.
   | 4 | filter | | 8 | echo send | | 12 | distortion mix |
 
   Chrome asks for MIDI access at the first touch.
-- **SEQ**: the note sequencer. Sixteen steps, each with a note, a gate (from a quarter step to ringing out; the bottom
-  rests it), an accent and a slide into the next step. Pick what a touch sets (note, gate, accent, slide), then
-  draw across the steps. Root, scale, accent amount and glide time, and random, alter and undo.
+- **SEQ**: the note sequencer. Four pages of sixteen steps, played in turn a bar each; each step has a note, a gate
+  (from a quarter step to ringing out; the bottom rests it), an accent and a slide into the next step. Pick the page
+  (the one playing is underlined) and what a touch sets (note, gate, accent, slide), then draw across the steps.
+  *Copy 1 → 2-4* copies page 1 onto the other three, each with a few steps changed. Root, scale, accent amount and
+  glide time, and random, alter (the page shown) and undo. Presets from before there were pages play their one page
+  on all four.
 - **VOICE**: every DR1 parameter, on four tabs: tone, shape, filter, mod.
 - **X/Y**: one pad moving any two DR1 parameters.
 - **FX**: the echo (tempo-synced on musical lengths, ping pong, tone, feedback, width), the reverb (send, predelay,

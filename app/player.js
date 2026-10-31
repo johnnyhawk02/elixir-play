@@ -14,7 +14,7 @@ class Player {
     this.A = [new Float32Array(64), new Float32Array(64)];
     this.B = [new Float32Array(64), new Float32Array(64)];
     this.idx = 0; this.frac = 0;
-    // the sequence: 16 steps of { n: semitones from middle C, gate, acc, slide }
+    // the sequence: 16 steps a page (up to 4 pages) of { n: semitones from middle C, gate, acc, slide }
     this.steps = Array.from({ length: 16 }, () => ({ n: 0, gate: 0, acc: false, slide: false }));
     this.playing = false; this.bpm = 120; this.vel = 100; this.accGain = 0.5; this.glide = 0.35;
     this.step = 0; this.bar = 0; this.toNext = 0; this.atBar = []; this.clock = 0;
@@ -100,10 +100,10 @@ class Player {
     this.slideLen = Math.max(64, this.glide * len);
     this.cutAt = gate >= GATE_RING ? Infinity : this.clock + gate / 4 * len;
   }
-  // step s: its note, slid into from the step before when that one slides and both play; a step that slides on
+  // step s (of all the pages): its note, slid into from the step before when that one slides and both play; a step that slides on
   // keeps its gate open into the next
   doStep(s) {
-    const S = this.steps, cur = S[s], prev = S[(s + 15) % 16], next = S[(s + 1) % 16];
+    const S = this.steps, N = S.length, cur = S[s], prev = S[(s + N - 1) % N], next = S[(s + 1) % N];
     if (!cur.gate) return;
     const slideIn = prev.slide && prev.gate > 0 && this.cutAt === Infinity && this.gate > 0;
     this.play(cur.n, cur.acc, cur.slide && next.gate ? GATE_RING : cur.gate, slideIn);
@@ -114,8 +114,10 @@ class Player {
       if (this.toNext <= 0) {
         if (this.step === 0 && this.atBar.length) this.flushBar();
         const len = LXR.REAL_FS * 60 / this.bpm / 4;
-        this.doStep(this.step);
-        this.events.push({ type: 'step', step: this.step, bar: this.bar, gr: this.gr });
+        // the pages play in turn, a bar each
+        const page = this.bar % Math.max(1, this.steps.length / 16);
+        this.doStep(page * 16 + this.step);
+        this.events.push({ type: 'step', step: this.step, page, bar: this.bar, gr: this.gr });
         this.gr = 0;
         this.step = (this.step + 1) % 16;
         if (this.step === 0) this.bar++;

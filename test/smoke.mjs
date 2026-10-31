@@ -1,6 +1,7 @@
 // Drives the built page in Chromium's phone emulation (Pixel 9a's 412 x 915 and a small 360 x 640): no errors, no page
 // scrolls but the presets list, swipes and page buttons turn the page, fader and pad drags don't, holding a fader opens
-// its sequencer, MIDI CC 1-12 turn the perf dials, the reverb sends, the note grid edits steps, play runs the steps, presets save and load, and record downloads a WAV.
+// its sequencer, MIDI CC 1-12 turn the perf dials, the reverb sends, the note grid edits steps on four pages and copies
+// page 1 to the others, space plays and stops, play runs the steps, presets save and load, and record downloads a WAV.
 //   node test/smoke.mjs [index.html]   (needs Playwright)
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -76,6 +77,20 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   r = await box('.m-step >> nth=2');
   await pg.mouse.click(r.x + r.width / 2, r.y + r.height / 2);
   check(await pg.evaluate(() => seq.steps[1].gate === 0 && seq.steps[2].acc), 'steps edit: a gate rested, an accent set');
+  // pages: page 2's steps are steps 17 to 32; copy makes pages 2 to 4 page 1 with a few steps changed
+  await pg.click('#m-npages [data-page="1"]');
+  await pg.click('[data-mode="gate"]');
+  r = await box('.m-step >> nth=5');
+  await pg.mouse.click(r.x + r.width / 2, r.y + r.height - 3);
+  check(await pg.evaluate(() => seq.steps.length === 64 && seq.steps[21].gate === 0), 'page 2 edits its own steps');
+  await pg.click('#m-ncopy');
+  check(await pg.evaluate(() => { const k = [1, 2, 3].map((p) => seq.steps.slice(p * 16, p * 16 + 16).filter((st, i) => JSON.stringify(st) !== JSON.stringify(seq.steps[i])).length); return k.every((n) => n <= 5) && k.some((n) => n > 0); }), 'copy: pages 2 to 4 are page 1, slightly varied');
+  await pg.click('#m-npages [data-page="0"]');
+  // the space bar starts and stops
+  await pg.keyboard.press('Space'); await pg.waitForTimeout(300);
+  const on = await pg.evaluate(() => playing);
+  await pg.keyboard.press('Space'); await pg.waitForTimeout(200);
+  check(on && !(await pg.evaluate(() => playing)), 'space starts and stops');
   await pg.click('#m-nrand');
   check(await pg.isEnabled('#m-nalter ~ [data-undo]'), 'random notes can be undone');
   // play runs the steps
