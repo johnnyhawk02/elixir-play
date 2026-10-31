@@ -79,17 +79,86 @@ mFader($('m-seqf'), 'scale', { min: 0, max: SCALES.length - 1, get: () => seq.sc
 mFader($('m-seqf'), 'accent', { min: 0, max: 12, get: () => seq.accent, set: (v) => { seq.accent = v; sendSeq(); }, show: (v) => `+${v}dB`, dflt: SEQ0.accent });
 mFader($('m-seqf'), 'glide', { min: 0, max: 100, step: 5, get: () => seq.glide, set: (v) => { seq.glide = v; sendSeq(); }, show: (v) => v + '%', dflt: SEQ0.glide });
 
-// random: a new line in the key for a page: mostly the root and the notes near it, now and then an octave up; about
-// one step in five rests, one in five accented and one in six sliding. The page's first step always plays
+// random: a new line for a page, made by the algorithm picked on the algo fader (kept in the preset). Each makes 16
+// steps of { d: degree of the scale, gate, acc, slide }, so whatever it makes stays in the key
+const st = (d, gate, acc = false, slide = false) => ({ d: Math.max(0, Math.min(DEG_MAX, d)), gate, acc, slide });
+const euclid = (k, rot) => Array.from({ length: 16 }, (_, i) => ((i + rot) * k) % 16 < k);
+const SEQ_ALGOS = [
+  // 1 dice: each step on its own: mostly the root and the notes near it, now and then an octave up; about one step in
+  // five rests, one in five accented and one in six sliding
+  ['dice', (n) => {
+    const near = [0, 0, 0, 1, 2, 2, 3, 4, 4, n - 1, n - 2].map((d) => (d + n) % n);
+    return Array.from({ length: 16 }, (_, i) => {
+      let d = pick(near);
+      if (chance(0.18)) d += n;
+      if (chance(0.06)) d += n;
+      return st(d, i && chance(0.22) ? 0 : pick([2, 3, 4, 4, 5]), chance(0.2), chance(0.17));
+    });
+  }],
+  // 2 acid: a 303 line: the root and its octave, now and then the fifth or the seventh, short notes, lots of slides
+  // and accents, few rests
+  ['acid', (n) => Array.from({ length: 16 }, (_, i) => {
+    const d = pick([0, 0, 0, n, n, 4 % n, n - 1, n + 2]);
+    return st(d, i && chance(0.15) ? 0 : pick([1, 2, 2, 3]), chance(0.35), chance(0.3));
+  })],
+  // 3 euclid: hits spread as evenly as they go (5 to 11 in 16, turned round), playing a three-note cell over them
+  ['euclid', (n) => {
+    const hits = euclid(rIn(5, 11), rIn(0, 15)), cell = [0, pick([2, 4, n - 1]), pick([1, 3, n])];
+    let k = 0;
+    return hits.map((h, i) => (h || i === 0 ? st(cell[k++ % 3], pick([2, 3, 4]), i % 4 === 0, false) : st(0, 0)));
+  }],
+  // 4 arp: the chord (root, third, fifth, octave) up, down or up and down, every step, the beat accented
+  ['arp', (n) => {
+    const tones = [0, 2, 4, n], order = pick(['up', 'down', 'updown']);
+    const seqd = order === 'up' ? tones : order === 'down' ? tones.slice().reverse() : [...tones, tones[2], tones[1]];
+    const oct = chance(0.4) ? n : 0;
+    return Array.from({ length: 16 }, (_, i) => st(seqd[i % seqd.length] + (i >= 8 ? oct : 0), pick([2, 2, 3]), i % 4 === 0, false));
+  }],
+  // 5 walk: from the root, each note a step or two up or down the scale from the last; a step slides into its
+  // neighbour now and then; a few rests
+  ['walk', (n) => {
+    let d = pick([0, n]);
+    return Array.from({ length: 16 }, (_, i) => {
+      if (i) d = Math.max(0, Math.min(2 * n, d + pick([-2, -1, -1, 1, 1, 2, 0])));
+      return st(d, i && chance(0.15) ? 0 : pick([3, 4, 4]), chance(0.15), chance(0.2));
+    });
+  }],
+  // 6 motif: a four-step idea, then it again, then moved up the scale, then a changed ending that comes home to
+  // the root (A A A' B)
+  ['motif', (n) => {
+    const A = Array.from({ length: 4 }, (_, i) => st(i === 0 ? 0 : pick([0, 1, 2, 4, n - 1]), i && chance(0.25) ? 0 : pick([2, 3, 4]), i === 0, chance(0.15)));
+    const up = pick([1, 2, 4]);
+    const B = A.map((x, i) => (i < 2 ? { ...x } : st(i === 3 ? 0 : pick([1, 2, 4]), pick([3, 4, 5]), i === 3, false)));
+    return [...A, ...A.map((x) => ({ ...x })), ...A.map((x) => ({ ...x, d: x.d + up })), ...B];
+  }],
+  // 7 groove: a bass groove: the root on a syncopated rhythm (3+3+2, or one like it), the octave or fifth on the
+  // offbeats between, and quiet ghost notes
+  ['groove', (n) => {
+    const rhythm = pick([[0, 3, 6, 8, 11, 14], [0, 3, 6, 10, 12], [0, 2, 3, 6, 8, 10, 11, 14], [0, 4, 7, 10, 12, 14]]);
+    return Array.from({ length: 16 }, (_, i) => {
+      if (rhythm.includes(i)) return st(i % 8 === 0 ? 0 : pick([0, 0, n, 4 % n]), pick([2, 3]), i % 8 === 0 || chance(0.25), chance(0.1));
+      return chance(0.25) ? st(pick([0, n, 4 % n]), 1, false, false) : st(0, 0);
+    });
+  }],
+  // 8 phrase: a slow tune: longer notes that ring, mostly moving by step, a breath (rest) now and then, ending on
+  // the root
+  ['phrase', (n) => {
+    const out = [];
+    let d = pick([0, 2, 4]);
+    while (out.length < 16) {
+      const len = Math.min(16 - out.length, pick([2, 2, 3, 4]));
+      if (out.length + len >= 16) d = pick([0, n]);
+      out.push(st(d, 5, out.length % 8 === 0, chance(0.25)));
+      for (let k = 1; k < len; k++) out.push(st(d, 0));
+      if (chance(0.2) && out.length < 15) out.push(st(0, 0));
+      d = Math.max(0, Math.min(2 * n, d + pick([-2, -1, -1, 1, 1, 2, 3])));
+    }
+    return out.slice(0, 16);
+  }]];
 function randomPage(pg) {
   const n = SCALES[seq.scale][1].length;
-  const near = [0, 0, 0, 1, 2, 2, 3, 4, 4, n - 1, n - 2].map((d) => (d + n) % n);
-  for (let i = 0; i < 16; i++) {
-    let d = pick(near);
-    if (chance(0.18)) d += n;
-    if (chance(0.06)) d += n;
-    seq.steps[pg * 16 + i] = { d: Math.min(DEG_MAX, d), gate: i && chance(0.22) ? 0 : pick([2, 3, 4, 4, 5]), acc: chance(0.2), slide: chance(0.17) };
-  }
+  const algo = SEQ_ALGOS[seq.algo] || SEQ_ALGOS[0];
+  algo[1](n).forEach((x, i) => { seq.steps[pg * 16 + i] = x; });
 }
 // alter: k steps of a page changed a little: a note a step or two up or down the scale, a rest played or a note
 // rested, an accent or a slide switched
@@ -114,3 +183,6 @@ function randomNotes() { randomPage(0); copyVary(); sendSeq(); }
 $('m-nrand').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomPage(nsPage); sendSeq(); }));
 $('m-nalter').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { alterPage(nsPage); sendSeq(); }));
 $('m-ncopy').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { copyVary(); sendSeq(); }));
+// the algorithm random uses: its number on the fader, its name on the random button
+mFader($('m-seqf'), 'algo', { min: 0, max: SEQ_ALGOS.length - 1, get: () => seq.algo, set: (v) => { seq.algo = v; drawAll(); }, show: (v) => String(v + 1), dflt: 0 });
+drawHooks.push(() => { $('m-nalgo').textContent = `${seq.algo + 1} ${SEQ_ALGOS[seq.algo][0]}`; });

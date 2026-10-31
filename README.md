@@ -31,7 +31,8 @@ turns the page. Play, record and the step light sit at the top.
   (from a quarter step to ringing out; the bottom rests it), an accent and a slide into the next step. Pick the page
   (the one playing is underlined) and what a touch sets (note, gate, accent, slide), then draw across the steps.
   *Copy 1 → 2-4* copies page 1 onto the other three, each with a few steps changed. Root, scale, accent amount and
-  glide time, and random, alter (the page shown) and undo. Presets from before there were pages play their one page
+  glide time, and random, alter (the page shown) and undo. The algo fader picks how random writes a page: 1 dice,
+  2 acid, 3 euclid, 4 arp, 5 walk, 6 motif, 7 groove, 8 phrase. Presets from before there were pages play their one page
   on all four.
 - **VOICE**: every DR1 parameter, on four tabs: tone, shape, filter, mod.
 - **X/Y**: one pad moving any two DR1 parameters.

@@ -85,6 +85,10 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => seq.steps.length === 64 && seq.steps[21].gate === 0), 'page 2 edits its own steps');
   await pg.click('#m-ncopy');
   check(await pg.evaluate(() => { const k = [1, 2, 3].map((p) => seq.steps.slice(p * 16, p * 16 + 16).filter((st, i) => JSON.stringify(st) !== JSON.stringify(seq.steps[i])).length); return k.every((n) => n <= 5) && k.some((n) => n > 0); }), 'copy: pages 2 to 4 are page 1, slightly varied');
+  // every algorithm makes a valid page
+  check(await pg.evaluate(() => SEQ_ALGOS.every((_, a) => { seq.algo = a; for (let k = 0; k < 100; k++) { randomPage(1); const p = seq.steps.slice(16, 32);
+    if (p.some((x) => !(x.d >= 0 && x.d <= DEG_MAX && x.gate >= 0 && x.gate <= 5)) || !p.some((x) => x.gate)) return false; } return true; })), 'all eight algorithms make valid pages');
+  await pg.evaluate(() => { seq.algo = 0; });
   await pg.click('#m-npages [data-page="0"]');
   // the space bar starts and stops
   await pg.keyboard.press('Space'); await pg.waitForTimeout(300);
