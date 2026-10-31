@@ -87,11 +87,12 @@ const patBtns = PAT0.map((_, i) => {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
   b.addEventListener('click', () => { if (held) { held = false; return; } pLoad(patPreset(i)); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
-  // paste puts the copied pad's preset on that pad (the same preset, as picking it would), cancel or a paste ends it
+  // paste puts the copied pad's preset on that pad (the same preset, as picking it would) and plays it, as a tap on
+  // the pad would (at the next bar while playing); cancel or a paste ends it
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
   c.addEventListener('click', () => {
     if (patCopy === null) patCopy = i;
-    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); }
+    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); pLoad(patPreset(i)); }
     else patCopy = null;
     patDraw();
   });

@@ -58,7 +58,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-pats .m-patc >> nth=0');
   check(await pg.evaluate(() => { const c = [...document.querySelectorAll('#m-pats .m-patc')].map((b) => b.textContent); return c[0] === 'cancel' && c.slice(1).every((t) => t === 'paste') && document.querySelector('#m-pats .m-patc').classList.contains('on'); }), 'copy on a pad: it reads cancel and flashes, the others read paste');
   await pg.click('#m-pats .m-patc >> nth=7');
-  check(await pg.evaluate(() => patPreset(7) === patPreset(0) && [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.textContent === 'copy') && JSON.parse(localStorage.getItem('elixir-synth-pats'))[7] === patPreset(0).name), 'paste puts the copied pad\'s preset on the other pad');
+  check(await pg.evaluate(() => patPreset(7) === patPreset(0) && (pCur === patPreset(7) || pPending === patPreset(7)) && [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.textContent === 'copy') && JSON.parse(localStorage.getItem('elixir-synth-pats'))[7] === patPreset(0).name), 'paste puts the copied pad\'s preset on the other pad and plays it');
   await pg.click('#m-pats .m-patc >> nth=2'); await pg.click('#m-pats .m-patc >> nth=2');
   check(await pg.evaluate(() => patCopy === null && document.querySelector('#m-pats .m-patw:nth-child(3) .m-patc').textContent === 'copy'), 'cancel ends the copy');
   check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.getBoundingClientRect().height >= 24)), 'the copy buttons are at least 24 px high');

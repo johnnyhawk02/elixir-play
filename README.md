@@ -33,7 +33,7 @@ they were on.
   don't move), groove and depth (the beat page's groove and swing dials), tempo, **syn groove** (the synth playing with
   the beat's groove: on by default, the same switch as **groove** on the synth's seq page), **rnd drm** (the whole beat: a kit and a pattern), **alt drm** (a new pattern on the same
   kit), **rnd syn** (the whole synth: a sound and notes), **alt syn** (new notes on the same sound), **rnd fx** (all the
-  effects) and **alt fx** (a nudge to them); each can be undone. Each pad has a small copy button along its top: press it and it flashes and reads cancel while every other pad's reads paste, and a paste puts the copied pad's preset on that pad (the same preset, not a new one). Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
+  effects) and **alt fx** (a nudge to them); each can be undone. Each pad has a small copy button along its top: press it and it flashes and reads cancel while every other pad's reads paste, and a paste puts the copied pad's preset on that pad (the same preset, not a new one) and plays it, as a tap would. Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the
   echo, reverb and master are shared by everything.
 
