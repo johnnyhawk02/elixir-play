@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1b1d1a">
+<meta name="theme-color" content="#0b0c0a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -15,8 +15,8 @@
 <style>
 
 /* ==== Elixir Synth: the phone screen ====
-   One pane of reflective LCD glass in a black bezel on a dark case. One ink (the segments), a faint ghost of the unlit
-   segments, the offset shadow real LCD type casts on its backplane, and a pixel font throughout. Buttons are outlined
+   One pane of blue backlit LCD in a black bezel on a dark case, like a character module: the pixels lit near-white on
+   the blue, a faint ghost of the unlit ones, a soft glow round the lit ones, and a pixel font throughout. Buttons are outlined
    boxes that invert when pressed or chosen; faders and meters are segmented bar graphs. Sections inside the screen
    are parted by thin ink lines; the sheets that open over it (sequencer, settings, chooser, loop length) are panes of
    their own. Nothing scrolls but the presets list and the pop-ups' lists. Sizes that follow the screen's width (Nvw) stop
@@ -29,46 +29,46 @@ html, body { margin: 0; overscroll-behavior: none; }
 body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
   min-height: 100dvh; -webkit-tap-highlight-color: transparent; background: radial-gradient(120% 80% at 50% 0%, #2a2d28, #161815) fixed; }
 .m {
-  --panel: #a7b58c; --ink: #17200e; --muted: rgba(23, 32, 14, .62);
-  --tint: rgba(23, 32, 14, .07); --tint-2: rgba(23, 32, 14, .12); --ghost: rgba(23, 32, 14, .1); --led: #17200e;
+  --panel: #2238e6; --ink: #eef3ff; --muted: rgba(225, 233, 255, .7);
+  --tint: rgba(225, 235, 255, .08); --tint-2: rgba(225, 235, 255, .15); --ghost: rgba(160, 185, 255, .17); --led: #eef3ff;
   --display: "VT323", ui-monospace, monospace; --body: "VT323", ui-monospace, monospace; --mono: "VT323", ui-monospace, monospace;
   --fs-xs: 1.12rem; --fs-s: 1.25rem; --fs-m: 1.3rem; --fs-l: 1.6rem;
-  --rule: 1px solid rgba(23, 32, 14, .32);
+  --rule: 1px solid rgba(225, 235, 255, .38);
   position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto auto 1fr auto; gap: 0;
   height: calc(100dvh - max(6px, env(safe-area-inset-top, 0px)) - max(6px, env(safe-area-inset-bottom, 0px))); padding: 8px 8px 10px;
   font-family: var(--body); color: var(--ink);
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
   -webkit-touch-callout: none; /* a long hold mustn't bring up the phone's own menus */
   border: 5px solid #0b0c0a; border-radius: 10px;
-  /* uneven backlighting: lit from LEDs along the lower edge, as a cheap LCD is, so it glows brighter and warmer near
+  /* uneven backlighting: lit from LEDs along the lower edge, as a cheap LCD is, so it glows brighter near
      the bottom corners, fades toward the top, and has a dim patch where the light doesn't quite reach; the glass
-     texture sits over it (all behind the ink, so the type stays as dark) */
+     texture sits over it (all behind the pixels, so the type stays as bright) */
   background-color: var(--panel);
-  background-image: linear-gradient(170deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .05)),
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .05)),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px),
-    radial-gradient(60% 34% at 12% 100%, rgba(255, 252, 195, .6), rgba(255, 252, 200, 0) 70%),
-    radial-gradient(52% 30% at 88% 102%, rgba(250, 255, 200, .45), rgba(250, 255, 205, 0) 70%),
-    radial-gradient(45% 25% at 50% 104%, rgba(255, 255, 215, .26), rgba(255, 255, 220, 0) 75%),
-    radial-gradient(38% 22% at 72% 38%, rgba(40, 50, 25, .16), rgba(40, 50, 25, 0) 70%),
-    radial-gradient(30% 18% at 22% 30%, rgba(255, 255, 230, .08), rgba(255, 255, 230, 0) 70%),
-    linear-gradient(180deg, rgba(30, 38, 20, .22) 0%, rgba(30, 38, 20, 0) 30%),
-    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(20, 26, 12, .3) 100%);
+    radial-gradient(60% 34% at 12% 100%, rgba(185, 215, 255, .6), rgba(185, 215, 255, 0) 70%),
+    radial-gradient(52% 30% at 88% 102%, rgba(170, 205, 255, .45), rgba(170, 205, 255, 0) 70%),
+    radial-gradient(45% 25% at 50% 104%, rgba(200, 225, 255, .26), rgba(200, 225, 255, 0) 75%),
+    radial-gradient(38% 22% at 72% 38%, rgba(6, 12, 90, .16), rgba(6, 12, 90, 0) 70%),
+    radial-gradient(30% 18% at 22% 30%, rgba(210, 230, 255, .08), rgba(210, 230, 255, 0) 70%),
+    linear-gradient(180deg, rgba(6, 12, 90, .22) 0%, rgba(6, 12, 90, 0) 30%),
+    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(4, 8, 70, .3) 100%);
   /* depth: it sits deep in its bezel, the inner shadow heaviest at the top right */
   box-shadow: inset 0 6px 16px rgba(0, 0, 0, .36), inset -8px 8px 18px rgba(0, 0, 0, .2), inset 0 0 0 1px rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .07);
 }
-/* faded patches: an old LCD loses contrast in places, so a few soft patches show their ink paler (a glass-coloured
+/* faded patches: an old LCD loses contrast in places, so a few soft patches show their pixels dimmer (a glass-coloured
    veil, clearest at the top right, a smaller one low on the left, a faint band down the right edge; it never takes a
    touch, and the sheets open above it) */
 .m::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 5;
-  background: radial-gradient(34% 17% at 76% 24%, rgba(167, 181, 140, .42), rgba(167, 181, 140, 0) 100%),
-    radial-gradient(22% 12% at 16% 66%, rgba(167, 181, 140, .38), rgba(167, 181, 140, 0) 100%),
-    radial-gradient(14% 9% at 58% 83%, rgba(167, 181, 140, .3), rgba(167, 181, 140, 0) 100%),
-    linear-gradient(90deg, rgba(167, 181, 140, 0) 88%, rgba(167, 181, 140, .22) 97%, rgba(167, 181, 140, .1)); }
-/* the ink's shadow on the backplane, the gap a little wider toward the top right, since the glass isn't quite flat
+  background: radial-gradient(34% 17% at 76% 24%, rgba(34, 56, 230, .42), rgba(34, 56, 230, 0) 100%),
+    radial-gradient(22% 12% at 16% 66%, rgba(34, 56, 230, .38), rgba(34, 56, 230, 0) 100%),
+    radial-gradient(14% 9% at 58% 83%, rgba(34, 56, 230, .3), rgba(34, 56, 230, 0) 100%),
+    linear-gradient(90deg, rgba(34, 56, 230, 0) 88%, rgba(34, 56, 230, .22) 97%, rgba(34, 56, 230, .1)); }
+/* the lit pixels' glow, a little stronger toward the top right, where the light gathers
    (--d, set per control by mDepth in ui.js: 1 at the bottom left, about 1.7 at the top right) */
-.m, .m button, .m-title, .m .m-flab, .m .m-vf output { --d: 1; text-shadow: calc(2px * var(--d)) calc(2.2px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.16 + .04 * var(--d))); }
-.m .m-vtrack i, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
-.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
+.m, .m button, .m-title, .m .m-flab, .m .m-vf output { --d: 1; text-shadow: 0 0 calc(2.5px * var(--d)) rgba(205, 220, 255, calc(.38 + .1 * var(--d))); }
+.m .m-vtrack i, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(4, 10, 80, .17)); }
+.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(4, 10, 80, .14); }
 .m .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
 
 /* cards: the sheets are glass of their own; the sections inside the screen are bare */
@@ -341,11 +341,12 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 /* a fader moved by MIDI follows the knob straight away */
 .m .m-vf.cc .m-vtrack i { transition: none; }
 @media (prefers-reduced-motion: reduce) { .m .m-vtrack i, .m .m-gr i b, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-trans button, .m .m-xy i { transition: none; } }
+.m-xyrow option, .m-xyrow optgroup { color: #0b0c0a; background: #eef3ff; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <b class="m-title">elixir<small class="m-ver">synth v1</small></b>
+    <b class="m-title">elixir<small class="m-ver">synth v2</small></b>
     <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
   </header>
   <section class="m-card m-trans">
@@ -434,7 +435,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v1, 31 Oct, 05:49</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v2, 31 Oct, 06:00</footer>
     </section>
   </div>
   </div>
