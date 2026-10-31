@@ -36,18 +36,19 @@ Presets keep all three. A preset saved before the modes leaves the beat and the 
 Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
 turns the page. Play, record and the step light sit at the top.
 
-- **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, random fx, alter fx, undo, and
+- **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, undo, and
   *next bar* (while playing, a randomise waits for the next bar). Drag a dial up or down to turn it. A MIDI controller
   turns them too: CC 1 to 12, on any channel, in reading order:
 
   | CC | dial | | CC | dial | | CC | dial |
   |---|---|---|---|---|---|---|---|
-  | 1 | tempo | | 5 | reso | | 9 | echo feedback |
-  | 2 | pitch (two octaves either way) | | 6 | fm | | 10 | reverb send |
-  | 3 | decay | | 7 | drive | | 11 | reverb decay |
-  | 4 | filter | | 8 | echo send | | 12 | distortion mix |
+  | 1 | tempo | | 5 | reso | | 9 | filter drive |
+  | 2 | pitch (two octaves either way) | | 6 | fm | | 10 | pitch mod amount |
+  | 3 | decay | | 7 | drive | | 11 | lfo rate |
+  | 4 | filter | | 8 | attack | | 12 | lfo amount |
 
-  Chrome asks for MIDI access at the first touch.
+  Chrome asks for MIDI access at the first touch. The synth has no effects of its own: echo, reverb and master are
+  all in mix, and a synth preset leaves them as they are.
 - **SEQ**: the note sequencer. Four pages of sixteen steps, played in turn a bar each; each step has a note, a gate
   (from a quarter step to ringing out; the bottom rests it), an accent and a slide into the next step. Pick the page
   (the one playing is underlined) and what a touch sets (note, gate, accent, slide), then draw across the steps.

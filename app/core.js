@@ -23,6 +23,8 @@ const values = initValues.slice();
 // drum 1's and the FX bus; a synth preset from before the beat leaves the beat's alone
 const BEAT_PARS = new Set([...VOICE_PAGES.slice(1).flatMap((vp) => vp.groups.flatMap((g) => g.params.map(([, n]) => PAR[n]))),
   ...[2, 3, 4, 5, 6].flatMap((n) => [PAR['VOICE_LFO' + n], PAR['TARGET_LFO' + n], PAR['AUDIO_OUT' + n]])]);
+// the echo's own settings in the kit (FX_*): the mix's, like the rest of the effects
+const FX_PARS = new Set(Object.keys(PAR).filter((k) => k.startsWith('FX_')).map((k) => PAR[k]));
 // drum 1's targets (velocity and LFO) are only its own parameters
 const [T0, T1] = MOD_TARGET_VOICE_RANGES[0];
 const TARGETS = [0, ...Array.from({ length: T1 - T0 + 1 }, (_, i) => T0 + i)].filter((i) => !MOD_TARGETS[i][0].startsWith('FX_'));
@@ -204,16 +206,19 @@ const drawHooks = [];
 const drawAll = () => drawHooks.forEach((d) => d());
 function useSnapshot(p, keepTempo) {
   const kit = Uint8Array.from(p.kit);
-  for (let i = 0; i < Math.min(kit.length, values.length); i++) if (p.beat || !BEAT_PARS.has(i)) values[i] = kit[i];
+  for (let i = 0; i < Math.min(kit.length, values.length); i++) if ((p.beat || !BEAT_PARS.has(i)) && (p.mix || !FX_PARS.has(i))) values[i] = kit[i];
   values[PAR.VOICE_LFO1] = 1;
   Object.assign(macro, MACRO0, p.macro);
   if (!keepTempo && p.tempo) tempo = p.tempo;
   Object.assign(seq, structuredClone(SEQ0), structuredClone(p.seq || {}));
   seq.steps = fillPages(seq.steps.length ? seq.steps.slice(0, NSTEPS) : SEQ0.steps);
-  Object.assign(fx, FX0, p.fx);
-  delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
-  Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
-  Object.assign(master, MASTER0, p.master);
+  // the effects and master belong to the mix: a preset without the mix (the synth's own) leaves them as they are
+  if (p.mix) {
+    Object.assign(fx, FX0, p.fx);
+    delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
+    Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
+    Object.assign(master, MASTER0, p.master);
+  }
   fseqUse(p.fseqs || {});
   for (const sp of snapParts) if (p[sp.key]) sp.put(structuredClone(p[sp.key]));
   sendAll(); drawAll();

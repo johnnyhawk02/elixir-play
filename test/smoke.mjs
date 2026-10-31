@@ -1,6 +1,6 @@
 // Drives the built page in Chromium's phone emulation (Pixel 9a's 412 x 915 and a small 360 x 640): no errors, no page
 // scrolls but the presets list, swipes and page buttons turn the page, fader and pad drags don't, holding a fader opens
-// its sequencer, MIDI CC 1-12 turn the perf dials, the reverb sends, the note grid edits steps on four pages and copies
+// its sequencer, MIDI CC 1-12 turn the perf dials, the note grid edits steps on four pages and copies
 // page 1 to the others, space plays and stops, play runs the steps, presets save and load, the title steps through the
 // synth, beat and mix modes (the beat's dials, grid and kits, the mixer's meters and mutes), and record downloads a WAV.
 //   node test/smoke.mjs [index.html]   (needs Playwright)
@@ -51,17 +51,20 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const before = await pg.evaluate(() => macro.filter);
   await drag(r.x + r.width / 2, r.y + r.height / 2, r.x + r.width / 2 - w * 0.5, r.y + r.height / 4);
   check(await page() === 'play' && await pg.evaluate(() => macro.filter) > before, 'a fader drag moves the fader, not the page');
-  // MIDI: CC 4 sends the filter dial to the top, CC 10 the reverb send to 50%, on any channel
-  await pg.evaluate(() => { window.__midiIn.onmidimessage({ data: [0xb0, 4, 127] }); window.__midiIn.onmidimessage({ data: [0xb3, 10, 64] }); });
-  check(await pg.evaluate(() => macro.filter === 200 && fx.verb === 50 && document.querySelectorAll('#m-perf .m-dial').length === 12), 'MIDI CC 4 and 10 turn the filter and reverb dials');
-  // the reverb: the FX page's reverb send is the same as the dial's
+  // MIDI: CC 4 sends the filter dial to the top, CC 11 the lfo rate, on any channel
+  await pg.evaluate(() => { window.__midiIn.onmidimessage({ data: [0xb0, 4, 127] }); window.__midiIn.onmidimessage({ data: [0xb3, 11, 127] }); });
+  check(await pg.evaluate(() => macro.filter === 200 && values[PAR.FREQ_LFO1] === spec(PAR.FREQ_LFO1).max && document.querySelectorAll('#m-perf .m-dial').length === 12), 'MIDI CC 4 and 11 turn the filter and lfo rate dials');
+  // the synth has no effects of its own: no fx dials or randomisers on perf, and its presets leave the mix's effects alone
+  check(await pg.evaluate(() => !document.getElementById('m-fxr') && !document.getElementById('m-fxa') && ![...document.querySelectorAll('#m-perf .m-dial')].some((d) => /echo|reverb|rvb|dist/.test(d.textContent))), 'perf has no fx dials or fx randomisers');
+  await pg.evaluate(() => { fx.verb = 37; useSnapshot(BUILTIN_PRESETS[0]); });
+  check(await pg.evaluate(() => fx.verb === 37), 'a synth preset leaves the reverb alone');
+  await pg.evaluate(() => { fx.verb = 0; sendMix(); });
+  // fx and master are mix pages
   await pg.click('[data-to-mode="mix"]'); await pg.click('[data-m-tab="fx"]');
-  check(await pg.evaluate(() => document.querySelector('#m-verb .m-vtrack').getAttribute('aria-valuenow') === '50'), 'the fx page (in mix) shows the reverb send');
   check(await fits('fx'), 'fx: fits the screen');
   await pg.click('[data-m-tab="comp"]');
   check(await fits('comp'), 'mstr: fits the screen');
   await pg.click('[data-m-tab="mix"]');
-  await pg.evaluate(() => window.__midiIn.onmidimessage({ data: [0xb0, 10, 0] }));
   await pg.click('[data-to-mode="synth"]'); await pg.click('[data-m-tab="play"]');
   // the x/y pad
   await pg.click('[data-m-tab="xy"]');

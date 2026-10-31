@@ -506,7 +506,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v10</small></button>
+    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v11</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-modes-top" role="tablist" aria-label="mode">
       <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
@@ -531,8 +531,6 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-sound" type="button">sound</button>
         <button class="m-btn" id="m-alter" type="button">alter</button>
         <button class="m-btn" id="m-pattern" type="button">notes</button>
-        <button class="m-btn" id="m-fxr" type="button">random fx</button>
-        <button class="m-btn" id="m-fxa" type="button">alter fx</button>
         <button class="m-btn" data-undo type="button" disabled>undo</button>
       </div>
     </section>
@@ -654,7 +652,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v10, 31 Oct, 07:43</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v11, 31 Oct, 07:53</footer>
     </section>
   </div>
   </div>
@@ -4718,6 +4716,8 @@ const values = initValues.slice();
 // drum 1's and the FX bus; a synth preset from before the beat leaves the beat's alone
 const BEAT_PARS = new Set([...VOICE_PAGES.slice(1).flatMap((vp) => vp.groups.flatMap((g) => g.params.map(([, n]) => PAR[n]))),
   ...[2, 3, 4, 5, 6].flatMap((n) => [PAR['VOICE_LFO' + n], PAR['TARGET_LFO' + n], PAR['AUDIO_OUT' + n]])]);
+// the echo's own settings in the kit (FX_*): the mix's, like the rest of the effects
+const FX_PARS = new Set(Object.keys(PAR).filter((k) => k.startsWith('FX_')).map((k) => PAR[k]));
 // drum 1's targets (velocity and LFO) are only its own parameters
 const [T0, T1] = MOD_TARGET_VOICE_RANGES[0];
 const TARGETS = [0, ...Array.from({ length: T1 - T0 + 1 }, (_, i) => T0 + i)].filter((i) => !MOD_TARGETS[i][0].startsWith('FX_'));
@@ -4899,16 +4899,19 @@ const drawHooks = [];
 const drawAll = () => drawHooks.forEach((d) => d());
 function useSnapshot(p, keepTempo) {
   const kit = Uint8Array.from(p.kit);
-  for (let i = 0; i < Math.min(kit.length, values.length); i++) if (p.beat || !BEAT_PARS.has(i)) values[i] = kit[i];
+  for (let i = 0; i < Math.min(kit.length, values.length); i++) if ((p.beat || !BEAT_PARS.has(i)) && (p.mix || !FX_PARS.has(i))) values[i] = kit[i];
   values[PAR.VOICE_LFO1] = 1;
   Object.assign(macro, MACRO0, p.macro);
   if (!keepTempo && p.tempo) tempo = p.tempo;
   Object.assign(seq, structuredClone(SEQ0), structuredClone(p.seq || {}));
   seq.steps = fillPages(seq.steps.length ? seq.steps.slice(0, NSTEPS) : SEQ0.steps);
-  Object.assign(fx, FX0, p.fx);
-  delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
-  Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
-  Object.assign(master, MASTER0, p.master);
+  // the effects and master belong to the mix: a preset without the mix (the synth's own) leaves them as they are
+  if (p.mix) {
+    Object.assign(fx, FX0, p.fx);
+    delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
+    Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
+    Object.assign(master, MASTER0, p.master);
+  }
   fseqUse(p.fseqs || {});
   for (const sp of snapParts) if (p[sp.key]) sp.put(structuredClone(p[sp.key]));
   sendAll(); drawAll();
@@ -5069,9 +5072,9 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
 }
 const pct = (v) => (v === 100 ? '0%' : (v > 100 ? '+' : '−') + Math.abs(v - 100) + '%');
 
-// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, the echo send
-// and feedback, the reverb send and decay, and the master distortion's mix. Decay, filter and fm are macros on top of
-// the sound; the rest move the same settings as their faders on the other pages ----
+// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, attack, filter
+// drive, pitch mod amount, lfo rate and lfo amount; all the synth's own (the effects are the mix's). Decay, filter and fm
+// are macros on top of the sound; the rest move the same settings as their faders on the voice page ----
 const sendPct = (v) => (v ? v + '%' : 'off');
 const PERF_DIALS = [
   ['tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v} bpm`, dflt: 120 }],
@@ -5082,11 +5085,8 @@ const PERF_DIALS = [
   ['reso', { min: 0, max: 127, get: () => values[PAR.RESO_1], set: (v) => setValue(PAR.RESO_1, v), show: String, dflt: () => factoryInit[PAR.RESO_1] }],
   ['fm', { min: 0, max: 200, get: () => macro.fm, set: (v) => setMacro('fm', v), show: pct, dflt: 100 }],
   ['drive', { min: 0, max: 127, get: () => values[PAR.DRIVE1], set: (v) => setValue(PAR.DRIVE1, v), show: String, dflt: () => factoryInit[PAR.DRIVE1] }],
-  ['echo', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 }],
-  ['echo fb', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), show: String, dflt: 50 }],
-  ['reverb', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 }],
-  ['rvb decay', { min: 0, max: 127, get: () => fx.vDecay, set: (v) => { fx.vDecay = v; sendMix(); }, show: String, dflt: FX0.vDecay }],
-  ['dist', { min: 0, max: 100, get: () => dist.mix, set: (v) => { dist.mix = v; sendMix(); }, show: sendPct, dflt: 0 }]];
+  ...[['attack', 'VELOA1'], ['flt drive', 'FILTER_DRIVE_1'], ['mod amt', 'MODAMNT1'], ['lfo rate', 'FREQ_LFO1'], ['lfo amt', 'AMOUNT_LFO1']].map(([label, n]) =>
+    [label, { min: 0, max: spec(PAR[n]).max, get: () => values[PAR[n]], set: (v) => setValue(PAR[n], v), show: String, dflt: () => factoryInit[PAR[n]] }])];
 const ccDials = PERF_DIALS.map(([label, o], i) => mFader($('m-perf'), label, { ...o, cc: i + 1 }));
 // MIDI in (Web MIDI, any input, any channel): CC 1 to 12 turn the dials, 0..127 over each one's range. Access is asked
 // for at the first touch (or straight away if it was given before); controllers plugged in later are picked up
@@ -5316,12 +5316,12 @@ function alterFx(a = 0.1) {
   fx.width = nudge(fx.width, 0, 200); fx.ringFreq = nudge(fx.ringFreq, 0, 127);
   sendMix();
 }
-$('m-everything').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); randomFx(); }));
+$('m-everything').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); }));
 $('m-sound').addEventListener('click', (e) => mRandomise(e.currentTarget, randomSound));
 $('m-alter').addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterSound()));
 $('m-pattern').addEventListener('click', (e) => mRandomise(e.currentTarget, randomNotes));
-for (const id of ['m-fxr', 'm-fxr2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, randomFx));
-for (const id of ['m-fxa', 'm-fxa2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterFx()));
+for (const id of ['m-fxr2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, randomFx));
+for (const id of ['m-fxa2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterFx()));
 
 // ---- the glass isn't flat: each control's ink shadow deepens a little toward the top right of the screen (--d, used
 // by the CSS), worked out from where it sits on its own page, and again when the screen's size changes ----

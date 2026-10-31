@@ -153,9 +153,9 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
 }
 const pct = (v) => (v === 100 ? '0%' : (v > 100 ? '+' : '−') + Math.abs(v - 100) + '%');
 
-// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, the echo send
-// and feedback, the reverb send and decay, and the master distortion's mix. Decay, filter and fm are macros on top of
-// the sound; the rest move the same settings as their faders on the other pages ----
+// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, attack, filter
+// drive, pitch mod amount, lfo rate and lfo amount; all the synth's own (the effects are the mix's). Decay, filter and fm
+// are macros on top of the sound; the rest move the same settings as their faders on the voice page ----
 const sendPct = (v) => (v ? v + '%' : 'off');
 const PERF_DIALS = [
   ['tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v} bpm`, dflt: 120 }],
@@ -166,11 +166,8 @@ const PERF_DIALS = [
   ['reso', { min: 0, max: 127, get: () => values[PAR.RESO_1], set: (v) => setValue(PAR.RESO_1, v), show: String, dflt: () => factoryInit[PAR.RESO_1] }],
   ['fm', { min: 0, max: 200, get: () => macro.fm, set: (v) => setMacro('fm', v), show: pct, dflt: 100 }],
   ['drive', { min: 0, max: 127, get: () => values[PAR.DRIVE1], set: (v) => setValue(PAR.DRIVE1, v), show: String, dflt: () => factoryInit[PAR.DRIVE1] }],
-  ['echo', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 }],
-  ['echo fb', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), show: String, dflt: 50 }],
-  ['reverb', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 }],
-  ['rvb decay', { min: 0, max: 127, get: () => fx.vDecay, set: (v) => { fx.vDecay = v; sendMix(); }, show: String, dflt: FX0.vDecay }],
-  ['dist', { min: 0, max: 100, get: () => dist.mix, set: (v) => { dist.mix = v; sendMix(); }, show: sendPct, dflt: 0 }]];
+  ...[['attack', 'VELOA1'], ['flt drive', 'FILTER_DRIVE_1'], ['mod amt', 'MODAMNT1'], ['lfo rate', 'FREQ_LFO1'], ['lfo amt', 'AMOUNT_LFO1']].map(([label, n]) =>
+    [label, { min: 0, max: spec(PAR[n]).max, get: () => values[PAR[n]], set: (v) => setValue(PAR[n], v), show: String, dflt: () => factoryInit[PAR[n]] }])];
 const ccDials = PERF_DIALS.map(([label, o], i) => mFader($('m-perf'), label, { ...o, cc: i + 1 }));
 // MIDI in (Web MIDI, any input, any channel): CC 1 to 12 turn the dials, 0..127 over each one's range. Access is asked
 // for at the first touch (or straight away if it was given before); controllers plugged in later are picked up
@@ -400,12 +397,12 @@ function alterFx(a = 0.1) {
   fx.width = nudge(fx.width, 0, 200); fx.ringFreq = nudge(fx.ringFreq, 0, 127);
   sendMix();
 }
-$('m-everything').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); randomFx(); }));
+$('m-everything').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); }));
 $('m-sound').addEventListener('click', (e) => mRandomise(e.currentTarget, randomSound));
 $('m-alter').addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterSound()));
 $('m-pattern').addEventListener('click', (e) => mRandomise(e.currentTarget, randomNotes));
-for (const id of ['m-fxr', 'm-fxr2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, randomFx));
-for (const id of ['m-fxa', 'm-fxa2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterFx()));
+for (const id of ['m-fxr2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, randomFx));
+for (const id of ['m-fxa2']) $(id).addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterFx()));
 
 // ---- the glass isn't flat: each control's ink shadow deepens a little toward the top right of the screen (--d, used
 // by the CSS), worked out from where it sits on its own page, and again when the screen's size changes ----
