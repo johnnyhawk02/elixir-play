@@ -581,4 +581,4 @@ body { background: radial-gradient(120% 80% at 50% 0%, #23261f, #121411) fixed; 
 .m .m-top .m-cauldron { background: #eceee4; filter: none; opacity: .92; }
 .m .m-top .m-ver { color: #1c5530; }
 .m .m-top .m-steps-led { background: #101211; border-radius: 2px; box-shadow: 0 0 0 1px rgba(236, 240, 226, .35), inset 0 1px 3px rgba(0, 0, 0, .7); }
-.m-screen { border-color: #0b0c0a; box-shadow: 0 0 0 1px rgba(236, 240, 226, .3); }
+.m-screen { outline: 1px solid rgba(236, 240, 226, .3); outline-offset: 0; }
