@@ -15,16 +15,25 @@ Elixir Synth is unofficial: it is not made, approved or endorsed by Erica Synths
 Swipe across the screen, or tap the page buttons along the bottom. Dragging a fader, the x/y pad or the steps never
 turns the page. Play, record and the step light sit at the top.
 
-- **PERF**: tempo, pitch (two octaves either way, in hundredths of a semitone), decay, filter and fm, and the
-  randomise column: everything, sound, alter, notes, random fx, alter fx, undo, and *next bar* (while playing, a
-  randomise waits for the next bar).
+- **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, random fx, alter fx, undo, and
+  *next bar* (while playing, a randomise waits for the next bar). Drag a dial up or down to turn it. A MIDI controller
+  turns them too: CC 1 to 12, on any channel, in reading order:
+
+  | CC | dial | | CC | dial | | CC | dial |
+  |---|---|---|---|---|---|---|---|
+  | 1 | tempo | | 5 | reso | | 9 | echo feedback |
+  | 2 | pitch (two octaves either way) | | 6 | fm | | 10 | reverb send |
+  | 3 | decay | | 7 | drive | | 11 | reverb decay |
+  | 4 | filter | | 8 | echo send | | 12 | distortion mix |
+
+  Chrome asks for MIDI access at the first touch.
 - **SEQ**: the note sequencer. Sixteen steps, each with a note, a gate (from a quarter step to ringing out; the bottom
   rests it), an accent and a slide into the next step. Pick what a touch sets (note, gate, accent, slide), then
   draw across the steps. Root, scale, accent amount and glide time, and random, alter and undo.
 - **VOICE**: every DR1 parameter, on four tabs: tone, shape, filter, mod.
 - **X/Y**: one pad moving any two DR1 parameters.
-- **FX**: the echo (tempo-synced on musical lengths, ping pong, tone, feedback, width) and the ring mod, with random,
-  alter and undo.
+- **FX**: the echo (tempo-synced on musical lengths, ping pong, tone, feedback, width), the reverb (send, predelay,
+  decay, tone, early reflections; at the top its decay holds) and the ring mod, with random, alter and undo.
 - **MSTR**: distortion (tube, fold or rat) on the whole mix, then the compressor.
 - **PRST**: presets, kept in this browser: save new, save over, load, delete, import and export. While playing, a
   preset comes in at the next bar.
@@ -40,9 +49,14 @@ randomise, on or off. Presets keep them.
 firmware's own code built for the Cortex-M7 and run under qemu (see `ref/`). The engine runs as it does there, in
 64-sample blocks at the firmware's rate, resampled to the phone's.
 
-Elixir Synth adds one thing to it: `setDrumPitch()`, which moves drum 1 to a note between semitones without a
-retrigger, for the pitch fader and for slides. A note on a whole semitone goes through the firmware's own trigger and
-is bit-exact; `test/engine.mjs` checks that.
+Elixir Synth adds two things to it. `setDrumPitch()` moves drum 1 to a note between semitones without a retrigger,
+for the pitch dial and for slides. A note on a whole semitone goes through the firmware's own trigger and is
+bit-exact; `test/engine.mjs` checks that.
+
+And the reverb: the firmware has one (`FX/Reverb.c` and `FX/VerbTools/`), compiled out of the LXR-02 with
+`USE_REVERB 0`. `lxr.js` ports it line by line as the FX bus's `FX_REVERB`, with its quirks (a mono output, loop 2
+running through loop 1's allpass, a modulated allpass whose depth is never set). It hasn't been compared sample for
+sample with the firmware, since the firmware never builds it.
 
 ## Files
 

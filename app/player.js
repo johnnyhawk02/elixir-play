@@ -1,4 +1,4 @@
-// The audio thread: runs the engine's drum 1 voice as a mono synth, the note sequencer, the echo and ring mod
+// The audio thread: runs the engine's drum 1 voice as a mono synth, the note sequencer, the echo, reverb and ring mod
 // sends, the distortion and compressor on the mix and the recorder, and resamples the engine's rate to the output's.
 // Used inside the AudioWorklet (or a ScriptProcessor fallback).
 // the tempo-synced echo: 1/128 of a bar at 0, a whole bar at 1, evenly in octaves between
@@ -31,8 +31,10 @@ class Player {
     this.delayPos = 1 + Math.log2(3 / 16) / 7;
     this.dist = new LXR.FxBus(); this.dist.fxType = LXR.FX_DISTORTION; this.dist.forceWet = true;
     this.ring = new LXR.FxBus(); this.ring.fxType = LXR.FX_RING; this.ring.forceWet = true;
+    // the reverb: the firmware's own (compiled out of the LXR-02, switched back on in the engine), a send bus
+    this.verb = new LXR.FxBus(); this.verb.fxType = LXR.FX_REVERB; this.verb.forceWet = true;
     this.fxRng = new LXR.Rng(0x2545f491);
-    this.sendE = 0; this.sendR = 0; this.echoWidth = 1; this.fxGain = new Float32Array(6);
+    this.sendE = 0; this.sendR = 0; this.sendV = 0; this.verbQuiet = 256; this.echoWidth = 1; this.fxGain = new Float32Array(6);
     this.distMix = 0; this.distAt = 0;
     this.busIn = new Float32Array(128); this.busOut = new Int16Array(128);
     this.compEnv = 0; this.gr = 0;
@@ -53,7 +55,8 @@ class Player {
       this.distMix = (m.dist.mix || 0) / 100;
       this.ring.ringmod.osc.waveform = m.ring.wave;
       this.ring.setParameter(0, m.ring.freq / 127);
-      this.sendE = m.sendE; this.sendR = m.sendR; this.echoWidth = m.width / 100;
+      if (m.verb) m.verb.forEach((v, i) => this.verb.setParameter(i, v / 127));
+      this.sendE = m.sendE; this.sendR = m.sendR; this.sendV = m.sendV || 0; this.echoWidth = m.width / 100;
     } else if (m.type === 'rec') {
       this.rec = { L: new Float32Array(16384), R: new Float32Array(16384), n: 0 };
       this.events.push({ type: 'rec', state: 'on' });
@@ -144,17 +147,28 @@ class Player {
     // the echo: the firmware's FX bus, sample-exact, fed at the echo send when the voice is routed to it
     this.fxGain[0] = e.audioRouting[0] === LXR.MIXER_ROUTING_FX_BUS ? g1 * this.sendE : 0;
     const fx = e.renderFx(this.fxGain, this.echoWidth);
-    // the ring mod bus: the voice at its send, saturated to int16; the firmware's carrier is quiet, so it gets makeup gain
-    const bi = this.busIn, rg = this.sendR * g1;
-    for (let i = 0; i < 64; i++) {
-      bi[2 * i] = rg ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanL * rg))) : 0;
-      bi[2 * i + 1] = rg ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanR * rg))) : 0;
-    }
-    this.ring.input.set(bi);
-    const bo = this.busOut; bo.fill(0);
-    this.ring.process(bo, 64, this.fxRng);
+    // the ring mod and reverb buses: the voice at each one's send, saturated to int16; the firmware's ring mod carrier
+    // is quiet, so it gets makeup gain. The reverb runs every block, sent to or not, so its tail rings out
+    const bi = this.busIn, bo = this.busOut;
+    const busFeed = (bus, gain) => {
+      for (let i = 0; i < 64; i++) {
+        bi[2 * i] = gain ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanL * gain))) : 0;
+        bi[2 * i + 1] = gain ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanR * gain))) : 0;
+      }
+      bus.input.set(bi); bo.fill(0);
+      bus.process(bo, 64, this.fxRng);
+    };
+    busFeed(this.ring, this.sendR * g1);
     for (let i = 0; i < 64; i++) {
       L[i] += (bo[2 * i] * RING_MAKEUP + fx[2 * i]) / 32768; R[i] += (bo[2 * i + 1] * RING_MAKEUP + fx[2 * i + 1]) / 32768;
+    }
+    // (once nothing is sent and its tail has been silent for a while, it rests until something is sent again)
+    const vg = this.sendV * g1;
+    if (vg || this.verbQuiet < 256) {
+      busFeed(this.verb, vg);
+      let quiet = !vg;
+      for (let i = 0; i < 64; i++) { L[i] += bo[2 * i] / 32768; R[i] += bo[2 * i + 1] / 32768; if (bo[2 * i]) quiet = false; }
+      this.verbQuiet = quiet ? this.verbQuiet + 1 : 0;
     }
     // the distortion, a master insert: the whole mix through the firmware's distortion, blended in at its mix amount,
     // ramped across the block; at 0 it's bypassed

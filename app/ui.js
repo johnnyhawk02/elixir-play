@@ -70,10 +70,12 @@ eventHandlers.push((ev) => {
 // resets it, and holding one still for half a second opens its step sequencer. While a sequencer runs, the fader sets
 // its base (fd.base) and the sequencer moves the value around it: the fill is the value heard, the bar the base ----
 const mFaders = [];
-function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1 }) {
+function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1, cc = 0 }) {
   const el = document.createElement('div');
-  el.className = 'm-vf';
+  el.className = cc ? 'm-vf m-dial' : 'm-vf';
   el.innerHTML = '<output></output><div class="m-vtrack" role="slider" tabindex="0"><i></i><b></b></div><span class="m-flab"></span>';
+  // a dial (cc: its MIDI CC number, shown in its middle) turns by dragging up and down over 200 px
+  if (cc) el.querySelector('.m-vtrack').insertAdjacentHTML('beforeend', `<em aria-hidden="true">${cc}</em>`);
   el.querySelector('.m-flab').textContent = label;
   const tr = el.querySelector('.m-vtrack'), out = el.querySelector('output');
   tr.setAttribute('aria-label', label);
@@ -86,14 +88,14 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
     tr.classList.toggle('mod', fd.base !== null); if (fd.base !== null) tr.style.setProperty('--b', (fd.base - min) / (hi - min || 1));
     tr.setAttribute('aria-valuemin', min); tr.setAttribute('aria-valuemax', hi); tr.setAttribute('aria-valuenow', v); tr.setAttribute('aria-valuetext', show(v));
   };
-  const fd = { key: `${box.id}:${label}`, label, min, hiOf, step, get, show, put, snap, el, draw, seq: null, base: null, off: 0, glide: null };
+  const fd = { key: `${box.id}:${label}`, label, min, hiOf, step, get, show, put, snap, el, draw, cc, seq: null, base: null, off: 0, glide: null };
   // a move of the fader: its base while a sequencer runs, else its value
   const move = (v) => { if (fd.base !== null) { fd.base = snap(v); fsApply(fd); } else put(v); };
   fd.move = move;
   let drag = null, hold = 0;
   tr.addEventListener('pointerdown', (e) => {
     tr.setPointerCapture(e.pointerId); el.classList.add('held');
-    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: tr.getBoundingClientRect().height };
+    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: cc ? 200 : tr.getBoundingClientRect().height };
     clearTimeout(hold);
     hold = setTimeout(() => { if (!drag) return; const v = drag.v; end(); move(v); fsOpen(fd); }, 500);
   });
@@ -118,12 +120,49 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
 }
 const pct = (v) => (v === 100 ? '0%' : (v > 100 ? '+' : '−') + Math.abs(v - 100) + '%');
 
-// ---- perf: tempo, pitch, decay, filter and fm, full height ----
-mFader($('m-perf'), 'tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v}\nbpm`, dflt: 120 });
-// pitch is free: hundredths of a semitone, over twice the track's height
-mFader($('m-perf'), 'pitch', { min: -24, max: 24, step: 0.01, travel: 2, get: () => macro.pitch, set: (v) => setMacro('pitch', v),
-  show: (v) => (Math.abs(v) < 0.005 ? '0\nst' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '\nst'), dflt: 0 });
-for (const m of ['decay', 'filter', 'fm']) mFader($('m-perf'), m, { min: 0, max: 200, get: () => macro[m], set: (v) => setMacro(m, v), show: pct, dflt: 100 });
+// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, the echo send
+// and feedback, the reverb send and decay, and the master distortion's mix. Decay, filter and fm are macros on top of
+// the sound; the rest move the same settings as their faders on the other pages ----
+const sendPct = (v) => (v ? v + '%' : 'off');
+const PERF_DIALS = [
+  ['tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v} bpm`, dflt: 120 }],
+  // pitch is free: hundredths of a semitone, over twice the travel
+  ['pitch', { min: -24, max: 24, step: 0.01, travel: 2, get: () => macro.pitch, set: (v) => setMacro('pitch', v),
+    show: (v) => (Math.abs(v) < 0.005 ? '0 st' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2) + ' st'), dflt: 0 }],
+  ...['decay', 'filter'].map((m) => [m, { min: 0, max: 200, get: () => macro[m], set: (v) => setMacro(m, v), show: pct, dflt: 100 }]),
+  ['reso', { min: 0, max: 127, get: () => values[PAR.RESO_1], set: (v) => setValue(PAR.RESO_1, v), show: String, dflt: () => factoryInit[PAR.RESO_1] }],
+  ['fm', { min: 0, max: 200, get: () => macro.fm, set: (v) => setMacro('fm', v), show: pct, dflt: 100 }],
+  ['drive', { min: 0, max: 127, get: () => values[PAR.DRIVE1], set: (v) => setValue(PAR.DRIVE1, v), show: String, dflt: () => factoryInit[PAR.DRIVE1] }],
+  ['echo', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 }],
+  ['echo fb', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), show: String, dflt: 50 }],
+  ['reverb', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 }],
+  ['rvb decay', { min: 0, max: 127, get: () => fx.vDecay, set: (v) => { fx.vDecay = v; sendMix(); }, show: String, dflt: FX0.vDecay }],
+  ['dist', { min: 0, max: 100, get: () => dist.mix, set: (v) => { dist.mix = v; sendMix(); }, show: sendPct, dflt: 0 }]];
+const ccDials = PERF_DIALS.map(([label, o], i) => mFader($('m-perf'), label, { ...o, cc: i + 1 }));
+// MIDI in (Web MIDI, any input, any channel): CC 1 to 12 turn the dials, 0..127 over each one's range. Access is asked
+// for at the first touch (or straight away if it was given before); controllers plugged in later are picked up
+{
+  let redraw = 0;
+  const onMidi = (e) => {
+    const [st, n, v] = e.data;
+    if ((st & 0xf0) !== 0xb0 || n < 1 || n > ccDials.length) return;
+    const fd = ccDials[n - 1];
+    fd.el.classList.add('cc');
+    fd.move(fd.min + v / 127 * (fd.hiOf() - fd.min));
+    if (!redraw) redraw = requestAnimationFrame(() => { redraw = 0; drawAll(); });
+  };
+  let asked = false;
+  const ask = () => {
+    if (asked || !navigator.requestMIDIAccess) return;
+    asked = true;
+    navigator.requestMIDIAccess().then((acc) => {
+      const bind = () => acc.inputs.forEach((i) => { i.onmidimessage = onMidi; });
+      bind(); acc.onstatechange = bind;
+    }, () => {});
+  };
+  addEventListener('pointerdown', ask, { once: true, capture: true });
+  if (navigator.permissions) navigator.permissions.query({ name: 'midi' }).then((p) => { if (p.state === 'granted') ask(); }, () => {});
+}
 
 // ---- voice: every drum 1 parameter, on four tabs of up to twelve: tone (oscillator, fm), shape (amp eg, pitch
 // envelope, click), filter (and the voice's mix) and mod (lfo and its target, velocity) ----
@@ -207,12 +246,17 @@ const xyFader = (pn) => mFaders.find((f) => f.key === `m-voice-${VP_PAGES.find((
 const fxF = (box, label, o) => mFader($(box), label, { show: String, ...o });
 $('m-pp').addEventListener('change', () => setValue(PAR.FX_DELAY_TYPE, $('m-pp').checked ? 1 : 0));
 drawHooks.push(() => { $('m-pp').checked = values[PAR.FX_DELAY_TYPE] === 1; });
-const sendPct = (v) => (v ? v + '%' : 'off');
 fxF('m-echo', 'send', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 });
 fxF('m-echo', 'time', { min: 0, max: 1000, get: () => Math.round(delayPos * 1000), set: (v) => setDelay(v / 1000), show: showDelay, dflt: Math.round(posOf(3 / 16) * 1000) });
 fxF('m-echo', 'tone', { min: 0, max: 127, get: () => values[PAR.FX_P3], set: (v) => setValue(PAR.FX_P3, v), dflt: 90 });
 fxF('m-echo', 'feedback', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), dflt: 50 });
 fxF('m-echo', 'width', { min: 0, max: 200, get: () => fx.width, set: (v) => { fx.width = v; sendMix(); }, show: (v) => v + '%', dflt: 100 });
+// the reverb: send, then the firmware's four: predelay (1 to 46 ms), decay (its feedback; at the top it holds), tone (a
+// tilt: in the middle it's flat, down darkens and damps the tail, up thins it) and early (the early reflections' level)
+const preMs = (v) => Math.round(2031 * (0.02166 + v / 127 * 0.97784) / (LXR.REAL_FS / 1000)) + ' ms';
+fxF('m-verb', 'send', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 });
+[['predelay', 'vPre', preMs], ['decay', 'vDecay'], ['tone', 'vTone'], ['early', 'vEarly']].forEach(([l, k, show]) =>
+  fxF('m-verb', l, { min: 0, max: 127, get: () => fx[k], set: (v) => { fx[k] = v; sendMix(); }, show: show || String, dflt: FX0[k] }));
 const RING_W = OSC_WAVE_NAMES.map((n) => n.toLowerCase());
 fxF('m-ring', 'send', { min: 0, max: 100, get: () => fx.ring, set: (v) => { fx.ring = v; sendMix(); }, show: sendPct, dflt: 0 });
 fxF('m-ring', 'wave', { min: 0, max: RING_W.length - 1, get: () => fx.ringWave, set: (v) => { fx.ringWave = v; sendMix(); }, show: (v) => RING_W[v], dflt: 0 });
@@ -301,9 +345,12 @@ function alterSound(a = 0.1) {
     setValue(par, Math.max(0, Math.min(sp.max, Math.round(values[par] + (rnd() * 2 - 1) * a * sp.max))));
   }
 }
-// random fx: the echo on (half the time) at a musical length, the ring mod now and then; alter fx: each moved a little
+// random fx: the echo on (half the time) at a musical length, the reverb as often (a room to a long hall), the ring mod
+// now and then; alter fx: each moved a little
 function randomFx() {
   fx.send = chance(0.55) ? rIn(10, 60) : 0; fx.ring = chance(0.2) ? rIn(10, 60) : 0;
+  fx.verb = chance(0.5) ? rIn(10, 55) : 0;
+  fx.vPre = rIn(0, 90); fx.vDecay = rIn(70, 122); fx.vTone = rIn(30, 85); fx.vEarly = rIn(0, 127);
   setDelay(randomDelayPos());
   setValue(PAR.FX_DELAY_TYPE, chance(0.6) ? 1 : 0); setValue(PAR.FX_P3, rIn(40, 110)); setValue(PAR.FX_P4, chance(0.2) ? rIn(70, 105) : rIn(15, 70));
   fx.width = rIn(60, 160); fx.ringWave = rIn(0, RING_W.length - 1); fx.ringFreq = rIn(5, 120);
@@ -313,6 +360,8 @@ function alterFx(a = 0.1) {
   const nudge = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v + (rnd() * 2 - 1) * a * (hi - lo))));
   if (fx.send) fx.send = nudge(fx.send, 1, 100);
   if (fx.ring) fx.ring = nudge(fx.ring, 1, 100);
+  if (fx.verb) fx.verb = nudge(fx.verb, 1, 100);
+  fx.vPre = nudge(fx.vPre, 0, 127); fx.vDecay = nudge(fx.vDecay, 0, 124); fx.vTone = nudge(fx.vTone, 8, 120); fx.vEarly = nudge(fx.vEarly, 0, 127);
   setDelay(Math.max(0, Math.min(1, delayPos + (rnd() * 2 - 1) * a / 2)));
   setValue(PAR.FX_P3, nudge(values[PAR.FX_P3], 0, 127)); setValue(PAR.FX_P4, nudge(values[PAR.FX_P4], 0, 110));
   fx.width = nudge(fx.width, 0, 200); fx.ringFreq = nudge(fx.ringFreq, 0, 127);

@@ -118,6 +118,26 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m #m-perf .m-flab { font-size: min(var(--fs-xs), 3.9vw, 16px); letter-spacing: -.02em; white-space: nowrap; line-height: 1.2; }
 #m-perf .m-vtrack { width: min(56px, 100%); flex: 1; height: auto; min-height: 48px; }
 
+/* the dials (perf): a ring of segments over three quarters of a turn, lit up to the value, the CC number in the middle;
+   as big as the cell lets them be, the readout over and the label under */
+.m .m-dial { container-type: size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 0; }
+.m #m-perf .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
+.m #m-perf .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m #m-perf .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
+  overflow: visible; cursor: ns-resize; background: none; }
+.m .m-dial .m-vtrack::before, .m .m-dial .m-vtrack i { content: ''; position: absolute; inset: 0; height: auto; border-radius: 50%;
+  -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%), repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg);
+  -webkit-mask-composite: source-in; mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%) intersect, repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg); }
+.m .m-dial .m-vtrack::before { background: conic-gradient(from 225deg, var(--ghost) 0 270deg, transparent 270deg); }
+.m .m-dial .m-vtrack i { background: conic-gradient(from 225deg, var(--ink) 0 calc(var(--f) * 270deg), transparent calc(var(--f) * 270deg)); transition: none; }
+.m .m-dial .m-vtrack em { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-family: var(--mono);
+  font-size: min(var(--fs-xs), 3.4vw, 14px); color: var(--muted); }
+/* a dial's own setting under its sequencer: a needle at that angle */
+.m .m-dial .m-vtrack.mod b { display: block; left: calc(50% - 2px); right: auto; top: 0; bottom: auto; width: 4px; height: 50%; box-shadow: none;
+  -webkit-mask: linear-gradient(#000 0 30%, transparent 30%); mask: linear-gradient(#000 0 30%, transparent 30%);
+  transform-origin: 50% 100%; transform: rotate(calc(-135deg + var(--b) * 270deg)); }
+.m .m-dial.held .m-vtrack { outline: 2px solid var(--ink); outline-offset: 3px; }
+
 /* the small faders (seq, voice, fx, master): a one-line readout, a narrow label */
 .m-row .m-vf, .m-vset .m-vf, .m-seqf .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 2px; }
 .m .m-row .m-vf output, .m .m-vset .m-vf output, .m .m-seqf .m-vf output {
@@ -167,10 +187,10 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-tabs button[aria-selected="true"] { border-color: var(--ink); }
 .m .m-tabs button { min-height: 56px; padding: 0; font-size: min(1.4rem, 5.2vw, 21.4px) !important; letter-spacing: 0; }
 
-/* ---- perf: five tall faders, and the randomise column beside them ---- */
+/* ---- perf: twelve dials, three across, and the randomise column beside them ---- */
 [data-m-panel="play"] { grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
 .m-play-card { display: grid; min-height: 0; padding: 6px 2px; }
-#m-perf { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+#m-perf { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px 2px; min-height: 0; }
 .m-pages .m-rand-card { display: grid; min-height: 0; padding: 6px 2px 6px 8px; border-left: var(--rule); }
 .m-rand { display: grid; grid-template-columns: 1fr; grid-template-rows: auto repeat(7, minmax(0, 1fr)); gap: 6px; min-width: 0; height: 100%; }
 .m-rand .m-btn { min-height: 0; min-width: 0; padding: 0 2px; letter-spacing: .02em; overflow: hidden; }
@@ -231,7 +251,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-xy-y { left: 8px; bottom: 7px; }
 
 /* ---- fx: the echo row and the ring mod row, each its name over its faders, then random, alter, undo ---- */
-.m-fx-card { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-fx-card { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; min-height: 0; padding: 8px 2px; }
 .m-fxbtns { grid-template-rows: none; grid-template-columns: 1.3fr 1fr 1fr; }
 .m .m-fxbtns .m-btn { min-height: 52px; }
 .m-fx-row { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 2px; min-height: 0; }
@@ -242,7 +262,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-fxhead .m-chk i { width: 22px; height: 22px; }
 /* five to a row everywhere small faders sit in rows, so the columns line up */
 .m-row { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
-#m-echo, #m-comp { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#m-echo, #m-comp, #m-verb { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 #m-ring { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 /* ---- mstr: the distortion, then the compressor, each a heading and a row ---- */

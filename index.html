@@ -133,6 +133,26 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m #m-perf .m-flab { font-size: min(var(--fs-xs), 3.9vw, 16px); letter-spacing: -.02em; white-space: nowrap; line-height: 1.2; }
 #m-perf .m-vtrack { width: min(56px, 100%); flex: 1; height: auto; min-height: 48px; }
 
+/* the dials (perf): a ring of segments over three quarters of a turn, lit up to the value, the CC number in the middle;
+   as big as the cell lets them be, the readout over and the label under */
+.m .m-dial { container-type: size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 0; }
+.m #m-perf .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
+.m #m-perf .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m #m-perf .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
+  overflow: visible; cursor: ns-resize; background: none; }
+.m .m-dial .m-vtrack::before, .m .m-dial .m-vtrack i { content: ''; position: absolute; inset: 0; height: auto; border-radius: 50%;
+  -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%), repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg);
+  -webkit-mask-composite: source-in; mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%) intersect, repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg); }
+.m .m-dial .m-vtrack::before { background: conic-gradient(from 225deg, var(--ghost) 0 270deg, transparent 270deg); }
+.m .m-dial .m-vtrack i { background: conic-gradient(from 225deg, var(--ink) 0 calc(var(--f) * 270deg), transparent calc(var(--f) * 270deg)); transition: none; }
+.m .m-dial .m-vtrack em { position: absolute; inset: 0; display: grid; place-items: center; font-style: normal; font-family: var(--mono);
+  font-size: min(var(--fs-xs), 3.4vw, 14px); color: var(--muted); }
+/* a dial's own setting under its sequencer: a needle at that angle */
+.m .m-dial .m-vtrack.mod b { display: block; left: calc(50% - 2px); right: auto; top: 0; bottom: auto; width: 4px; height: 50%; box-shadow: none;
+  -webkit-mask: linear-gradient(#000 0 30%, transparent 30%); mask: linear-gradient(#000 0 30%, transparent 30%);
+  transform-origin: 50% 100%; transform: rotate(calc(-135deg + var(--b) * 270deg)); }
+.m .m-dial.held .m-vtrack { outline: 2px solid var(--ink); outline-offset: 3px; }
+
 /* the small faders (seq, voice, fx, master): a one-line readout, a narrow label */
 .m-row .m-vf, .m-vset .m-vf, .m-seqf .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 2px; }
 .m .m-row .m-vf output, .m .m-vset .m-vf output, .m .m-seqf .m-vf output {
@@ -182,10 +202,10 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-tabs button[aria-selected="true"] { border-color: var(--ink); }
 .m .m-tabs button { min-height: 56px; padding: 0; font-size: min(1.4rem, 5.2vw, 21.4px) !important; letter-spacing: 0; }
 
-/* ---- perf: five tall faders, and the randomise column beside them ---- */
+/* ---- perf: twelve dials, three across, and the randomise column beside them ---- */
 [data-m-panel="play"] { grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
 .m-play-card { display: grid; min-height: 0; padding: 6px 2px; }
-#m-perf { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+#m-perf { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 4px 2px; min-height: 0; }
 .m-pages .m-rand-card { display: grid; min-height: 0; padding: 6px 2px 6px 8px; border-left: var(--rule); }
 .m-rand { display: grid; grid-template-columns: 1fr; grid-template-rows: auto repeat(7, minmax(0, 1fr)); gap: 6px; min-width: 0; height: 100%; }
 .m-rand .m-btn { min-height: 0; min-width: 0; padding: 0 2px; letter-spacing: .02em; overflow: hidden; }
@@ -246,7 +266,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-xy-y { left: 8px; bottom: 7px; }
 
 /* ---- fx: the echo row and the ring mod row, each its name over its faders, then random, alter, undo ---- */
-.m-fx-card { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-fx-card { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; min-height: 0; padding: 8px 2px; }
 .m-fxbtns { grid-template-rows: none; grid-template-columns: 1.3fr 1fr 1fr; }
 .m .m-fxbtns .m-btn { min-height: 52px; }
 .m-fx-row { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 2px; min-height: 0; }
@@ -257,7 +277,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-fxhead .m-chk i { width: 22px; height: 22px; }
 /* five to a row everywhere small faders sit in rows, so the columns line up */
 .m-row { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
-#m-echo, #m-comp { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#m-echo, #m-comp, #m-verb { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 #m-ring { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 /* ---- mstr: the distortion, then the compressor, each a heading and a row ---- */
@@ -346,7 +366,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <b class="m-title">elixir<small class="m-ver">synth v2</small></b>
+    <b class="m-title">elixir<small class="m-ver">synth v3</small></b>
     <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
   </header>
   <section class="m-card m-trans">
@@ -357,7 +377,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
   <div class="m-pages" id="m-pages">
   <div class="m-panel" data-m-panel="play">
-    <section class="m-card m-play-card"><div class="m-faders m-big5" id="m-perf"></div></section>
+    <section class="m-card m-play-card"><div class="m-faders m-dials" id="m-perf"></div></section>
     <section class="m-card m-rand-card" aria-label="randomise">
       <div class="m-rand">
         <label class="m-chk m-nextbar"><input id="m-nextbar" type="checkbox"><i aria-hidden="true"></i>next bar</label>
@@ -406,6 +426,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
   <div class="m-panel" data-m-panel="fx">
     <section class="m-card m-fx-card">
       <div class="m-fx-row"><div class="m-fxhead"><b>echo</b><label class="m-chk"><input id="m-pp" type="checkbox"><i aria-hidden="true"></i>ping pong</label></div><div class="m-faders m-row" id="m-echo"></div></div>
+      <div class="m-fx-row"><div class="m-fxhead"><b>reverb</b></div><div class="m-faders m-row" id="m-verb"></div></div>
       <div class="m-fx-row"><div class="m-fxhead"><b>ring mod</b></div><div class="m-faders m-row" id="m-ring"></div></div>
       <div class="m-fxbtns">
         <button class="m-btn m-big" id="m-fxr2" type="button">random</button>
@@ -435,7 +456,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v2, 31 Oct, 06:00</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v3, 31 Oct, 06:20</footer>
     </section>
   </div>
   </div>
@@ -2864,13 +2885,13 @@ const drumSineStart = (offset) => f(1024 + f(((0x3ff << 20) - 1024) * offset));
 const otherSineStart = (offset) => f((0x3ff << 20) * offset);
 
 // ---------------------------------------------------------------------------------------
-// FX bus: FxBus.c, FX/Distortion.c, FX/Ringmod.c, FX/Compressor.c, FX/Delay.c (the reverb
-// is compiled out of the firmware, USE_REVERB 0). Voices routed to the FX bus (AUDIO_OUTn =
+// FX bus: FxBus.c, FX/Distortion.c, FX/Ringmod.c, FX/Compressor.c, FX/Delay.c, FX/Reverb.c (the
+// reverb is compiled out of the firmware, USE_REVERB 0; here it's switched back on). Voices routed to the FX bus (AUDIO_OUTn =
 // 6) are mixed into one stereo int16 buffer, processed by the selected effect and added to
 // the stereo output. Only the stereo output routings are modelled.
 // ---------------------------------------------------------------------------------------
-const FX_OFF = 0, FX_DISTORTION = 1, FX_RING = 2, FX_COMPRESSOR = 3, FX_DELAY = 4;
-const FX_NAMES = ['Off', 'Distortion', 'Ring mod', 'Compressor', 'Delay'];
+const FX_OFF = 0, FX_DISTORTION = 1, FX_RING = 2, FX_COMPRESSOR = 3, FX_DELAY = 4, FX_REVERB = 5;
+const FX_NAMES = ['Off', 'Distortion', 'Ring mod', 'Compressor', 'Delay', 'Reverb'];
 const DIST_TUBE = 0, DIST_FOLD = 1, DIST_RAT = 2;
 const DIST_NAMES = ['Tube', 'Fold', 'Rat'];
 const RATIO_NAMES = ['1:1', '2:1', '3:1', '4:1', '6:1', '8:1'];
@@ -3239,6 +3260,163 @@ function delayProcessPingPong(d, buf, fx, out, size, dryWet) {
   }
 }
 
+// ---------------------------------------------------------------------------------------
+// FX/Reverb.c, FX/VerbTools/*.c, TiltEq.c: the firmware's reverb, compiled out of the LXR-02
+// (USE_REVERB 0) and switched back on here as FX_REVERB. The non-SPIN_SEMI build: a predelay,
+// four early reflection taps, four input allpasses into two cross-fed loops (an allpass
+// with a modulation slot, a delay, the feedback, an allpass, a delay), five output taps,
+// tilt EQs on the input and the output. The output is mono, as in the firmware. Its delay
+// lines are __fp16, 0x800 samples each, in FX_BUFFER; here each has its own.
+// ---------------------------------------------------------------------------------------
+const VERB_SIZE = 0x800, VERB_MASK = VERB_SIZE - 1;
+const F_SR3 = f(3 * REAL_FS);
+const HALF_F = new Float32Array(1), HALF_U = new Uint32Array(HALF_F.buffer);
+/** float -> __fp16 -> float, by the bits (what toHalf() does, without a log per sample) */
+function half(x) {
+  HALF_F[0] = x;
+  const u = HALF_U[0], s = u & 0x80000000;
+  let a = u & 0x7fffffff;
+  if (a >= 0x477ff000) return s ? -Infinity : Infinity; // NaN goes this way too
+  if (a < 0x38800000) { // a half subnormal: a whole number of 2^-24
+    const m = Math.abs(x) * 16777216;
+    let r = Math.floor(m);
+    const d = m - r;
+    if (d > 0.5 || (d === 0.5 && (r & 1))) r++;
+    return s ? -r / 16777216 : r / 16777216;
+  }
+  a = (a + 0xfff + ((a >> 13) & 1)) & 0xffffe000;
+  HALF_U[0] = s | a;
+  return HALF_F[0];
+}
+function makeVerbDelay(length) { // VerbDelay_init(), VerbDelay_setLength()
+  const d = { buf: new Float32Array(VERB_SIZE), length: 256, readPtr: 0, writePtr: 256, roomSz: f(1) };
+  if (length !== undefined) { d.length = length; verbDelayCalcLength(d); }
+  return d;
+}
+function verbDelayCalcLength(d) {
+  const scaledSize = f(d.length * d.roomSz);
+  let pos = f(d.writePtr - scaledSize);
+  if (pos < 0) pos = f(pos + VERB_SIZE);
+  d.readPtr = (Math.trunc(pos) & 0xffff) & VERB_MASK;
+}
+function verbDelaySetRoomSize(d, sz) { d.roomSz = f(sz); verbDelayCalcLength(d); }
+function verbDelayRead(d) { const r = d.buf[d.readPtr]; d.readPtr = (d.readPtr + 1) & VERB_MASK; return r; }
+function verbDelayWrite(d, x) { d.buf[d.writePtr] = half(x); d.writePtr = (d.writePtr + 1) & VERB_MASK; }
+function verbDelayReadTap(d, percent) {
+  const offset = Math.trunc(f(f(percent / 100) * d.length)) & 0xffff;
+  return d.buf[(d.readPtr - offset) & VERB_MASK];
+}
+const verbDelayReadTapSample = (d, idx) => d.buf[(d.readPtr - idx) & VERB_MASK];
+function verbDelayProcess(d, x) { verbDelayWrite(d, x); return verbDelayRead(d); }
+// AllpassDelay.c
+const makeAllpass = (length, g = 0.6) => ({ g: f(g), out: 0, in: 0, delay: makeVerbDelay(length) });
+function allpassProcess(ap, input) {
+  ap.out = verbDelayRead(ap.delay);
+  ap.in = f(input + f(ap.g * ap.out));
+  verbDelayWrite(ap.delay, ap.in);
+  return f(ap.out + f(f(-ap.g) * ap.in));
+}
+// VerbModDelay.c and AllpassModDelay: the read position is smoothed by a one-pole set to 0.00013 Hz, so it starts at
+// the write position (a whole buffer late) and creeps toward its length over tens of minutes; the modulation depth is
+// never set in this build, so the LFO doesn't move it. As the firmware has it.
+function makeAllpassMod(length) {
+  const lp = makeOnePole();
+  lp.r = f(1 - Math.exp(f(-2 * Math.PI * 0.0001308911269084528 / F_REAL_FS)));
+  return { g: f(0.6), out: 0, in: 0, delay: { buf: new Float32Array(VERB_SIZE), length, readPtr: 0, writePtr: 256, lp, frac: 0, depth: 0, modVal: 0, roomSz: f(1) } };
+}
+function verbModCalcLength(d) {
+  const scaledSize = f(d.length * d.roomSz);
+  const filteredPos = f(calcOnePole(d.lp, f(scaledSize + f(d.depth * d.modVal))));
+  let pos = f(d.writePtr - filteredPos);
+  if (pos < 0) pos = f(pos + VERB_SIZE);
+  const itg = Math.trunc(pos) >>> 0;
+  d.frac = f(pos - itg);
+  d.readPtr = itg & VERB_MASK;
+}
+function allpassModProcess(ap, input) {
+  const d = ap.delay;
+  verbModCalcLength(d);
+  ap.out = d.buf[d.readPtr]; d.readPtr = (d.readPtr + 1) & VERB_MASK;
+  ap.in = f(input + f(ap.g * ap.out));
+  d.buf[d.writePtr] = half(ap.in); d.writePtr = (d.writePtr + 1) & VERB_MASK;
+  return f(ap.out + f(f(-ap.g) * ap.in));
+}
+// TiltEq.c: at p 0 it passes; below, a low-pass closing toward 0 Hz; above, a high-pass opening toward 20 kHz
+const makeTiltEq = () => { const eq = { a0: 0, b1: 0, lp: 0, lgain: 0, hgain: 0 }; tiltSetFreq(eq, 400); return eq; };
+function tiltSetFreq(eq, fc) {
+  const omega = 2 * Math.PI * f(fc), n = 1 / (F_SR3 + omega);
+  eq.a0 = f(2 * omega * n); eq.b1 = f((F_SR3 - omega) * n);
+}
+function tiltSetParameter(eq, p) {
+  p = f(f(p * p) * p);
+  if (p >= 0) { eq.lgain = 0; eq.hgain = f(1); tiltSetFreq(eq, f(20000 * p)); }
+  else { eq.lgain = f(1); eq.hgain = 0; tiltSetFreq(eq, f(20000 * f(1 + p))); }
+}
+function tiltProcess(eq, x) {
+  eq.lp = f(f(eq.a0 * x) + f(eq.b1 * eq.lp));
+  return f(f(eq.lgain * eq.lp) + f(eq.hgain * f(x - eq.lp)));
+}
+const EARLY_TAPS = [12, 24, 38, 50];
+function makeReverb() { // Reverb_init()
+  const sc = { a: 0, s: [f(0.5), 0] };
+  sc.a = f(2 * f(Math.sin(f(Math.PI * 1.31 / F_REAL_FS))));
+  const lpFeedback = makeOnePole(); setOnePoleCoef(lpFeedback, 0.5);
+  const r = { eq: makeTiltEq(), eqFb: makeTiltEq(), lfo: sc, earlyVolume: f(1), lpFeedback, lastOut: 0, lastOut2: 0, feedback: 0,
+    apDelay: [makeAllpass(1800), makeAllpass(2039)], apModDelay: [makeAllpassMod(672), makeAllpassMod(908)],
+    inputAllpass: [makeAllpass(142, 0.75), makeAllpass(107, 0.75), makeAllpass(379, 0.625), makeAllpass(277, 0.625)],
+    delay: [makeVerbDelay(2047), makeVerbDelay(1913), makeVerbDelay(1720), makeVerbDelay(1163)],
+    early: makeVerbDelay(2000), preDelay: makeVerbDelay(2031) };
+  return r;
+}
+// FxBus_updateParameter(), FX_REVERB: P1 the predelay (1 to 46 ms), P2 the feedback, P3 the tilt (and the loop's
+// damping), P4 the early reflections' level
+function reverbSetParameters(r, p) {
+  verbDelaySetRoomSize(r.preDelay, f(f(0.02166) + f(p[0] * f(0.97784342688330871492))));
+  r.feedback = p[1];
+  tiltSetParameter(r.eq, f(-1 + f(2 * p[2]))); tiltSetParameter(r.eqFb, f(-1 + f(2 * p[2])));
+  setOnePoleCoef(r.lpFeedback, p[2]);
+  r.earlyVolume = p[3];
+}
+function reverbProcess(r, fx, out, size, dryWet) {
+  // SineCosine_calc() once a block, into the modulated allpasses (whose depth is 0)
+  const sc = r.lfo;
+  sc.s[0] = f(sc.s[0] - f(sc.a * sc.s[1])); sc.s[1] = f(sc.s[1] + f(sc.a * sc.s[0]));
+  r.apModDelay[1].delay.modVal = sc.s[0]; verbModCalcLength(r.apModDelay[1].delay);
+  r.apModDelay[0].delay.modVal = sc.s[1]; verbModCalcLength(r.apModDelay[0].delay);
+  const [ap0, ap1] = r.apDelay, [am0, am1] = r.apModDelay, [d0, d1, d2, d3] = r.delay, ia = r.inputAllpass, fb = r.feedback;
+  for (let i = 0; i < size; i++) {
+    const mix = qadd16(Math.trunc(fx[2 * i] / 2), Math.trunc(fx[2 * i + 1] / 2));
+    let mono = verbDelayProcess(r.preDelay, f(mix / 32768));
+    // early reflections
+    verbDelayProcess(r.early, mono);
+    let early = verbDelayReadTap(r.early, EARLY_TAPS[0]);
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[1]) * f(0.5)));
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[2]) * f(0.125)));
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[3]) * f(0.25)));
+    mono = f(0.5 * tiltProcess(r.eq, mono));
+    const in1 = allpassProcess(ia[0], allpassProcess(ia[1], mono));
+    const in2 = allpassProcess(ia[2], allpassProcess(ia[3], mono));
+    // late: loop 1, then loop 2, each fed by the other (loop 2 goes through apDelay[1] too, as the firmware has it)
+    let tmp = allpassModProcess(am0, f(in1 + r.lastOut2));
+    tmp = f(verbDelayProcess(d0, tmp) * fb);
+    tmp = verbDelayProcess(d1, allpassProcess(ap1, tmp));
+    r.lastOut = calcOnePole(r.lpFeedback, f(tmp * fb));
+    tmp = allpassModProcess(am1, f(in2 + r.lastOut));
+    tmp = f(verbDelayProcess(d2, tmp) * fb);
+    tmp = verbDelayProcess(d3, allpassProcess(ap1, tmp));
+    r.lastOut2 = f(tmp * fb);
+    let o = f(verbDelayReadTapSample(d2, 266) * 0.6);
+    o = f(o - verbDelayReadTapSample(ap1.delay, 1913) * 0.6);
+    o = f(o + verbDelayReadTapSample(d3, 996) * 0.6);
+    o = f(o - verbDelayReadTapSample(ap0.delay, 187) * 0.6);
+    o = f(o - verbDelayReadTapSample(d1, 1066) * 0.6);
+    o = tiltProcess(r.eqFb, fmaf(early, r.earlyVolume, o));
+    const wet = ssat16(toI32(f(o * 32768)));
+    out[2 * i] = qadd16(out[2 * i], dryWetMix(fx[2 * i], wet, dryWet));
+    out[2 * i + 1] = qadd16(out[2 * i + 1], dryWetMix(fx[2 * i + 1], wet, dryWet));
+  }
+}
+
 class FxBus {
   constructor() {
     this.dryWet = 0;
@@ -3249,6 +3427,7 @@ class FxBus {
     this.ringmod = makeRingmod();
     this.compressor = makeCompressor();
     this.delay = makeDelay();
+    this.reverb = makeReverb();
     this.buffer = new Float32Array(SYNC_BUFFER_SIZE + 1); // __fp16 FX_BUFFER, kept as float values
     this.forceWet = false; // not in the firmware: the bus output is all effect (a send effect)
     this.input = new Int16Array(BLOCK * 2);
@@ -3297,6 +3476,7 @@ class FxBus {
         d.feedback = p[3];
         break;
       }
+      case FX_REVERB: reverbSetParameters(this.reverb, p); break;
       default: break;
     }
   }
@@ -3311,6 +3491,7 @@ class FxBus {
         if (this.delay.type === DELAY_NORMAL) delayProcess(this.delay, this.buffer, fx, out, size, dw);
         else delayProcessPingPong(this.delay, this.buffer, fx, out, size, dw);
         break;
+      case FX_REVERB: reverbProcess(this.reverb, fx, out, size, dw); break;
       default: // FX_OFF
         for (let i = 0; i < size * 2; i++) out[i] = qadd16(out[i], fx[i]);
         break;
@@ -3981,11 +4162,11 @@ class LxrEngine {
   }
 }
 
-return { LxrEngine, PAR, CC, CC2, BLOCK, REAL_FS, PARAM_DTYPES, MOD_TARGETS, MOD_TARGET_VOICE_RANGES, VOICE_PAGES, INIT_KIT, OSC_WAVE_NAMES, FILTER_TYPE_NAMES, LFO_WAVE_NAMES, LFO_SYNC_NAMES, MIXER_ROUTING_FX_BUS, FX_DELAY, FX_DISTORTION, FX_RING, FxBus, Rng, DIST_NAMES, DELAY_NAMES, EXTRA_CLICK_NAMES };
+return { LxrEngine, PAR, CC, CC2, BLOCK, REAL_FS, PARAM_DTYPES, MOD_TARGETS, MOD_TARGET_VOICE_RANGES, VOICE_PAGES, INIT_KIT, OSC_WAVE_NAMES, FILTER_TYPE_NAMES, LFO_WAVE_NAMES, LFO_SYNC_NAMES, MIXER_ROUTING_FX_BUS, FX_DELAY, FX_DISTORTION, FX_RING, FX_REVERB, FxBus, Rng, DIST_NAMES, DELAY_NAMES, EXTRA_CLICK_NAMES };
 })();
 </script>
 <script id="player">
-// The audio thread: runs the engine's drum 1 voice as a mono synth, the note sequencer, the echo and ring mod
+// The audio thread: runs the engine's drum 1 voice as a mono synth, the note sequencer, the echo, reverb and ring mod
 // sends, the distortion and compressor on the mix and the recorder, and resamples the engine's rate to the output's.
 // Used inside the AudioWorklet (or a ScriptProcessor fallback).
 // the tempo-synced echo: 1/128 of a bar at 0, a whole bar at 1, evenly in octaves between
@@ -4018,8 +4199,10 @@ class Player {
     this.delayPos = 1 + Math.log2(3 / 16) / 7;
     this.dist = new LXR.FxBus(); this.dist.fxType = LXR.FX_DISTORTION; this.dist.forceWet = true;
     this.ring = new LXR.FxBus(); this.ring.fxType = LXR.FX_RING; this.ring.forceWet = true;
+    // the reverb: the firmware's own (compiled out of the LXR-02, switched back on in the engine), a send bus
+    this.verb = new LXR.FxBus(); this.verb.fxType = LXR.FX_REVERB; this.verb.forceWet = true;
     this.fxRng = new LXR.Rng(0x2545f491);
-    this.sendE = 0; this.sendR = 0; this.echoWidth = 1; this.fxGain = new Float32Array(6);
+    this.sendE = 0; this.sendR = 0; this.sendV = 0; this.verbQuiet = 256; this.echoWidth = 1; this.fxGain = new Float32Array(6);
     this.distMix = 0; this.distAt = 0;
     this.busIn = new Float32Array(128); this.busOut = new Int16Array(128);
     this.compEnv = 0; this.gr = 0;
@@ -4040,7 +4223,8 @@ class Player {
       this.distMix = (m.dist.mix || 0) / 100;
       this.ring.ringmod.osc.waveform = m.ring.wave;
       this.ring.setParameter(0, m.ring.freq / 127);
-      this.sendE = m.sendE; this.sendR = m.sendR; this.echoWidth = m.width / 100;
+      if (m.verb) m.verb.forEach((v, i) => this.verb.setParameter(i, v / 127));
+      this.sendE = m.sendE; this.sendR = m.sendR; this.sendV = m.sendV || 0; this.echoWidth = m.width / 100;
     } else if (m.type === 'rec') {
       this.rec = { L: new Float32Array(16384), R: new Float32Array(16384), n: 0 };
       this.events.push({ type: 'rec', state: 'on' });
@@ -4131,17 +4315,28 @@ class Player {
     // the echo: the firmware's FX bus, sample-exact, fed at the echo send when the voice is routed to it
     this.fxGain[0] = e.audioRouting[0] === LXR.MIXER_ROUTING_FX_BUS ? g1 * this.sendE : 0;
     const fx = e.renderFx(this.fxGain, this.echoWidth);
-    // the ring mod bus: the voice at its send, saturated to int16; the firmware's carrier is quiet, so it gets makeup gain
-    const bi = this.busIn, rg = this.sendR * g1;
-    for (let i = 0; i < 64; i++) {
-      bi[2 * i] = rg ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanL * rg))) : 0;
-      bi[2 * i + 1] = rg ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanR * rg))) : 0;
-    }
-    this.ring.input.set(bi);
-    const bo = this.busOut; bo.fill(0);
-    this.ring.process(bo, 64, this.fxRng);
+    // the ring mod and reverb buses: the voice at each one's send, saturated to int16; the firmware's ring mod carrier
+    // is quiet, so it gets makeup gain. The reverb runs every block, sent to or not, so its tail rings out
+    const bi = this.busIn, bo = this.busOut;
+    const busFeed = (bus, gain) => {
+      for (let i = 0; i < 64; i++) {
+        bi[2 * i] = gain ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanL * gain))) : 0;
+        bi[2 * i + 1] = gain ? Math.max(-32768, Math.min(32767, Math.round(o[i] * v.triggeredPanR * gain))) : 0;
+      }
+      bus.input.set(bi); bo.fill(0);
+      bus.process(bo, 64, this.fxRng);
+    };
+    busFeed(this.ring, this.sendR * g1);
     for (let i = 0; i < 64; i++) {
       L[i] += (bo[2 * i] * RING_MAKEUP + fx[2 * i]) / 32768; R[i] += (bo[2 * i + 1] * RING_MAKEUP + fx[2 * i + 1]) / 32768;
+    }
+    // (once nothing is sent and its tail has been silent for a while, it rests until something is sent again)
+    const vg = this.sendV * g1;
+    if (vg || this.verbQuiet < 256) {
+      busFeed(this.verb, vg);
+      let quiet = !vg;
+      for (let i = 0; i < 64; i++) { L[i] += bo[2 * i] / 32768; R[i] += bo[2 * i + 1] / 32768; if (bo[2 * i]) quiet = false; }
+      this.verbQuiet = quiet ? this.verbQuiet + 1 : 0;
     }
     // the distortion, a master insert: the whole mix through the firmware's distortion, blended in at its mix amount,
     // ramped across the block; at 0 it's bypassed
@@ -4195,7 +4390,7 @@ class Player {
 }
 </script>
 <script>
-const BUILTIN_PRESETS = [{"v":1,"name":"Acid Line","kit":[0,2,0,0,1,0,4,0,36,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,42,127,127,127,68,104,100,0,0,0,0,0,0,62,0,13,0,3,0,10,0,107,0,5,17,30,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,45,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":128,"seq":{"root":9,"scale":1,"accent":9,"glide":40,"vel":100,"steps":[{"d":0,"gate":3,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":true},{"d":8,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":5,"gate":4,"acc":false,"slide":true},{"d":4,"gate":4,"acc":false,"slide":false},{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":false},{"d":6,"gate":4,"acc":true,"slide":true},{"d":7,"gate":4,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false}]},"fx":{"send":18,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.6549946429601652,"dist":{"mix":30,"type":2,"p":[60,64,70,80]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{"m-voice-filter:cutoff":{"on":true,"len":16,"slew":80,"step":2,"depth":25,"vals":[0,0.2,0.4,0.6,0.8,1,0.8,0.6,0.4,0.2,0,-0.2,-0.4,-0.2,0,0.1]}}},{"v":1,"name":"Sub Pulse","kit":[0,0,0,0,1,0,4,0,29,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,100,127,127,127,68,104,10,0,0,0,0,0,0,92,0,13,0,3,0,10,0,107,0,5,17,55,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,120,127,127,127,127,127,63,63,63,0,0,63,63,63,80,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":122,"seq":{"root":5,"scale":6,"accent":4,"glide":35,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":3,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":2,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":3,"gate":3,"acc":false,"slide":false}]},"fx":{"send":0,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.6549946429601652,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-16,"ratio":4,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"FM Bell Pluck","kit":[0,0,0,0,1,0,4,0,48,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,115,127,127,127,68,104,20,0,0,0,0,0,0,55,0,13,0,3,0,10,0,107,0,5,17,70,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,58,72,0,0,0,0,100,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":110,"seq":{"root":0,"scale":7,"accent":5,"glide":35,"vel":100,"steps":[{"d":0,"gate":5,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":7,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":5,"gate":5,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":1,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false}]},"fx":{"send":38,"ring":0,"width":140,"ringWave":0,"ringFreq":40},"dpos":0.6549946429601652,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Square Hop","kit":[0,3,0,0,1,0,4,0,40,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,66,127,127,127,68,104,75,0,0,0,0,0,0,48,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":140,"seq":{"root":2,"scale":2,"accent":8,"glide":35,"vel":100,"steps":[{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":9,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":2,"acc":true,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":4,"gate":2,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false}]},"fx":{"send":15,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.5714285714285714,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{"m-voice-filter:cutoff":{"on":true,"len":8,"slew":0,"step":1,"depth":25,"vals":[0,0.5,-0.3,0.8,-0.6,0.2,0.9,-0.2,0,0,0,0,0,0,0,0]}}},{"v":1,"name":"Zap Bass","kit":[0,2,0,0,1,0,4,0,31,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,58,127,127,127,68,104,55,0,0,0,0,0,0,58,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,12,93,7,14,30,14,127,81,40,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":130,"seq":{"root":4,"scale":3,"accent":8,"glide":25,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":1,"gate":3,"acc":false,"slide":true},{"d":0,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":3,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":1,"gate":3,"acc":false,"slide":false},{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":3,"gate":3,"acc":false,"slide":false}]},"fx":{"send":0,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.6549946429601652,"dist":{"mix":22,"type":0,"p":[80,64,75,85]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Ring Drone","kit":[0,1,0,0,1,0,4,0,43,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,80,127,127,127,68,104,40,0,0,0,0,0,25,118,0,13,0,3,0,10,0,107,0,5,17,80,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":90,"seq":{"root":7,"scale":5,"accent":3,"glide":70,"vel":100,"steps":[{"d":0,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":3,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":6,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false}]},"fx":{"send":42,"ring":35,"width":160,"ringWave":0,"ringFreq":22},"dpos":0.7142857142857143,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-14,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Fold Lead","kit":[0,5,0,0,1,0,4,0,55,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,92,127,127,127,68,104,35,0,0,0,0,0,0,75,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,40,0,0,0,0,0,55,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,40,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":118,"seq":{"root":0,"scale":4,"accent":6,"glide":45,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":false},{"d":5,"gate":3,"acc":false,"slide":true},{"d":7,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":9,"gate":3,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":5,"gate":3,"acc":true,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":2,"gate":3,"acc":false,"slide":false},{"d":0,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":3,"acc":false,"slide":true},{"d":4,"gate":3,"acc":false,"slide":false}]},"fx":{"send":25,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.6307196427541206,"dist":{"mix":45,"type":1,"p":[55,64,90,70]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Click Pluck","kit":[0,2,0,0,1,0,4,0,52,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,88,127,127,127,68,104,60,0,0,0,0,0,0,30,0,13,0,3,0,10,0,107,0,5,17,25,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,55,0,0,0,0,0,2,0,0,0,0,0,80,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":124,"seq":{"root":3,"scale":8,"accent":7,"glide":35,"vel":100,"steps":[{"d":0,"gate":3,"acc":true,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":4,"gate":2,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":6,"gate":2,"acc":false,"slide":false},{"d":5,"gate":3,"acc":true,"slide":false},{"d":4,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false}]},"fx":{"send":30,"ring":0,"width":100,"ringWave":0,"ringFreq":40},"dpos":0.5121375001030223,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}}];
+const BUILTIN_PRESETS = [{"v":1,"name":"Acid Line","kit":[0,2,0,0,1,0,4,0,36,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,42,127,127,127,68,104,100,0,0,0,0,0,0,62,0,13,0,3,0,10,0,107,0,5,17,30,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,45,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":128,"seq":{"root":9,"scale":1,"accent":9,"glide":40,"vel":100,"steps":[{"d":0,"gate":3,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":true},{"d":8,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":5,"gate":4,"acc":false,"slide":true},{"d":4,"gate":4,"acc":false,"slide":false},{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":false},{"d":6,"gate":4,"acc":true,"slide":true},{"d":7,"gate":4,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false}]},"fx":{"send":18,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":0,"vPre":16,"vDecay":100,"vTone":60,"vEarly":64},"dpos":0.6549946429601652,"dist":{"mix":30,"type":2,"p":[60,64,70,80]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{"m-voice-filter:cutoff":{"on":true,"len":16,"slew":80,"step":2,"depth":25,"vals":[0,0.2,0.4,0.6,0.8,1,0.8,0.6,0.4,0.2,0,-0.2,-0.4,-0.2,0,0.1]}}},{"v":1,"name":"Sub Pulse","kit":[0,0,0,0,1,0,4,0,29,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,100,127,127,127,68,104,10,0,0,0,0,0,0,92,0,13,0,3,0,10,0,107,0,5,17,55,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,120,127,127,127,127,127,63,63,63,0,0,63,63,63,80,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":122,"seq":{"root":5,"scale":6,"accent":4,"glide":35,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":3,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":2,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":3,"gate":3,"acc":false,"slide":false}]},"fx":{"send":0,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":0,"vPre":16,"vDecay":100,"vTone":60,"vEarly":64},"dpos":0.6549946429601652,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-16,"ratio":4,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"FM Bell Pluck","kit":[0,0,0,0,1,0,4,0,48,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,115,127,127,127,68,104,20,0,0,0,0,0,0,55,0,13,0,3,0,10,0,107,0,5,17,70,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,58,72,0,0,0,0,100,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":110,"seq":{"root":0,"scale":7,"accent":5,"glide":35,"vel":100,"steps":[{"d":0,"gate":5,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":7,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":5,"gate":5,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":1,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false}]},"fx":{"send":38,"ring":0,"width":140,"ringWave":0,"ringFreq":40,"verb":35,"vPre":30,"vDecay":108,"vTone":72,"vEarly":80},"dpos":0.6549946429601652,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Square Hop","kit":[0,3,0,0,1,0,4,0,40,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,66,127,127,127,68,104,75,0,0,0,0,0,0,48,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,30,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":140,"seq":{"root":2,"scale":2,"accent":8,"glide":35,"vel":100,"steps":[{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":true,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":9,"gate":2,"acc":false,"slide":false},{"d":0,"gate":2,"acc":false,"slide":false},{"d":7,"gate":2,"acc":true,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":4,"gate":2,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false}]},"fx":{"send":15,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":20,"vPre":0,"vDecay":90,"vTone":60,"vEarly":64},"dpos":0.5714285714285714,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{"m-voice-filter:cutoff":{"on":true,"len":8,"slew":0,"step":1,"depth":25,"vals":[0,0.5,-0.3,0.8,-0.6,0.2,0.9,-0.2,0,0,0,0,0,0,0,0]}}},{"v":1,"name":"Zap Bass","kit":[0,2,0,0,1,0,4,0,31,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,58,127,127,127,68,104,55,0,0,0,0,0,0,58,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,12,93,7,14,30,14,127,81,40,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,50,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":130,"seq":{"root":4,"scale":3,"accent":8,"glide":25,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":1,"gate":3,"acc":false,"slide":true},{"d":0,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":3,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":1,"gate":3,"acc":false,"slide":false},{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":3,"gate":3,"acc":false,"slide":false}]},"fx":{"send":0,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":0,"vPre":16,"vDecay":100,"vTone":60,"vEarly":64},"dpos":0.6549946429601652,"dist":{"mix":22,"type":0,"p":[80,64,75,85]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Ring Drone","kit":[0,1,0,0,1,0,4,0,43,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,80,127,127,127,68,104,40,0,0,0,0,0,25,118,0,13,0,3,0,10,0,107,0,5,17,80,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":90,"seq":{"root":7,"scale":5,"accent":3,"glide":70,"vel":100,"steps":[{"d":0,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":3,"gate":5,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":6,"gate":5,"acc":false,"slide":true},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false}]},"fx":{"send":42,"ring":35,"width":160,"ringWave":0,"ringFreq":22,"verb":40,"vPre":60,"vDecay":118,"vTone":55,"vEarly":40},"dpos":0.7142857142857143,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-14,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Fold Lead","kit":[0,5,0,0,1,0,4,0,55,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,92,127,127,127,68,104,35,0,0,0,0,0,0,75,0,13,0,3,0,10,0,107,0,5,17,40,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,40,0,0,0,0,0,55,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,5,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,40,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":118,"seq":{"root":0,"scale":4,"accent":6,"glide":45,"vel":100,"steps":[{"d":0,"gate":4,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":4,"gate":3,"acc":false,"slide":false},{"d":5,"gate":3,"acc":false,"slide":true},{"d":7,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":9,"gate":3,"acc":false,"slide":false},{"d":7,"gate":3,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":5,"gate":3,"acc":true,"slide":false},{"d":4,"gate":3,"acc":false,"slide":true},{"d":2,"gate":3,"acc":false,"slide":false},{"d":0,"gate":4,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":2,"gate":3,"acc":false,"slide":true},{"d":4,"gate":3,"acc":false,"slide":false}]},"fx":{"send":25,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":22,"vPre":40,"vDecay":100,"vTone":52,"vEarly":30},"dpos":0.6307196427541206,"dist":{"mix":45,"type":1,"p":[55,64,90,70]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}},{"v":1,"name":"Click Pluck","kit":[0,2,0,0,1,0,4,0,52,63,41,63,58,63,45,64,127,63,50,63,0,0,0,0,0,0,0,127,61,0,0,0,0,56,127,127,127,88,127,127,127,68,104,60,0,0,0,0,0,0,30,0,13,0,3,0,10,0,107,0,5,17,25,11,4,10,0,6,0,0,20,93,7,14,0,14,127,81,22,10,14,15,0,0,0,0,0,0,110,127,127,127,127,127,63,63,63,0,0,63,63,63,63,63,63,63,63,63,127,127,127,127,127,127,127,0,0,0,0,0,0,0,0,0,0,0,0,0,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,55,0,0,0,0,0,2,0,0,0,0,0,80,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,90,50,0,0,0,0,0],"macro":{"pitch":0,"decay":100,"filter":100,"fm":100},"tempo":124,"seq":{"root":3,"scale":8,"accent":7,"glide":35,"vel":100,"steps":[{"d":0,"gate":3,"acc":true,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":false,"slide":false},{"d":4,"gate":2,"acc":true,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":5,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":0,"gate":3,"acc":true,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false},{"d":0,"gate":0,"acc":false,"slide":false},{"d":6,"gate":2,"acc":false,"slide":false},{"d":5,"gate":3,"acc":true,"slide":false},{"d":4,"gate":2,"acc":false,"slide":false},{"d":3,"gate":2,"acc":false,"slide":false},{"d":2,"gate":2,"acc":false,"slide":false}]},"fx":{"send":30,"ring":0,"width":100,"ringWave":0,"ringFreq":40,"verb":25,"vPre":10,"vDecay":95,"vTone":66,"vEarly":90},"dpos":0.5121375001030223,"dist":{"mix":0,"type":0,"p":[70,64,80,90]},"master":{"comp":true,"thresh":-12,"ratio":3,"attack":5,"release":120,"makeup":0},"fseqs":{}}];
 // ---- the state: the sound (drum 1's parameters and the perf macros), the note sequence, the effects and the master,
 // and the audio thread they're sent to ----
 const $ = (id) => document.getElementById(id);
@@ -4291,9 +4486,10 @@ function sendSeq() {
     steps: seq.steps.map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
 
-// ---- effects and master: echo and ring mod sends; the echo's tone, feedback and ping pong are the engine's own FX bus
-// settings (in the sound); the distortion and compressor on the whole mix ----
-const FX0 = { send: 0, ring: 0, width: 100, ringWave: 0, ringFreq: 40 };
+// ---- effects and master: echo, reverb and ring mod sends; the echo's tone, feedback and ping pong are the engine's own
+// FX bus settings (in the sound); the reverb's are the firmware's four reverb parameters (0..127); the distortion and
+// compressor on the whole mix ----
+const FX0 = { send: 0, ring: 0, width: 100, ringWave: 0, ringFreq: 40, verb: 0, vPre: 16, vDecay: 100, vTone: 60, vEarly: 64 };
 const fx = { ...FX0 };
 const DIST0 = { mix: 0, type: 0, p: [70, 64, 80, 90] };
 const dist = structuredClone(DIST0);
@@ -4325,7 +4521,8 @@ function setDelay(pos) { delayPos = pos; send({ type: 'delay', pos }); }
 function sendMix() {
   const out = fx.send > 0 ? LXR.MIXER_ROUTING_FX_BUS : 0;
   if (values[PAR.AUDIO_OUT1] !== out) setValue(PAR.AUDIO_OUT1, out);
-  send({ type: 'mix', master: { ...master }, dist, ring: { wave: fx.ringWave, freq: fx.ringFreq }, sendE: fx.send / 100, sendR: fx.ring / 100, width: fx.width });
+  send({ type: 'mix', master: { ...master }, dist, ring: { wave: fx.ringWave, freq: fx.ringFreq }, sendE: fx.send / 100, sendR: fx.ring / 100, width: fx.width,
+    sendV: fx.verb / 100, verb: [fx.vPre, fx.vDecay, fx.vTone, fx.vEarly] });
 }
 
 // ---- audio ----
@@ -4471,10 +4668,12 @@ eventHandlers.push((ev) => {
 // resets it, and holding one still for half a second opens its step sequencer. While a sequencer runs, the fader sets
 // its base (fd.base) and the sequencer moves the value around it: the fill is the value heard, the bar the base ----
 const mFaders = [];
-function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1 }) {
+function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1, cc = 0 }) {
   const el = document.createElement('div');
-  el.className = 'm-vf';
+  el.className = cc ? 'm-vf m-dial' : 'm-vf';
   el.innerHTML = '<output></output><div class="m-vtrack" role="slider" tabindex="0"><i></i><b></b></div><span class="m-flab"></span>';
+  // a dial (cc: its MIDI CC number, shown in its middle) turns by dragging up and down over 200 px
+  if (cc) el.querySelector('.m-vtrack').insertAdjacentHTML('beforeend', `<em aria-hidden="true">${cc}</em>`);
   el.querySelector('.m-flab').textContent = label;
   const tr = el.querySelector('.m-vtrack'), out = el.querySelector('output');
   tr.setAttribute('aria-label', label);
@@ -4487,14 +4686,14 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
     tr.classList.toggle('mod', fd.base !== null); if (fd.base !== null) tr.style.setProperty('--b', (fd.base - min) / (hi - min || 1));
     tr.setAttribute('aria-valuemin', min); tr.setAttribute('aria-valuemax', hi); tr.setAttribute('aria-valuenow', v); tr.setAttribute('aria-valuetext', show(v));
   };
-  const fd = { key: `${box.id}:${label}`, label, min, hiOf, step, get, show, put, snap, el, draw, seq: null, base: null, off: 0, glide: null };
+  const fd = { key: `${box.id}:${label}`, label, min, hiOf, step, get, show, put, snap, el, draw, cc, seq: null, base: null, off: 0, glide: null };
   // a move of the fader: its base while a sequencer runs, else its value
   const move = (v) => { if (fd.base !== null) { fd.base = snap(v); fsApply(fd); } else put(v); };
   fd.move = move;
   let drag = null, hold = 0;
   tr.addEventListener('pointerdown', (e) => {
     tr.setPointerCapture(e.pointerId); el.classList.add('held');
-    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: tr.getBoundingClientRect().height };
+    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: cc ? 200 : tr.getBoundingClientRect().height };
     clearTimeout(hold);
     hold = setTimeout(() => { if (!drag) return; const v = drag.v; end(); move(v); fsOpen(fd); }, 500);
   });
@@ -4519,12 +4718,49 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
 }
 const pct = (v) => (v === 100 ? '0%' : (v > 100 ? '+' : '−') + Math.abs(v - 100) + '%');
 
-// ---- perf: tempo, pitch, decay, filter and fm, full height ----
-mFader($('m-perf'), 'tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v}\nbpm`, dflt: 120 });
-// pitch is free: hundredths of a semitone, over twice the track's height
-mFader($('m-perf'), 'pitch', { min: -24, max: 24, step: 0.01, travel: 2, get: () => macro.pitch, set: (v) => setMacro('pitch', v),
-  show: (v) => (Math.abs(v) < 0.005 ? '0\nst' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '\nst'), dflt: 0 });
-for (const m of ['decay', 'filter', 'fm']) mFader($('m-perf'), m, { min: 0, max: 200, get: () => macro[m], set: (v) => setMacro(m, v), show: pct, dflt: 100 });
+// ---- perf: twelve dials, MIDI CC 1 to 12 in reading order: tempo, pitch, decay, filter, reso, fm, drive, the echo send
+// and feedback, the reverb send and decay, and the master distortion's mix. Decay, filter and fm are macros on top of
+// the sound; the rest move the same settings as their faders on the other pages ----
+const sendPct = (v) => (v ? v + '%' : 'off');
+const PERF_DIALS = [
+  ['tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); }, show: (v) => `${v} bpm`, dflt: 120 }],
+  // pitch is free: hundredths of a semitone, over twice the travel
+  ['pitch', { min: -24, max: 24, step: 0.01, travel: 2, get: () => macro.pitch, set: (v) => setMacro('pitch', v),
+    show: (v) => (Math.abs(v) < 0.005 ? '0 st' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(2) + ' st'), dflt: 0 }],
+  ...['decay', 'filter'].map((m) => [m, { min: 0, max: 200, get: () => macro[m], set: (v) => setMacro(m, v), show: pct, dflt: 100 }]),
+  ['reso', { min: 0, max: 127, get: () => values[PAR.RESO_1], set: (v) => setValue(PAR.RESO_1, v), show: String, dflt: () => factoryInit[PAR.RESO_1] }],
+  ['fm', { min: 0, max: 200, get: () => macro.fm, set: (v) => setMacro('fm', v), show: pct, dflt: 100 }],
+  ['drive', { min: 0, max: 127, get: () => values[PAR.DRIVE1], set: (v) => setValue(PAR.DRIVE1, v), show: String, dflt: () => factoryInit[PAR.DRIVE1] }],
+  ['echo', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 }],
+  ['echo fb', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), show: String, dflt: 50 }],
+  ['reverb', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 }],
+  ['rvb decay', { min: 0, max: 127, get: () => fx.vDecay, set: (v) => { fx.vDecay = v; sendMix(); }, show: String, dflt: FX0.vDecay }],
+  ['dist', { min: 0, max: 100, get: () => dist.mix, set: (v) => { dist.mix = v; sendMix(); }, show: sendPct, dflt: 0 }]];
+const ccDials = PERF_DIALS.map(([label, o], i) => mFader($('m-perf'), label, { ...o, cc: i + 1 }));
+// MIDI in (Web MIDI, any input, any channel): CC 1 to 12 turn the dials, 0..127 over each one's range. Access is asked
+// for at the first touch (or straight away if it was given before); controllers plugged in later are picked up
+{
+  let redraw = 0;
+  const onMidi = (e) => {
+    const [st, n, v] = e.data;
+    if ((st & 0xf0) !== 0xb0 || n < 1 || n > ccDials.length) return;
+    const fd = ccDials[n - 1];
+    fd.el.classList.add('cc');
+    fd.move(fd.min + v / 127 * (fd.hiOf() - fd.min));
+    if (!redraw) redraw = requestAnimationFrame(() => { redraw = 0; drawAll(); });
+  };
+  let asked = false;
+  const ask = () => {
+    if (asked || !navigator.requestMIDIAccess) return;
+    asked = true;
+    navigator.requestMIDIAccess().then((acc) => {
+      const bind = () => acc.inputs.forEach((i) => { i.onmidimessage = onMidi; });
+      bind(); acc.onstatechange = bind;
+    }, () => {});
+  };
+  addEventListener('pointerdown', ask, { once: true, capture: true });
+  if (navigator.permissions) navigator.permissions.query({ name: 'midi' }).then((p) => { if (p.state === 'granted') ask(); }, () => {});
+}
 
 // ---- voice: every drum 1 parameter, on four tabs of up to twelve: tone (oscillator, fm), shape (amp eg, pitch
 // envelope, click), filter (and the voice's mix) and mod (lfo and its target, velocity) ----
@@ -4608,12 +4844,17 @@ const xyFader = (pn) => mFaders.find((f) => f.key === `m-voice-${VP_PAGES.find((
 const fxF = (box, label, o) => mFader($(box), label, { show: String, ...o });
 $('m-pp').addEventListener('change', () => setValue(PAR.FX_DELAY_TYPE, $('m-pp').checked ? 1 : 0));
 drawHooks.push(() => { $('m-pp').checked = values[PAR.FX_DELAY_TYPE] === 1; });
-const sendPct = (v) => (v ? v + '%' : 'off');
 fxF('m-echo', 'send', { min: 0, max: 100, get: () => fx.send, set: (v) => { fx.send = v; sendMix(); }, show: sendPct, dflt: 0 });
 fxF('m-echo', 'time', { min: 0, max: 1000, get: () => Math.round(delayPos * 1000), set: (v) => setDelay(v / 1000), show: showDelay, dflt: Math.round(posOf(3 / 16) * 1000) });
 fxF('m-echo', 'tone', { min: 0, max: 127, get: () => values[PAR.FX_P3], set: (v) => setValue(PAR.FX_P3, v), dflt: 90 });
 fxF('m-echo', 'feedback', { min: 0, max: 127, get: () => values[PAR.FX_P4], set: (v) => setValue(PAR.FX_P4, v), dflt: 50 });
 fxF('m-echo', 'width', { min: 0, max: 200, get: () => fx.width, set: (v) => { fx.width = v; sendMix(); }, show: (v) => v + '%', dflt: 100 });
+// the reverb: send, then the firmware's four: predelay (1 to 46 ms), decay (its feedback; at the top it holds), tone (a
+// tilt: in the middle it's flat, down darkens and damps the tail, up thins it) and early (the early reflections' level)
+const preMs = (v) => Math.round(2031 * (0.02166 + v / 127 * 0.97784) / (LXR.REAL_FS / 1000)) + ' ms';
+fxF('m-verb', 'send', { min: 0, max: 100, get: () => fx.verb, set: (v) => { fx.verb = v; sendMix(); }, show: sendPct, dflt: 0 });
+[['predelay', 'vPre', preMs], ['decay', 'vDecay'], ['tone', 'vTone'], ['early', 'vEarly']].forEach(([l, k, show]) =>
+  fxF('m-verb', l, { min: 0, max: 127, get: () => fx[k], set: (v) => { fx[k] = v; sendMix(); }, show: show || String, dflt: FX0[k] }));
 const RING_W = OSC_WAVE_NAMES.map((n) => n.toLowerCase());
 fxF('m-ring', 'send', { min: 0, max: 100, get: () => fx.ring, set: (v) => { fx.ring = v; sendMix(); }, show: sendPct, dflt: 0 });
 fxF('m-ring', 'wave', { min: 0, max: RING_W.length - 1, get: () => fx.ringWave, set: (v) => { fx.ringWave = v; sendMix(); }, show: (v) => RING_W[v], dflt: 0 });
@@ -4702,9 +4943,12 @@ function alterSound(a = 0.1) {
     setValue(par, Math.max(0, Math.min(sp.max, Math.round(values[par] + (rnd() * 2 - 1) * a * sp.max))));
   }
 }
-// random fx: the echo on (half the time) at a musical length, the ring mod now and then; alter fx: each moved a little
+// random fx: the echo on (half the time) at a musical length, the reverb as often (a room to a long hall), the ring mod
+// now and then; alter fx: each moved a little
 function randomFx() {
   fx.send = chance(0.55) ? rIn(10, 60) : 0; fx.ring = chance(0.2) ? rIn(10, 60) : 0;
+  fx.verb = chance(0.5) ? rIn(10, 55) : 0;
+  fx.vPre = rIn(0, 90); fx.vDecay = rIn(70, 122); fx.vTone = rIn(30, 85); fx.vEarly = rIn(0, 127);
   setDelay(randomDelayPos());
   setValue(PAR.FX_DELAY_TYPE, chance(0.6) ? 1 : 0); setValue(PAR.FX_P3, rIn(40, 110)); setValue(PAR.FX_P4, chance(0.2) ? rIn(70, 105) : rIn(15, 70));
   fx.width = rIn(60, 160); fx.ringWave = rIn(0, RING_W.length - 1); fx.ringFreq = rIn(5, 120);
@@ -4714,6 +4958,8 @@ function alterFx(a = 0.1) {
   const nudge = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(v + (rnd() * 2 - 1) * a * (hi - lo))));
   if (fx.send) fx.send = nudge(fx.send, 1, 100);
   if (fx.ring) fx.ring = nudge(fx.ring, 1, 100);
+  if (fx.verb) fx.verb = nudge(fx.verb, 1, 100);
+  fx.vPre = nudge(fx.vPre, 0, 127); fx.vDecay = nudge(fx.vDecay, 0, 124); fx.vTone = nudge(fx.vTone, 8, 120); fx.vEarly = nudge(fx.vEarly, 0, 127);
   setDelay(Math.max(0, Math.min(1, delayPos + (rnd() * 2 - 1) * a / 2)));
   setValue(PAR.FX_P3, nudge(values[PAR.FX_P3], 0, 127)); setValue(PAR.FX_P4, nudge(values[PAR.FX_P4], 0, 110));
   fx.width = nudge(fx.width, 0, 200); fx.ringFreq = nudge(fx.ringFreq, 0, 127);

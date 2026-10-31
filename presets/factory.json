@@ -370,7 +370,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 0,
+    "vPre": 16,
+    "vDecay": 100,
+    "vTone": 60,
+    "vEarly": 64
    },
    "dpos": 0.6549946429601652,
    "dist": {
@@ -788,7 +793,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 0,
+    "vPre": 16,
+    "vDecay": 100,
+    "vTone": 60,
+    "vEarly": 64
    },
    "dpos": 0.6549946429601652,
    "dist": {
@@ -1180,7 +1190,12 @@
     "ring": 0,
     "width": 140,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 35,
+    "vPre": 30,
+    "vDecay": 108,
+    "vTone": 72,
+    "vEarly": 80
    },
    "dpos": 0.6549946429601652,
    "dist": {
@@ -1572,7 +1587,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 20,
+    "vPre": 0,
+    "vDecay": 90,
+    "vTone": 60,
+    "vEarly": 64
    },
    "dpos": 0.5714285714285714,
    "dist": {
@@ -1990,7 +2010,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 0,
+    "vPre": 16,
+    "vDecay": 100,
+    "vTone": 60,
+    "vEarly": 64
    },
    "dpos": 0.6549946429601652,
    "dist": {
@@ -2382,7 +2407,12 @@
     "ring": 35,
     "width": 160,
     "ringWave": 0,
-    "ringFreq": 22
+    "ringFreq": 22,
+    "verb": 40,
+    "vPre": 60,
+    "vDecay": 118,
+    "vTone": 55,
+    "vEarly": 40
    },
    "dpos": 0.7142857142857143,
    "dist": {
@@ -2774,7 +2804,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 22,
+    "vPre": 40,
+    "vDecay": 100,
+    "vTone": 52,
+    "vEarly": 30
    },
    "dpos": 0.6307196427541206,
    "dist": {
@@ -3166,7 +3201,12 @@
     "ring": 0,
     "width": 100,
     "ringWave": 0,
-    "ringFreq": 40
+    "ringFreq": 40,
+    "verb": 25,
+    "vPre": 10,
+    "vDecay": 95,
+    "vTone": 66,
+    "vEarly": 90
    },
    "dpos": 0.5121375001030223,
    "dist": {

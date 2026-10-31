@@ -4,6 +4,7 @@
 // - a note on a whole semitone is bit-exact: the voice renders exactly what the engine's own trigger on that note does
 // - pitch between semitones is continuous (cents), and back on a semitone it's exact again
 // - the sequencer: rests don't play, a slide glides into the next step without a retrigger, a short gate closes
+// - the reverb leaves a finite tail, and holds at the top of its decay
 // - every built-in preset loads and plays at a sane level
 import { readFileSync } from 'node:fs';
 const html = readFileSync(process.argv[2] || new URL('../index.html', import.meta.url), 'utf8');
@@ -57,6 +58,28 @@ const check = (ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if
   check(JSON.stringify(played) === JSON.stringify([[0, 0], [2, 3], [4, 7]]), `steps 0, 2 and 4 trigger; the rest and the slid-into step don't (${JSON.stringify(played)})`);
   check(slid, 'step 2 slides into step 3');
   check(minGain === 0, 'a quarter gate closes before its step is out');
+}
+// the reverb: a note sent to it leaves a tail after the voice has stopped, finite and at a sane level, and at the top
+// of its decay (with the tone in the middle) it holds
+{
+  // the reverb alone (no compressor): the loudest sample, and the loudest from `from` seconds on, over `secs` seconds
+  const run = (decay, secs, from) => {
+    const p = new Player(LXR.REAL_FS);
+    p.msg({ type: 'mix', master: { comp: false }, dist: { type: 0, p: [0, 0, 0, 0], mix: 0 }, ring: { wave: 0, freq: 40 }, sendE: 0, sendR: 0,
+      width: 100, sendV: 1, verb: [16, decay, 64, 64] });
+    p.msg({ type: 'note', n: 0, acc: true, gate: 2 });
+    let peak = 0, tail = 0, bad = false;
+    for (let b = 0; b < Math.ceil(LXR.REAL_FS * secs / 64); b++) {
+      p._render(p.A);
+      for (const ch of p.A) for (const x of ch) { if (!Number.isFinite(x)) bad = true; peak = Math.max(peak, Math.abs(x)); if (b * 64 > LXR.REAL_FS * from) tail = Math.max(tail, Math.abs(x)); }
+    }
+    return { peak, tail, bad };
+  };
+  const dB = (x) => (20 * Math.log10(x)).toFixed(1);
+  const r = run(100, 0.6, 0.4), held = run(127, 3, 2.8);
+  check(!r.bad && !held.bad && r.peak < 1.5 && held.peak < 1.5, `reverb: finite and sane (peak ${dB(r.peak)} dB)`);
+  check(r.tail > 0.001, `reverb: a tail after the note (${dB(r.tail)} dB at 0.4 s)`);
+  check(held.tail > 0.01, `reverb: decay at the top holds (${dB(held.tail)} dB after 2.8 s)`);
 }
 // the built-in presets: each loads and plays at a sane level
 {

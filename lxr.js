@@ -691,13 +691,13 @@ const drumSineStart = (offset) => f(1024 + f(((0x3ff << 20) - 1024) * offset));
 const otherSineStart = (offset) => f((0x3ff << 20) * offset);
 
 // ---------------------------------------------------------------------------------------
-// FX bus: FxBus.c, FX/Distortion.c, FX/Ringmod.c, FX/Compressor.c, FX/Delay.c (the reverb
-// is compiled out of the firmware, USE_REVERB 0). Voices routed to the FX bus (AUDIO_OUTn =
+// FX bus: FxBus.c, FX/Distortion.c, FX/Ringmod.c, FX/Compressor.c, FX/Delay.c, FX/Reverb.c (the
+// reverb is compiled out of the firmware, USE_REVERB 0; here it's switched back on). Voices routed to the FX bus (AUDIO_OUTn =
 // 6) are mixed into one stereo int16 buffer, processed by the selected effect and added to
 // the stereo output. Only the stereo output routings are modelled.
 // ---------------------------------------------------------------------------------------
-export const FX_OFF = 0, FX_DISTORTION = 1, FX_RING = 2, FX_COMPRESSOR = 3, FX_DELAY = 4;
-export const FX_NAMES = ['Off', 'Distortion', 'Ring mod', 'Compressor', 'Delay'];
+export const FX_OFF = 0, FX_DISTORTION = 1, FX_RING = 2, FX_COMPRESSOR = 3, FX_DELAY = 4, FX_REVERB = 5;
+export const FX_NAMES = ['Off', 'Distortion', 'Ring mod', 'Compressor', 'Delay', 'Reverb'];
 export const DIST_TUBE = 0, DIST_FOLD = 1, DIST_RAT = 2;
 export const DIST_NAMES = ['Tube', 'Fold', 'Rat'];
 export const RATIO_NAMES = ['1:1', '2:1', '3:1', '4:1', '6:1', '8:1'];
@@ -1066,6 +1066,163 @@ function delayProcessPingPong(d, buf, fx, out, size, dryWet) {
   }
 }
 
+// ---------------------------------------------------------------------------------------
+// FX/Reverb.c, FX/VerbTools/*.c, TiltEq.c: the firmware's reverb, compiled out of the LXR-02
+// (USE_REVERB 0) and switched back on here as FX_REVERB. The non-SPIN_SEMI build: a predelay,
+// four early reflection taps, four input allpasses into two cross-fed loops (an allpass
+// with a modulation slot, a delay, the feedback, an allpass, a delay), five output taps,
+// tilt EQs on the input and the output. The output is mono, as in the firmware. Its delay
+// lines are __fp16, 0x800 samples each, in FX_BUFFER; here each has its own.
+// ---------------------------------------------------------------------------------------
+const VERB_SIZE = 0x800, VERB_MASK = VERB_SIZE - 1;
+const F_SR3 = f(3 * REAL_FS);
+const HALF_F = new Float32Array(1), HALF_U = new Uint32Array(HALF_F.buffer);
+/** float -> __fp16 -> float, by the bits (what toHalf() does, without a log per sample) */
+function half(x) {
+  HALF_F[0] = x;
+  const u = HALF_U[0], s = u & 0x80000000;
+  let a = u & 0x7fffffff;
+  if (a >= 0x477ff000) return s ? -Infinity : Infinity; // NaN goes this way too
+  if (a < 0x38800000) { // a half subnormal: a whole number of 2^-24
+    const m = Math.abs(x) * 16777216;
+    let r = Math.floor(m);
+    const d = m - r;
+    if (d > 0.5 || (d === 0.5 && (r & 1))) r++;
+    return s ? -r / 16777216 : r / 16777216;
+  }
+  a = (a + 0xfff + ((a >> 13) & 1)) & 0xffffe000;
+  HALF_U[0] = s | a;
+  return HALF_F[0];
+}
+function makeVerbDelay(length) { // VerbDelay_init(), VerbDelay_setLength()
+  const d = { buf: new Float32Array(VERB_SIZE), length: 256, readPtr: 0, writePtr: 256, roomSz: f(1) };
+  if (length !== undefined) { d.length = length; verbDelayCalcLength(d); }
+  return d;
+}
+function verbDelayCalcLength(d) {
+  const scaledSize = f(d.length * d.roomSz);
+  let pos = f(d.writePtr - scaledSize);
+  if (pos < 0) pos = f(pos + VERB_SIZE);
+  d.readPtr = (Math.trunc(pos) & 0xffff) & VERB_MASK;
+}
+function verbDelaySetRoomSize(d, sz) { d.roomSz = f(sz); verbDelayCalcLength(d); }
+function verbDelayRead(d) { const r = d.buf[d.readPtr]; d.readPtr = (d.readPtr + 1) & VERB_MASK; return r; }
+function verbDelayWrite(d, x) { d.buf[d.writePtr] = half(x); d.writePtr = (d.writePtr + 1) & VERB_MASK; }
+function verbDelayReadTap(d, percent) {
+  const offset = Math.trunc(f(f(percent / 100) * d.length)) & 0xffff;
+  return d.buf[(d.readPtr - offset) & VERB_MASK];
+}
+const verbDelayReadTapSample = (d, idx) => d.buf[(d.readPtr - idx) & VERB_MASK];
+function verbDelayProcess(d, x) { verbDelayWrite(d, x); return verbDelayRead(d); }
+// AllpassDelay.c
+const makeAllpass = (length, g = 0.6) => ({ g: f(g), out: 0, in: 0, delay: makeVerbDelay(length) });
+function allpassProcess(ap, input) {
+  ap.out = verbDelayRead(ap.delay);
+  ap.in = f(input + f(ap.g * ap.out));
+  verbDelayWrite(ap.delay, ap.in);
+  return f(ap.out + f(f(-ap.g) * ap.in));
+}
+// VerbModDelay.c and AllpassModDelay: the read position is smoothed by a one-pole set to 0.00013 Hz, so it starts at
+// the write position (a whole buffer late) and creeps toward its length over tens of minutes; the modulation depth is
+// never set in this build, so the LFO doesn't move it. As the firmware has it.
+function makeAllpassMod(length) {
+  const lp = makeOnePole();
+  lp.r = f(1 - Math.exp(f(-2 * Math.PI * 0.0001308911269084528 / F_REAL_FS)));
+  return { g: f(0.6), out: 0, in: 0, delay: { buf: new Float32Array(VERB_SIZE), length, readPtr: 0, writePtr: 256, lp, frac: 0, depth: 0, modVal: 0, roomSz: f(1) } };
+}
+function verbModCalcLength(d) {
+  const scaledSize = f(d.length * d.roomSz);
+  const filteredPos = f(calcOnePole(d.lp, f(scaledSize + f(d.depth * d.modVal))));
+  let pos = f(d.writePtr - filteredPos);
+  if (pos < 0) pos = f(pos + VERB_SIZE);
+  const itg = Math.trunc(pos) >>> 0;
+  d.frac = f(pos - itg);
+  d.readPtr = itg & VERB_MASK;
+}
+function allpassModProcess(ap, input) {
+  const d = ap.delay;
+  verbModCalcLength(d);
+  ap.out = d.buf[d.readPtr]; d.readPtr = (d.readPtr + 1) & VERB_MASK;
+  ap.in = f(input + f(ap.g * ap.out));
+  d.buf[d.writePtr] = half(ap.in); d.writePtr = (d.writePtr + 1) & VERB_MASK;
+  return f(ap.out + f(f(-ap.g) * ap.in));
+}
+// TiltEq.c: at p 0 it passes; below, a low-pass closing toward 0 Hz; above, a high-pass opening toward 20 kHz
+const makeTiltEq = () => { const eq = { a0: 0, b1: 0, lp: 0, lgain: 0, hgain: 0 }; tiltSetFreq(eq, 400); return eq; };
+function tiltSetFreq(eq, fc) {
+  const omega = 2 * Math.PI * f(fc), n = 1 / (F_SR3 + omega);
+  eq.a0 = f(2 * omega * n); eq.b1 = f((F_SR3 - omega) * n);
+}
+function tiltSetParameter(eq, p) {
+  p = f(f(p * p) * p);
+  if (p >= 0) { eq.lgain = 0; eq.hgain = f(1); tiltSetFreq(eq, f(20000 * p)); }
+  else { eq.lgain = f(1); eq.hgain = 0; tiltSetFreq(eq, f(20000 * f(1 + p))); }
+}
+function tiltProcess(eq, x) {
+  eq.lp = f(f(eq.a0 * x) + f(eq.b1 * eq.lp));
+  return f(f(eq.lgain * eq.lp) + f(eq.hgain * f(x - eq.lp)));
+}
+const EARLY_TAPS = [12, 24, 38, 50];
+function makeReverb() { // Reverb_init()
+  const sc = { a: 0, s: [f(0.5), 0] };
+  sc.a = f(2 * f(Math.sin(f(Math.PI * 1.31 / F_REAL_FS))));
+  const lpFeedback = makeOnePole(); setOnePoleCoef(lpFeedback, 0.5);
+  const r = { eq: makeTiltEq(), eqFb: makeTiltEq(), lfo: sc, earlyVolume: f(1), lpFeedback, lastOut: 0, lastOut2: 0, feedback: 0,
+    apDelay: [makeAllpass(1800), makeAllpass(2039)], apModDelay: [makeAllpassMod(672), makeAllpassMod(908)],
+    inputAllpass: [makeAllpass(142, 0.75), makeAllpass(107, 0.75), makeAllpass(379, 0.625), makeAllpass(277, 0.625)],
+    delay: [makeVerbDelay(2047), makeVerbDelay(1913), makeVerbDelay(1720), makeVerbDelay(1163)],
+    early: makeVerbDelay(2000), preDelay: makeVerbDelay(2031) };
+  return r;
+}
+// FxBus_updateParameter(), FX_REVERB: P1 the predelay (1 to 46 ms), P2 the feedback, P3 the tilt (and the loop's
+// damping), P4 the early reflections' level
+function reverbSetParameters(r, p) {
+  verbDelaySetRoomSize(r.preDelay, f(f(0.02166) + f(p[0] * f(0.97784342688330871492))));
+  r.feedback = p[1];
+  tiltSetParameter(r.eq, f(-1 + f(2 * p[2]))); tiltSetParameter(r.eqFb, f(-1 + f(2 * p[2])));
+  setOnePoleCoef(r.lpFeedback, p[2]);
+  r.earlyVolume = p[3];
+}
+function reverbProcess(r, fx, out, size, dryWet) {
+  // SineCosine_calc() once a block, into the modulated allpasses (whose depth is 0)
+  const sc = r.lfo;
+  sc.s[0] = f(sc.s[0] - f(sc.a * sc.s[1])); sc.s[1] = f(sc.s[1] + f(sc.a * sc.s[0]));
+  r.apModDelay[1].delay.modVal = sc.s[0]; verbModCalcLength(r.apModDelay[1].delay);
+  r.apModDelay[0].delay.modVal = sc.s[1]; verbModCalcLength(r.apModDelay[0].delay);
+  const [ap0, ap1] = r.apDelay, [am0, am1] = r.apModDelay, [d0, d1, d2, d3] = r.delay, ia = r.inputAllpass, fb = r.feedback;
+  for (let i = 0; i < size; i++) {
+    const mix = qadd16(Math.trunc(fx[2 * i] / 2), Math.trunc(fx[2 * i + 1] / 2));
+    let mono = verbDelayProcess(r.preDelay, f(mix / 32768));
+    // early reflections
+    verbDelayProcess(r.early, mono);
+    let early = verbDelayReadTap(r.early, EARLY_TAPS[0]);
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[1]) * f(0.5)));
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[2]) * f(0.125)));
+    early = f(early + f(verbDelayReadTap(r.early, EARLY_TAPS[3]) * f(0.25)));
+    mono = f(0.5 * tiltProcess(r.eq, mono));
+    const in1 = allpassProcess(ia[0], allpassProcess(ia[1], mono));
+    const in2 = allpassProcess(ia[2], allpassProcess(ia[3], mono));
+    // late: loop 1, then loop 2, each fed by the other (loop 2 goes through apDelay[1] too, as the firmware has it)
+    let tmp = allpassModProcess(am0, f(in1 + r.lastOut2));
+    tmp = f(verbDelayProcess(d0, tmp) * fb);
+    tmp = verbDelayProcess(d1, allpassProcess(ap1, tmp));
+    r.lastOut = calcOnePole(r.lpFeedback, f(tmp * fb));
+    tmp = allpassModProcess(am1, f(in2 + r.lastOut));
+    tmp = f(verbDelayProcess(d2, tmp) * fb);
+    tmp = verbDelayProcess(d3, allpassProcess(ap1, tmp));
+    r.lastOut2 = f(tmp * fb);
+    let o = f(verbDelayReadTapSample(d2, 266) * 0.6);
+    o = f(o - verbDelayReadTapSample(ap1.delay, 1913) * 0.6);
+    o = f(o + verbDelayReadTapSample(d3, 996) * 0.6);
+    o = f(o - verbDelayReadTapSample(ap0.delay, 187) * 0.6);
+    o = f(o - verbDelayReadTapSample(d1, 1066) * 0.6);
+    o = tiltProcess(r.eqFb, fmaf(early, r.earlyVolume, o));
+    const wet = ssat16(toI32(f(o * 32768)));
+    out[2 * i] = qadd16(out[2 * i], dryWetMix(fx[2 * i], wet, dryWet));
+    out[2 * i + 1] = qadd16(out[2 * i + 1], dryWetMix(fx[2 * i + 1], wet, dryWet));
+  }
+}
+
 export class FxBus {
   constructor() {
     this.dryWet = 0;
@@ -1076,6 +1233,7 @@ export class FxBus {
     this.ringmod = makeRingmod();
     this.compressor = makeCompressor();
     this.delay = makeDelay();
+    this.reverb = makeReverb();
     this.buffer = new Float32Array(SYNC_BUFFER_SIZE + 1); // __fp16 FX_BUFFER, kept as float values
     this.forceWet = false; // not in the firmware: the bus output is all effect (a send effect)
     this.input = new Int16Array(BLOCK * 2);
@@ -1124,6 +1282,7 @@ export class FxBus {
         d.feedback = p[3];
         break;
       }
+      case FX_REVERB: reverbSetParameters(this.reverb, p); break;
       default: break;
     }
   }
@@ -1138,6 +1297,7 @@ export class FxBus {
         if (this.delay.type === DELAY_NORMAL) delayProcess(this.delay, this.buffer, fx, out, size, dw);
         else delayProcessPingPong(this.delay, this.buffer, fx, out, size, dw);
         break;
+      case FX_REVERB: reverbProcess(this.reverb, fx, out, size, dw); break;
       default: // FX_OFF
         for (let i = 0; i < size * 2; i++) out[i] = qadd16(out[i], fx[i]);
         break;

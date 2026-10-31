@@ -1,6 +1,6 @@
 // Drives the built page in Chromium's phone emulation (Pixel 9a's 412 x 915 and a small 360 x 640): no errors, no page
 // scrolls but the presets list, swipes and page buttons turn the page, fader and pad drags don't, holding a fader opens
-// its sequencer, the note grid edits steps, play runs the steps, presets save and load, and record downloads a WAV.
+// its sequencer, MIDI CC 1-12 turn the perf dials, the reverb sends, the note grid edits steps, play runs the steps, presets save and load, and record downloads a WAV.
 //   node test/smoke.mjs [index.html]   (needs Playwright)
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -12,6 +12,12 @@ const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-requ
 for (const [w, h] of [[412, 915], [360, 640]]) {
   console.log(`-- ${w} x ${h}`);
   const c = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2.6, isMobile: true, hasTouch: true, acceptDownloads: true });
+  // a stand-in MIDI controller: one input, its handler kept where the test can call it
+  await c.addInitScript(() => {
+    const input = { onmidimessage: null };
+    window.__midiIn = input;
+    navigator.requestMIDIAccess = () => Promise.resolve({ inputs: new Map([['x', input]]), onstatechange: null });
+  });
   const pg = await c.newPage(), errs = [];
   pg.on('pageerror', (e) => errs.push(e.message));
   await pg.goto(url); await pg.waitForTimeout(300);
@@ -41,6 +47,14 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const before = await pg.evaluate(() => macro.filter);
   await drag(r.x + r.width / 2, r.y + r.height / 2, r.x + r.width / 2 - w * 0.5, r.y + r.height / 4);
   check(await page() === 'play' && await pg.evaluate(() => macro.filter) > before, 'a fader drag moves the fader, not the page');
+  // MIDI: CC 4 sends the filter dial to the top, CC 10 the reverb send to 50%, on any channel
+  await pg.evaluate(() => { window.__midiIn.onmidimessage({ data: [0xb0, 4, 127] }); window.__midiIn.onmidimessage({ data: [0xb3, 10, 64] }); });
+  check(await pg.evaluate(() => macro.filter === 200 && fx.verb === 50 && document.querySelectorAll('#m-perf .m-dial').length === 12), 'MIDI CC 4 and 10 turn the filter and reverb dials');
+  // the reverb: the FX page's reverb send is the same as the dial's
+  await pg.click('[data-m-tab="fx"]');
+  check(await pg.evaluate(() => document.querySelector('#m-verb .m-vtrack').getAttribute('aria-valuenow') === '50'), 'the fx page shows the reverb send');
+  await pg.evaluate(() => window.__midiIn.onmidimessage({ data: [0xb0, 10, 0] }));
+  await pg.click('[data-m-tab="play"]');
   // the x/y pad
   await pg.click('[data-m-tab="xy"]');
   r = await box('.m-xy');
