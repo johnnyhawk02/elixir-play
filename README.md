@@ -27,7 +27,7 @@ they were on.
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
 - **elixir-mix**, black on a grey LCD: **PATS**, the front page, has eight pattern pads (for now the first eight built-in
-  presets; a tap loads one at the next bar while playing; square pads) and, under them, seven dials and seven buttons:
+  presets; a tap loads its synth and drums at the next bar while playing, leaving the tempo as it is; square pads) and, under them, seven dials and seven buttons:
   x-fade (from the beat alone to the synth alone, both full in the middle), energy (the beat page's energy dial), density
   (the synth seq page's dens fader), rotate (the note sequence played 0 to 15 steps on against the beat, live; the steps
   don't move), groove and depth (the beat page's groove and swing dials), tempo, **syn groove** (the synth playing with

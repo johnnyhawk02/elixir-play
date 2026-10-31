@@ -32,8 +32,9 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   // it opens on mix's patterns page: eight pads, and the crossfader
   check(await pg.evaluate(() => mode === 'mix' && [...document.querySelectorAll('[data-to-mode]')].map((b) => b.dataset.toMode).join() === 'mix,synth,beat') && await page() === 'home', 'it opens on mix, the keys in the order mix, synth, beat');
   check(await pg.evaluate(() => document.querySelectorAll('#m-pats .m-pat').length === 8) && await fits('home'), 'the patterns page has eight pads and fits');
+  await pg.evaluate(() => { tempo = 97; sendAll(); });
   await pg.click('#m-pats .m-pat >> nth=1');
-  check(await pg.evaluate(() => pCur === patPreset(1) && document.querySelector('#m-pats .m-patw:nth-child(2) .m-pat').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
+  check(await pg.evaluate(() => pCur === patPreset(1) && tempo === 97 && document.querySelector('#m-pats .m-patw:nth-child(2) .m-pat').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset, keeping the tempo');
   // a long press on a pad opens the picker; a tap there puts that preset on the pad, kept in the browser
   const pr = await box('#m-pats .m-pat >> nth=4');
   await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();

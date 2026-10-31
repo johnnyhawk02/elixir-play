@@ -18,11 +18,12 @@ $('m-pbpm').addEventListener('change', () => { try { localStorage.setItem(BPM_KE
 const SYL = ['ka', 'zu', 'mo', 'ree', 'vax', 'lo', 'quin', 'tor', 'ba', 'shi', 'nek', 'ul', 'dra', 'po', 'ix', 'fen', 'yo', 'gar', 'mi', 'sol'];
 const word = () => { const w = Array.from({ length: rIn(2, 3) }, () => pick(SYL)).join(''); return w[0].toUpperCase() + w.slice(1); };
 function newName() { let n; do n = `${word()} ${word()}`; while (presetList.some((k) => k.name === n)); return n; }
-function pLoad(k) {
+// keepTempo: the pads change the synth and drums but leave the tempo where it is
+function pLoad(k, keepTempo) {
   startAudio();
   const shown = pPending ? pShown : pCur;
   if (playing) barSync = true;
-  try { useSnapshot(k, !$('m-pbpm').checked); } finally { barSync = false; }
+  try { useSnapshot(k, keepTempo || !$('m-pbpm').checked); } finally { barSync = false; }
   pShown = shown; pCur = k; pPending = playing ? k : null;
   mUndoSnap = null; mUndoDraw();
   pDraw();
@@ -87,7 +88,7 @@ const patBtns = PAT0.map((_, i) => {
     b.addEventListener('pointerup', up, { once: true }); b.addEventListener('pointercancel', up, { once: true });
   });
   b.addEventListener('contextmenu', (e) => e.preventDefault());
-  b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i)); });
+  b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i), true); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
   // paste makes a real copy of the copied pad's preset (a new one of mine, "Fenka Shizu 2"), so an edit saved over one
   // pad leaves the other alone, puts it on that pad and plays it, as a tap on the pad would (at the next bar while
@@ -95,7 +96,7 @@ const patBtns = PAT0.map((_, i) => {
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
   c.addEventListener('click', () => {
     if (patCopy === null) patCopy = i;
-    else if (patCopy !== i) { patSet(i, patDup(patPreset(patCopy))); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i)); }
+    else if (patCopy !== i) { patSet(i, patDup(patPreset(patCopy))); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i), true); }
     else patCopy = null;
     patDraw();
   });

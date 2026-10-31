@@ -647,7 +647,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">36</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">37</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -814,7 +814,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v36, 31 Oct, 15:10</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v37, 31 Oct, 15:15</footer>
     </section>
   </div>
   </div>
@@ -6482,11 +6482,12 @@ $('m-pbpm').addEventListener('change', () => { try { localStorage.setItem(BPM_KE
 const SYL = ['ka', 'zu', 'mo', 'ree', 'vax', 'lo', 'quin', 'tor', 'ba', 'shi', 'nek', 'ul', 'dra', 'po', 'ix', 'fen', 'yo', 'gar', 'mi', 'sol'];
 const word = () => { const w = Array.from({ length: rIn(2, 3) }, () => pick(SYL)).join(''); return w[0].toUpperCase() + w.slice(1); };
 function newName() { let n; do n = `${word()} ${word()}`; while (presetList.some((k) => k.name === n)); return n; }
-function pLoad(k) {
+// keepTempo: the pads change the synth and drums but leave the tempo where it is
+function pLoad(k, keepTempo) {
   startAudio();
   const shown = pPending ? pShown : pCur;
   if (playing) barSync = true;
-  try { useSnapshot(k, !$('m-pbpm').checked); } finally { barSync = false; }
+  try { useSnapshot(k, keepTempo || !$('m-pbpm').checked); } finally { barSync = false; }
   pShown = shown; pCur = k; pPending = playing ? k : null;
   mUndoSnap = null; mUndoDraw();
   pDraw();
@@ -6551,7 +6552,7 @@ const patBtns = PAT0.map((_, i) => {
     b.addEventListener('pointerup', up, { once: true }); b.addEventListener('pointercancel', up, { once: true });
   });
   b.addEventListener('contextmenu', (e) => e.preventDefault());
-  b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i)); });
+  b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i), true); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
   // paste makes a real copy of the copied pad's preset (a new one of mine, "Fenka Shizu 2"), so an edit saved over one
   // pad leaves the other alone, puts it on that pad and plays it, as a tap on the pad would (at the next bar while
@@ -6559,7 +6560,7 @@ const patBtns = PAT0.map((_, i) => {
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
   c.addEventListener('click', () => {
     if (patCopy === null) patCopy = i;
-    else if (patCopy !== i) { patSet(i, patDup(patPreset(patCopy))); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i)); }
+    else if (patCopy !== i) { patSet(i, patDup(patPreset(patCopy))); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i), true); }
     else patCopy = null;
     patDraw();
   });
