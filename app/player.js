@@ -106,7 +106,7 @@ class Player {
       this.atBar = this.atBar.filter((q) => q.type !== 'seq');
       this.steps = m.steps; this.bpm = m.bpm; this.e.bpm = m.bpm; this.vel = m.vel; this.glide = m.glide;
       this.accGain = Math.pow(10, -m.accentDb / 20);
-      if (m.playing && !this.playing) { this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.fresh = true; }
+      if (m.playing && !this.playing) { this.sPos = 0; this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.fresh = true; }
       this.playing = m.playing;
       if (!this.playing) { this.flushBar(); this.cutAt = this.clock; this.queue = []; }
     }
@@ -154,15 +154,16 @@ class Player {
       if (this.toNext <= 0) {
         if (this.step === 0 && this.atBar.length) this.flushBar();
         const len = LXR.REAL_FS * 60 / this.bpm / 4;
-        // the pages play in turn, a bar each
-        const page = this.bar % Math.max(1, this.steps.length / 16);
-        this.doStep(page * 16 + this.step);
+        // the note sequence: its own place, round its length (up to four pages of 16), so a short one cycles against the bar
+        const sp = (this.sPos || 0) % this.steps.length;
+        this.doStep(sp);
+        this.sPos = sp + 1;
         // the beat: this step's hits on starting, then each step books the next one's
         if (this.fresh) { this.fresh = false; this.schedule(this.step, this.bar, this.toNext); }
         const next = (this.step + 1) % 16;
         this.schedule(next, next ? this.bar : this.bar + 1, this.toNext + len);
         const bp = this.beat.pages.length || 1;
-        this.events.push({ type: 'step', step: this.step, page, bar: this.bar, bpage: this.bar % bp, gr: this.gr });
+        this.events.push({ type: 'step', step: this.step, page: sp >> 4, nstep: sp & 15, bar: this.bar, bpage: this.bar % bp, gr: this.gr });
         this.gr = 0;
         this.step = next;
         if (this.step === 0) this.bar++;

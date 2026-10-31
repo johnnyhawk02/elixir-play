@@ -54,6 +54,17 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   // MIDI: CC 4 sends the filter dial to the top, CC 11 the lfo rate, on any channel
   await pg.evaluate(() => { window.__midiIn.onmidimessage({ data: [0xb0, 4, 127] }); window.__midiIn.onmidimessage({ data: [0xb3, 11, 127] }); });
   check(await pg.evaluate(() => macro.filter === 200 && values[PAR.FREQ_LFO1] === spec(PAR.FREQ_LFO1).max && document.querySelectorAll('#m-perf .m-dial').length === 12), 'MIDI CC 4 and 11 turn the filter and lfo rate dials');
+  // seq: random makes all four pages (page 1 new, 2 to 4 its variations), and the length slider plays fewer steps
+  await pg.click('[data-m-tab="seq"]');
+  const p1 = await pg.evaluate(() => JSON.stringify(seq.steps.slice(16)));
+  await pg.click('#m-nrand');
+  check(await pg.evaluate((p1) => JSON.stringify(seq.steps.slice(16)) !== p1 && seq.steps.slice(16, 32).filter((x, i) => JSON.stringify(x) === JSON.stringify(seq.steps[i])).length >= 10, p1), 'seq random fills pages 2 to 4 with variations of page 1');
+  await pg.evaluate(() => { seq.len = 12; sendSeq(); drawAll(); });
+  check(await pg.evaluate(() => document.querySelectorAll('#m-steps .m-step.out').length === 4 && document.querySelectorAll('#m-npages .m-btn.out').length === 3), 'a 12-step length dims the rest');
+  check(await pg.evaluate(() => [...document.querySelectorAll('#m-seqf .m-flab')].some((l) => l.textContent === 'len')), 'seq has a length slider');
+  check(await fits('seq'), 'seq: still fits');
+  await pg.evaluate(() => { seq.len = 64; sendSeq(); drawAll(); });
+  await pg.click('[data-m-tab="play"]');
   // the synth has no effects of its own: no fx dials or randomisers on perf, and its presets leave the mix's effects alone
   check(await pg.evaluate(() => !document.getElementById('m-fxr') && !document.getElementById('m-fxa') && ![...document.querySelectorAll('#m-perf .m-dial')].some((d) => /echo|reverb|rvb|dist/.test(d.textContent))), 'perf has no fx dials or fx randomisers');
   await pg.evaluate(() => { fx.verb = 37; useSnapshot(BUILTIN_PRESETS[0]); });

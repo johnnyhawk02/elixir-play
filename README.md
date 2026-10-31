@@ -49,11 +49,13 @@ turns the page. Play, record and the step light sit at the top.
 
   Chrome asks for MIDI access at the first touch. The synth has no effects of its own: echo, reverb and master are
   all in mix, and a synth preset leaves them as they are.
-- **SEQ**: the note sequencer. Four pages of sixteen steps, played in turn a bar each; each step has a note, a gate
+- **SEQ**: the note sequencer. Up to four pages of sixteen steps, played in turn; each step has a note, a gate
   (from a quarter step to ringing out; the bottom rests it), an accent and a slide into the next step. Pick the page
   (the one playing is underlined) and what a touch sets (note, gate, accent, slide), then draw across the steps.
-  *Copy 1 → 2-4* copies page 1 onto the other three, each with a few steps changed. Root, scale, accent amount and
-  glide time, and random, alter (the page shown) and undo. The algo fader picks how random writes a page: 1 dice,
+  *Copy 1 → 2-4* copies page 1 onto the other three, each with a few steps changed. Root, scale, accent amount (acc),
+  length (len: 1 to 64 steps; the steps past it are dimmed and skipped, so a short line cycles against the bar), glide
+  time, and random (a new page 1 and pages 2 to 4 as its variations), alter (the page shown) and undo. The algo fader
+  picks how random writes a page: 1 dice,
   2 acid, 3 euclid, 4 arp, 5 walk, 6 motif, 7 groove, 8 phrase. Presets from before there were pages play their one page
   on all four.
 - **VOICE**: every DR1 parameter, on four tabs: tone, shape, filter, mod.

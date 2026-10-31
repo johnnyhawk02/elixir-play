@@ -41,6 +41,17 @@ const check = (ok, what) => { console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}`); if
   check(p.e.drums[0].osc.freq === ref.drums[0].osc.freq, 'back on the semitone the frequency is exact');
 }
 // the sequencer
+// a 3-step sequence cycles on its own, against the 16-step bar
+{
+  const p = new Player(LXR.REAL_FS), notes = [];
+  const trig = p.e.trigger.bind(p.e);
+  p.e.trigger = (v, vel, note) => { if (v === 0) notes.push(note - 60); trig(v, vel, note); };
+  const S = (n) => ({ n, gate: 2, acc: false, slide: false });
+  p.msg({ type: 'seq', playing: true, bpm: 120, vel: 100, glide: 0, accentDb: 6, steps: [S(0), S(3), S(7)] });
+  const len = LXR.REAL_FS * 60 / 120 / 4;
+  for (let b = 0; b < Math.ceil(8 * len / 64) - 1; b++) p._render(p.A);
+  check(JSON.stringify(notes) === JSON.stringify([0, 3, 7, 0, 3, 7, 0, 3]), `a 3-step length cycles every 3 steps (${JSON.stringify(notes)})`);
+}
 {
   const p = new Player(LXR.REAL_FS), hits = [];
   const trig = p.e.trigger.bind(p.e);
