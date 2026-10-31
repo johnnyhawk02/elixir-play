@@ -1,0 +1,16 @@
+{
+  "name": "Elixir Synth",
+  "short_name": "Elixir Synth",
+  "description": "A phone-first mono synth, playing the drum 1 voice of a port of the Erica Synths LXR-02 engine.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1d1a",
+  "theme_color": "#1b1d1a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

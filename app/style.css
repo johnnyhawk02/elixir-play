@@ -1,0 +1,328 @@
+
+/* ==== Elixir Synth: the phone screen ====
+   One pane of reflective LCD glass in a black bezel on a dark case. One ink (the segments), a faint ghost of the unlit
+   segments, the offset shadow real LCD type casts on its backplane, and a pixel font throughout. Buttons are outlined
+   boxes that invert when pressed or chosen; faders and meters are segmented bar graphs. Sections inside the screen
+   are parted by thin ink lines; the sheets that open over it (sequencer, settings, chooser, loop length) are panes of
+   their own. Nothing scrolls but the presets list and the pop-ups' lists. Sizes that follow the screen's width (Nvw) stop
+   growing past a 412 px screen (a Pixel 9a), so on a wider screen or a desktop browser the text still fits. */
+
+/* ---- the page and the screen ---- */
+* { box-sizing: border-box; }
+html, body { margin: 0; overscroll-behavior: none; }
+[hidden] { display: none !important; }
+body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px));
+  min-height: 100dvh; -webkit-tap-highlight-color: transparent; background: radial-gradient(120% 80% at 50% 0%, #2a2d28, #161815) fixed; }
+.m {
+  --panel: #a7b58c; --ink: #17200e; --muted: rgba(23, 32, 14, .62);
+  --tint: rgba(23, 32, 14, .07); --tint-2: rgba(23, 32, 14, .12); --ghost: rgba(23, 32, 14, .1); --led: #17200e;
+  --display: "VT323", ui-monospace, monospace; --body: "VT323", ui-monospace, monospace; --mono: "VT323", ui-monospace, monospace;
+  --fs-xs: 1.12rem; --fs-s: 1.25rem; --fs-m: 1.3rem; --fs-l: 1.6rem;
+  --rule: 1px solid rgba(23, 32, 14, .32);
+  position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto auto 1fr auto; gap: 0;
+  height: calc(100dvh - max(6px, env(safe-area-inset-top, 0px)) - max(6px, env(safe-area-inset-bottom, 0px))); padding: 8px 8px 10px;
+  font-family: var(--body); color: var(--ink);
+  touch-action: manipulation; -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; /* a long hold mustn't bring up the phone's own menus */
+  border: 5px solid #0b0c0a; border-radius: 10px;
+  /* uneven backlighting: lit from LEDs along the lower edge, as a cheap LCD is, so it glows brighter and warmer near
+     the bottom corners, fades toward the top, and has a dim patch where the light doesn't quite reach; the glass
+     texture sits over it (all behind the ink, so the type stays as dark) */
+  background-color: var(--panel);
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .05)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px),
+    radial-gradient(60% 34% at 12% 100%, rgba(255, 252, 195, .6), rgba(255, 252, 200, 0) 70%),
+    radial-gradient(52% 30% at 88% 102%, rgba(250, 255, 200, .45), rgba(250, 255, 205, 0) 70%),
+    radial-gradient(45% 25% at 50% 104%, rgba(255, 255, 215, .26), rgba(255, 255, 220, 0) 75%),
+    radial-gradient(38% 22% at 72% 38%, rgba(40, 50, 25, .16), rgba(40, 50, 25, 0) 70%),
+    radial-gradient(30% 18% at 22% 30%, rgba(255, 255, 230, .08), rgba(255, 255, 230, 0) 70%),
+    linear-gradient(180deg, rgba(30, 38, 20, .22) 0%, rgba(30, 38, 20, 0) 30%),
+    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(20, 26, 12, .3) 100%);
+  /* depth: it sits deep in its bezel, the inner shadow heaviest at the top right */
+  box-shadow: inset 0 6px 16px rgba(0, 0, 0, .36), inset -8px 8px 18px rgba(0, 0, 0, .2), inset 0 0 0 1px rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .07);
+}
+/* faded patches: an old LCD loses contrast in places, so a few soft patches show their ink paler (a glass-coloured
+   veil, clearest at the top right, a smaller one low on the left, a faint band down the right edge; it never takes a
+   touch, and the sheets open above it) */
+.m::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 5;
+  background: radial-gradient(34% 17% at 76% 24%, rgba(167, 181, 140, .42), rgba(167, 181, 140, 0) 100%),
+    radial-gradient(22% 12% at 16% 66%, rgba(167, 181, 140, .38), rgba(167, 181, 140, 0) 100%),
+    radial-gradient(14% 9% at 58% 83%, rgba(167, 181, 140, .3), rgba(167, 181, 140, 0) 100%),
+    linear-gradient(90deg, rgba(167, 181, 140, 0) 88%, rgba(167, 181, 140, .22) 97%, rgba(167, 181, 140, .1)); }
+/* the ink's shadow on the backplane, the gap a little wider toward the top right, since the glass isn't quite flat
+   (--d, set per control by mDepth in ui.js: 1 at the bottom left, about 1.7 at the top right) */
+.m, .m button, .m-title, .m .m-flab, .m .m-vf output { --d: 1; text-shadow: calc(2px * var(--d)) calc(2.2px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.16 + .04 * var(--d))); }
+.m .m-vtrack i, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
+.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
+.m .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
+
+/* cards: the sheets are glass of their own; the sections inside the screen are bare */
+.m-card { padding: 16px; border: 4px solid #0b0c0a; border-radius: 8px; background-color: var(--panel);
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, .06)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .07); }
+.m > .m-card, .m-pages .m-card { background: none; border: 0; border-radius: 0; box-shadow: none; }
+
+/* ---- controls ---- */
+.m button { font: inherit; color: var(--ink); border: 0; cursor: pointer; touch-action: manipulation; }
+/* buttons: an outlined box, inverted when pressed or chosen */
+.m-btn { min-height: 56px; font-size: var(--fs-m) !important; }
+.m-big { font-size: 1.1rem !important; }
+.m-toggle { min-width: 64px; min-height: 36px; font-size: var(--fs-s) !important; }
+.m .m-btn, .m .m-rec, .m .m-toggle, .m .m-pload, .m-tabs button {
+  background: transparent !important; border: 2px solid var(--ink); border-radius: 3px; font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
+.m .m-btn:active, .m .m-big, .m .m-play, .m-tabs button[aria-selected="true"], .m .m-toggle[aria-pressed="true"], .m .m-plist li.cur .m-pload, .m .m-rec.on {
+  background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m .m-big:active, .m .m-play:active { transform: none; background: transparent !important; color: var(--ink) !important; }
+.m .m-btn:disabled { opacity: .3; }
+
+/* a checkbox drawn as an LCD box: a ticked one is filled */
+.m-chk { position: relative; display: flex; align-items: center; gap: 10px; min-height: 40px; text-transform: uppercase; font-size: var(--fs-xs); cursor: pointer; }
+.m-chk input { position: absolute; left: 0; top: 0; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.m-chk i { flex: none; width: 24px; height: 24px; border: 2px solid var(--ink); border-radius: 2px; box-shadow: inset 0 0 0 3px var(--panel); }
+.m-chk input:checked + i { background: var(--ink); }
+.m-chk input:focus-visible + i { outline: 2px dashed var(--ink); outline-offset: 2px; }
+
+/* a heading with its controls */
+.m-chead { display: flex; align-items: center; justify-content: space-between; }
+.m-chead b { font-size: var(--fs-m); }
+.m .m-chead b { font-weight: 400; text-transform: uppercase; letter-spacing: .08em; }
+
+/* a meter (the sidechain's duck, the compressor's reduction), segmented */
+.m-gr { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; font-size: var(--fs-s); }
+.m .m-gr i { height: 14px; border-radius: 0; overflow: hidden; display: flex; justify-content: flex-end;
+  background: repeating-linear-gradient(to left, var(--ghost) 0 5px, transparent 5px 8px); }
+.m .m-gr i b { height: 100%; width: 0; border-radius: 0; background: repeating-linear-gradient(to left, var(--ink) 0 5px, transparent 5px 8px); background-position: right; }
+.m-gr output { font-family: var(--mono); font-size: var(--fs-xs); color: var(--muted); min-width: 4.5em; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* faders: a column of segments, the unlit ones a faint ghost, the value the top lit segment; readout above, label under */
+.m-faders { display: grid; gap: 14px; }
+.m-vf { display: grid; grid-template-rows: 2.6em auto auto; justify-items: center; gap: 6px; min-width: 0; }
+.m-vf output { font-family: var(--mono); text-align: center; white-space: pre-line; align-self: end; overflow: hidden; max-width: 100%; font-variant-numeric: tabular-nums; }
+.m .m-vf output { font-size: var(--fs-xs); line-height: 1; color: var(--ink); }
+.m .m-flab { font-size: var(--fs-xs); font-weight: 400; text-transform: uppercase; letter-spacing: .03em; }
+.m .m-vtrack { --f: 0; position: relative; width: 56px; height: 150px; border-radius: 2px; touch-action: none; cursor: ns-resize; overflow: hidden;
+  background: repeating-linear-gradient(to top, var(--ghost) 0 5px, transparent 5px 8px); background-position: bottom; }
+.m .m-vtrack i { position: absolute; left: 0; right: 0; bottom: 0; height: round(down, calc(var(--f) * 100%), 8px);
+  background: repeating-linear-gradient(to top, var(--ink) 0 5px, transparent 5px 8px); background-position: bottom; }
+.m .m-vtrack b { position: absolute; display: none; }
+.m .m-vf.held .m-vtrack { outline: 2px solid var(--ink); outline-offset: 3px; }
+/* a fader with a sequencer moving it: its label inverted, its own setting a bar across the track */
+.m .m-vf.seq .m-flab { background: var(--ink); color: var(--panel); padding: 0 4px; text-shadow: none; }
+.m .m-vtrack.mod { overflow: visible; }
+.m .m-vtrack.mod b { display: block; left: -3px; right: -3px; height: 4px; border-radius: 0; bottom: calc(var(--b) * (100% - 4px)); background: var(--ink); box-shadow: 0 0 0 2px var(--panel); }
+
+/* the big faders (perf): a two-line readout, tracks as tall as the page */
+#m-perf .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 3px; }
+#m-perf .m-vf output { font-size: min(var(--fs-xs), 3.9vw, 16px); line-height: 1; color: var(--ink); height: 2.5em; display: flex; align-items: flex-end; justify-content: center; flex: none; align-self: stretch; }
+.m #m-perf .m-flab { font-size: min(var(--fs-xs), 3.9vw, 16px); letter-spacing: -.02em; white-space: nowrap; line-height: 1.2; }
+#m-perf .m-vtrack { width: min(56px, 100%); flex: 1; height: auto; min-height: 48px; }
+
+/* the small faders (seq, voice, fx, master): a one-line readout, a narrow label */
+.m-row .m-vf, .m-vset .m-vf, .m-seqf .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 2px; }
+.m .m-row .m-vf output, .m .m-vset .m-vf output, .m .m-seqf .m-vf output {
+  font-size: min(var(--fs-xs), 3.9vw, 16.1px); line-height: 1; height: 1.1em; flex: none; align-self: stretch; text-align: center; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m .m-row .m-flab, .m .m-vset .m-flab, .m .m-seqf .m-flab { font-size: min(1.05rem, 3.7vw, 15.2px); letter-spacing: 0; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m .m-row .m-vtrack, .m .m-vset .m-vtrack, .m .m-seqf .m-vtrack { width: min(52px, 100%); flex: 1; height: auto; min-height: 12px; }
+
+/* ---- the frame: title line, transport, pages, page buttons ---- */
+.m-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0 4px 6px; border-bottom: var(--rule); }
+.m-title { font-family: var(--display); font-size: 1.5rem; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+.m-ver { margin-left: .5em; font-size: .7em; letter-spacing: .06em; text-transform: none; opacity: .7; }
+/* (on a narrow phone the title line's spacing tightens) */
+@media (max-width: 430px) { .m-title, .m-pagename { letter-spacing: .08em; } .m-top { gap: 6px; } }
+.m-pagename { white-space: nowrap; font-family: var(--display); font-size: 1.5rem; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+
+/* play, rec, and the step light */
+.m-trans { padding: 8px 0; display: grid; grid-template-columns: 1.3fr 1fr 1.1fr; gap: 8px; align-items: stretch; }
+.m > .m-card.m-trans { border-bottom: var(--rule); }
+.m-play { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; background: var(--ink) !important;
+  color: var(--panel) !important; font-weight: 400; text-transform: uppercase; }
+.m .m-play { border: 2px solid var(--ink); border-radius: 3px; letter-spacing: .1em; font-size: var(--fs-m) !important; }
+.m-play svg { width: 20px; height: 20px; fill: currentColor; }
+.m-play .i-stop, .m-play[aria-pressed="true"] .i-play { display: none; }
+.m-play[aria-pressed="true"] .i-stop { display: inline; }
+.m .m-rec { display: grid; grid-auto-flow: column; justify-content: center; place-items: center; align-content: center; gap: min(10px, 2vw, 8.2px) !important; min-height: 46px; }
+.m-rec i { width: 16px; height: 16px; border-radius: 2px; background: var(--ink); }
+.m-rec span { font-family: var(--mono); font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.m-rec.on i { width: 16px; height: 16px; border-radius: 4px; background: var(--panel); animation: m-blink 1s steps(1) infinite; }
+@keyframes m-blink { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .m-rec.on i { animation: none; } }
+.m .m-rec:disabled { opacity: .35; }
+/* the step light: sixteen segments in two rows of eight, the step playing lit */
+.m-steps-led { display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: 1fr 1fr; gap: 3px; padding: 4px 0; }
+.m-steps-led i { background: var(--ghost); border-radius: 1px; }
+.m-steps-led i:nth-child(4n+1) { box-shadow: inset 0 -3px 0 var(--tint-2); }
+.m-steps-led i.on { background: var(--ink); }
+
+/* the pages sit side by side; swipe across them or tap a page button. Each page is one screen, no scrolling */
+.m-pages { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; column-gap: 16px; min-height: 0; padding-top: 6px; overflow: hidden;
+  overscroll-behavior-x: contain; scrollbar-width: none; touch-action: none; }
+.m-pages::-webkit-scrollbar { display: none; }
+.m-panel { display: grid; grid-template-rows: 1fr; gap: 12px; align-content: stretch; min-height: 0; overflow: hidden; }
+
+/* the page buttons, one line of seven along the bottom where a thumb reaches them (each page's full name is on the title line) */
+.m > .m-tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 6px; padding: 8px 0 0; border-top: var(--rule); }
+.m-tabs button { border-color: transparent; min-width: 0; }
+.m-tabs button[aria-selected="true"] { border-color: var(--ink); }
+.m .m-tabs button { min-height: 56px; padding: 0; font-size: min(1.4rem, 5.2vw, 21.4px) !important; letter-spacing: 0; }
+
+/* ---- perf: five tall faders, and the randomise column beside them ---- */
+[data-m-panel="play"] { grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
+.m-play-card { display: grid; min-height: 0; padding: 6px 2px; }
+#m-perf { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+.m-pages .m-rand-card { display: grid; min-height: 0; padding: 6px 2px 6px 8px; border-left: var(--rule); }
+.m-rand { display: grid; grid-template-columns: 1fr; grid-template-rows: auto repeat(7, minmax(0, 1fr)); gap: 6px; min-width: 0; height: 100%; }
+.m-rand .m-btn { min-height: 0; min-width: 0; padding: 0 2px; letter-spacing: .02em; overflow: hidden; }
+.m .m-rand .m-btn { font-size: min(var(--fs-xs), 3.7vw, 15.2px) !important; white-space: nowrap; }
+.m-nextbar { gap: 6px; font-size: min(var(--fs-xs), 3.6vw, 14.8px); white-space: nowrap; justify-content: flex-start; padding-left: 4px; min-height: 36px; }
+.m-nextbar i { width: 18px; height: 18px; }
+/* next bar: a button waiting for the bar flashes */
+.m .m-btn.pending { animation: m-flash .5s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) { .m .m-btn.pending { animation: none; outline: 2px dashed var(--ink); outline-offset: 2px; } }
+
+/* ---- seq: what a touch sets, the sixteen steps in two rows, then root, scale, accent, glide and the buttons ---- */
+.m-seqpage { display: grid; grid-template-rows: auto minmax(0, 1fr) minmax(120px, 34%); gap: 8px; min-height: 0; padding: 6px 2px; }
+.m-modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.m .m-modes .m-btn { min-height: 44px; padding: 0 2px; font-size: min(var(--fs-xs), 3.9vw, 16px) !important; letter-spacing: .02em; }
+.m .m-modes .m-btn[aria-selected="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m-steps { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px 4px; min-height: 0; touch-action: none; }
+/* a step: its note on top, a bar for its note (or gate) filling from the bottom, A and S lit when accented or sliding */
+.m-step { --f: 0; position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 2px; min-height: 0; padding: 3px 2px; border: 2px solid var(--ink); border-radius: 2px; }
+.m-step:nth-child(4n+1) { box-shadow: inset 3px 0 0 var(--tint-2); }
+.m-sn { font-size: min(var(--fs-xs), 3.8vw, 15.6px); line-height: 1; text-align: center; white-space: nowrap; overflow: hidden; }
+.m-sbar { display: block; min-height: 0; background: repeating-linear-gradient(to top, var(--ghost) 0 4px, transparent 4px 6px); position: relative; }
+.m-sbar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: round(down, calc(var(--f) * 100%), 6px);
+  background: repeating-linear-gradient(to top, var(--ink) 0 4px, transparent 4px 6px); background-position: bottom; transition: height .09s cubic-bezier(.2, .7, .3, 1); }
+.m-sm { display: flex; justify-content: space-between; font-size: min(.95rem, 3.4vw, 14px); line-height: 1; }
+.m-sm b { font-weight: 400; padding: 0 2px; opacity: .22; }
+.m-step.acc .m-sm .a, .m-step.slide .m-sm .s { opacity: 1; background: var(--ink); color: var(--panel); text-shadow: none; }
+.m-step.rest .m-sn, .m-step.rest .m-sbar { opacity: .3; }
+.m-steps[data-mode="acc"] .m-step.acc, .m-steps[data-mode="slide"] .m-step.slide { background: var(--tint-2); }
+.m-steps[data-mode="acc"] .m-sm .a, .m-steps[data-mode="slide"] .m-sm .s { font-size: 1.3em; }
+.m-step.now { outline: 3px solid var(--ink); outline-offset: 1px; }
+.m-seqlow { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
+.m-seqf { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+.m-seqbtns, .m-fxbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
+.m .m-seqbtns .m-btn, .m .m-fxbtns .m-btn { min-height: 0; font-size: min(var(--fs-xs), 3.8vw, 15.6px) !important; padding: 0 2px; }
+
+/* ---- voice: the section tabs (tone, shape, filter, mod), then that section's faders four by three ---- */
+.m-voice-card { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; min-height: 0; padding: 10px 2px; }
+.m-vsec { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; align-items: end; border-bottom: 2px solid var(--ink); }
+.m .m-vsec .m-btn { min-height: 44px; margin-bottom: -2px; border-color: transparent; border-bottom: 0; border-radius: 4px 4px 0 0; box-shadow: none; opacity: .8; }
+.m .m-vsec .m-btn[aria-selected="true"] { position: relative; z-index: 1; background: var(--panel) !important; color: var(--ink) !important; border-color: var(--ink); opacity: 1; text-shadow: inherit; }
+.m-vsets { display: grid; min-height: 0; margin-top: -10px; padding: 14px 4px 6px; border: 2px solid var(--ink); border-top: 0; }
+.m-vset { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 8px 4px; min-height: 0; }
+
+/* ---- x/y: the two picks, then the pad: a dot grid with a square cursor ---- */
+.m-xy-card { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 8px; min-height: 0; padding: 10px 2px; }
+.m-xyrow { display: grid; grid-template-columns: 2.6em 1fr; gap: 8px; align-items: center; text-transform: uppercase; font-size: var(--fs-s); }
+.m-xyrow select { min-width: 0; min-height: 44px; font: inherit; font-size: var(--fs-s); text-transform: uppercase; color: var(--ink);
+  background: transparent; border: 2px solid var(--ink); border-radius: 3px; padding: 0 8px; }
+.m .m-xy { position: relative; min-height: 0; border: 2px solid var(--ink); border-radius: 2px; touch-action: none; cursor: crosshair; overflow: hidden;
+  background: radial-gradient(circle, var(--ghost) 1.2px, transparent 1.6px) 0 0 / 12px 12px; }
+.m .m-xy i { position: absolute; left: calc(16px + (100% - 32px) * var(--x, 0)); bottom: calc(16px + (100% - 32px) * var(--y, 0)); width: 24px; height: 24px; margin: 0 0 -12px -12px;
+  border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--ink); pointer-events: none; }
+.m .m-xy.held i { background: var(--panel); }
+.m-xy span { position: absolute; font-size: var(--fs-xs); pointer-events: none; line-height: 1; }
+.m-xy output { position: absolute; left: 8px; top: 8px; text-align: left; font-family: var(--mono); font-size: var(--fs-xs); line-height: 1.05; white-space: pre-line; pointer-events: none; }
+.m .m-xy span, .m .m-xy output { color: var(--ink); opacity: .8; font-weight: 400; text-transform: uppercase; }
+.m-xy-x { right: 8px; bottom: 7px; }
+.m-xy-y { left: 8px; bottom: 7px; }
+
+/* ---- fx: the echo row and the ring mod row, each its name over its faders, then random, alter, undo ---- */
+.m-fx-card { display: grid; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-fxbtns { grid-template-rows: none; grid-template-columns: 1.3fr 1fr 1fr; }
+.m .m-fxbtns .m-btn { min-height: 52px; }
+.m-fx-row { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 2px; min-height: 0; }
+.m-fx-row + .m-fx-row { border-top: var(--rule); padding-top: 6px; }
+.m-fxhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 36px; }
+.m-fxhead b { font-weight: 400; text-transform: uppercase; letter-spacing: .08em; font-size: var(--fs-m); padding-left: 4px; }
+.m-fxhead .m-chk { min-height: 36px; gap: 8px; }
+.m-fxhead .m-chk i { width: 22px; height: 22px; }
+/* five to a row everywhere small faders sit in rows, so the columns line up */
+.m-row { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+#m-echo, #m-comp { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#m-ring { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+/* ---- mstr: the distortion, then the compressor, each a heading and a row ---- */
+.m-comp-card { display: grid; grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; min-height: 0; padding: 8px 6px 8px 4px; }
+.m-comp-card .m-chead { gap: 10px; min-height: 44px; }
+.m-comp-card .m-chead:not(:first-child) { border-top: var(--rule); padding-top: 6px; }
+.m-comp-card .m-chead b { white-space: nowrap; }
+.m-comp-card .m-gr { flex: 1; grid-template-columns: 1fr auto; gap: 8px; }
+.m-comp-card .m-toggle { min-width: 56px; min-height: 40px; }
+#m-comp.off { opacity: .4; }
+
+/* ---- prst: save at the top, the list between (it scrolls), the file buttons and credits at the foot ---- */
+.m-presets-card { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr) auto auto; gap: 6px; min-height: 0; padding: 8px 2px; }
+/* save new, and save over the loaded preset */
+.m-psaves { display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; }
+.m-psaves .m-btn { min-height: 56px; font-size: var(--fs-xs) !important; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a passing note under them, taking no room while empty */
+.m-note { margin: 0; min-height: 1.2em; font-size: var(--fs-s); color: var(--muted); }
+.m-presets-card .m-note:empty { min-height: 0; height: 0; margin-top: -6px; }
+.m-plist { list-style: none; margin: 4px 0 0; padding: 4px 0 0; display: grid; gap: 4px; align-content: start; min-height: 0;
+  overflow-y: auto; overscroll-behavior: contain; border-top: var(--rule); touch-action: pan-y; }
+.m-plist li { display: flex; align-items: center; gap: 6px; }
+.m-pgroup { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 10px 4px 2px; }
+.m-pload { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; min-height: 46px; padding: 0 14px; }
+.m-pload b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-pload small { font-family: var(--mono); font-size: var(--fs-xs); color: var(--muted); flex: none; }
+.m-plist li.cur .m-pload small { color: inherit; opacity: .7; }
+/* a preset waiting for the next bar: its row flashes on and off */
+.m .m-plist li.pending .m-pload { animation: m-flash .5s steps(1) infinite; }
+@keyframes m-flash { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .m .m-plist li.pending .m-pload { animation: none; outline: 2px dashed var(--ink); outline-offset: 2px; } }
+.m-pdel { border-radius: 10px; background: none; color: var(--muted) !important; }
+.m .m-pdel { min-height: 46px; min-width: 40px; padding: 0; text-align: center; font-size: 1.2rem !important; text-transform: uppercase; }
+.m-pio { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; }
+.m-pio .m-btn { min-height: 46px; font-size: var(--fs-xs) !important; white-space: nowrap; letter-spacing: 0; padding: 0 4px; }
+.m-file { display: grid; place-items: center; cursor: pointer; position: relative; overflow: hidden; }
+.m-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+.m-install { margin-top: 10px; }
+.m-install[hidden] { display: none; }
+.m-foot { color: var(--muted); text-align: center; padding: 0; font-size: .95rem; line-height: 1.2; }
+.m-foot a { color: inherit; }
+
+/* ---- the fader step sequencer: a sheet over the bottom of the screen, leaving play and record above it free; sixteen
+   step bars in two rows (the ones past the length faint), length, slew, speed and depth as horizontal segmented bars,
+   then randomise and done ---- */
+.m-seq { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; pointer-events: none; display: flex; align-items: flex-end; justify-content: center;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.m-seq[hidden] { display: none; }
+.m-seq-card { width: 100%; max-width: 480px; height: min(calc(100dvh - 150px), 640px); display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto auto auto; gap: 12px;
+  pointer-events: auto; box-shadow: 0 -8px 30px rgba(0, 0, 0, .5), inset 0 3px 10px rgba(0, 0, 0, .28); }
+.m-seq .m-chead { gap: 10px; }
+.m-seq .m-chead output { flex: 1; text-align: right; color: var(--muted); font-size: var(--fs-s); }
+.m-seq-steps { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; height: auto; min-height: 60px; touch-action: none; }
+.m-seq-steps i { --up: 0; --dn: 0; position: relative; border-radius: 2px;
+  background: linear-gradient(var(--ink), var(--ink)) center / 100% 2px no-repeat, repeating-linear-gradient(to top, var(--ghost) 0 5px, transparent 5px 8px); }
+/* a step's offset: lit up from the middle line, or down from it */
+.m-seq-steps i::after, .m-seq-steps i::before { content: ""; position: absolute; left: 0; right: 0; background: repeating-linear-gradient(to top, var(--ink) 0 5px, transparent 5px 8px); }
+.m-seq-steps i::after { bottom: 50%; height: calc(var(--up) * 50%); background-position: bottom; }
+.m-seq-steps i::before { top: 50%; height: calc(var(--dn) * 50%); background: repeating-linear-gradient(to bottom, var(--ink) 0 5px, transparent 5px 8px); }
+.m-seq-steps i.off { opacity: .25; }
+.m-seq-steps i.now { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* a horizontal bar (also the randomisers' settings) */
+.m-seq-lenrow { display: grid; grid-template-columns: 4.5em 1fr 5.5em; gap: 12px; align-items: center; text-transform: uppercase; }
+.m-seq-lenrow output { min-width: 5.5em; text-align: right; }
+.m-seq-len { --f: 1; position: relative; height: 36px; touch-action: none; border: 2px solid var(--ink); border-radius: 2px;
+  background: repeating-linear-gradient(to right, var(--ghost) 0 5px, transparent 5px 8px) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat; }
+.m-seq-len i { position: absolute; left: 4px; top: 4px; bottom: 4px; width: calc((100% - 8px) * var(--w, 1));
+  background: repeating-linear-gradient(to right, var(--ink) 0 5px, transparent 5px 8px); }
+.m-seq-btns { display: grid; grid-template-columns: 1.3fr 1fr 0.9fr; gap: 8px; }
+.m .m-seq-type { font-size: min(var(--fs-xs), 3.8vw, 15.7px) !important; padding: 0 2px; letter-spacing: 0; }
+.m-seq-btns .m-btn { min-height: 52px; }
+
+/* ---- LCD fade: liquid crystal is slow, so segments come on quickly and linger a moment going off. The faders' and
+   meters' lit segments, the step bars and the inverted buttons and tabs ease rather than jump (off slower than on);
+   type changes as it does on a real LCD, at once ---- */
+.m .m-vtrack i, .m .m-gr i b { transition: height .09s cubic-bezier(.2, .7, .3, 1), width .09s cubic-bezier(.2, .7, .3, 1); }
+.m .m-seq-steps i::after, .m .m-seq-steps i::before { transition: height .09s cubic-bezier(.2, .7, .3, 1); }
+.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-trans button { transition: background-color .22s ease-out, color .22s ease-out, opacity .22s ease-out; }
+.m .m-btn:active, .m .m-tabs button[aria-selected="true"], .m .m-toggle[aria-pressed="true"], .m .m-play[aria-pressed="true"] { transition-duration: .06s; }
+.m .m-seq-steps i.now, .m .m-xy i { transition: outline-color .2s ease-out, left .07s linear, bottom .07s linear; }
+/* a fader moved by MIDI follows the knob straight away */
+.m .m-vf.cc .m-vtrack i { transition: none; }
+@media (prefers-reduced-motion: reduce) { .m .m-vtrack i, .m .m-gr i b, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-trans button, .m .m-xy i { transition: none; } }

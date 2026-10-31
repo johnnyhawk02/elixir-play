@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Elixir Synth</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b1d1a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="description" content="Elixir Synth: a phone-first mono synth in the browser, playing the drum 1 voice of a JavaScript port of the Erica Synths LXR-02 engine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+/*@CSS@*/
+</style>
+
+<main class="m" id="m">
+  <header class="m-top">
+    <b class="m-title">elixir<small class="m-ver">synth v@VER@</small></b>
+    <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
+  </header>
+  <section class="m-card m-trans">
+    <button class="m-play" id="m-play" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg><span>play</span></button>
+    <button class="m-rec" id="m-rec" type="button" aria-pressed="false" aria-label="Record"><i></i><span id="m-rec-t">rec</span></button>
+    <output class="m-steps-led" id="m-led" aria-hidden="true"></output>
+  </section>
+
+  <div class="m-pages" id="m-pages">
+  <div class="m-panel" data-m-panel="play">
+    <section class="m-card m-play-card"><div class="m-faders m-big5" id="m-perf"></div></section>
+    <section class="m-card m-rand-card" aria-label="randomise">
+      <div class="m-rand">
+        <label class="m-chk m-nextbar"><input id="m-nextbar" type="checkbox"><i aria-hidden="true"></i>next bar</label>
+        <button class="m-btn m-big" id="m-everything" type="button">everything</button>
+        <button class="m-btn" id="m-sound" type="button">sound</button>
+        <button class="m-btn" id="m-alter" type="button">alter</button>
+        <button class="m-btn" id="m-pattern" type="button">notes</button>
+        <button class="m-btn" id="m-fxr" type="button">random fx</button>
+        <button class="m-btn" id="m-fxa" type="button">alter fx</button>
+        <button class="m-btn" data-undo type="button" disabled>undo</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="m-panel" data-m-panel="seq">
+    <section class="m-card m-seqpage">
+      <div class="m-modes" id="m-modes" role="tablist" aria-label="what a step edit sets">
+        <button class="m-btn" type="button" role="tab" data-mode="note" aria-selected="true">note</button>
+        <button class="m-btn" type="button" role="tab" data-mode="gate" aria-selected="false">gate</button>
+        <button class="m-btn" type="button" role="tab" data-mode="acc" aria-selected="false">accent</button>
+        <button class="m-btn" type="button" role="tab" data-mode="slide" aria-selected="false">slide</button>
+      </div>
+      <div class="m-steps" id="m-steps" role="grid" aria-label="the sixteen steps"></div>
+      <div class="m-seqlow">
+        <div class="m-faders m-seqf" id="m-seqf"></div>
+        <div class="m-seqbtns">
+          <button class="m-btn m-big" id="m-nrand" type="button">random</button>
+          <button class="m-btn" id="m-nalter" type="button">alter</button>
+          <button class="m-btn" data-undo type="button" disabled>undo</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="m-panel" data-m-panel="voice">
+    <section class="m-card m-voice-card">
+      <div class="m-vsec" id="m-vsec" role="tablist" aria-label="section"></div>
+      <div class="m-vsets" id="m-vsets"></div>
+    </section>
+  </div>
+
+  <div class="m-panel" data-m-panel="xy">
+    <section class="m-card m-xy-card" id="m-xy-card"></section>
+  </div>
+
+  <div class="m-panel" data-m-panel="fx">
+    <section class="m-card m-fx-card">
+      <div class="m-fx-row"><div class="m-fxhead"><b>echo</b><label class="m-chk"><input id="m-pp" type="checkbox"><i aria-hidden="true"></i>ping pong</label></div><div class="m-faders m-row" id="m-echo"></div></div>
+      <div class="m-fx-row"><div class="m-fxhead"><b>ring mod</b></div><div class="m-faders m-row" id="m-ring"></div></div>
+      <div class="m-fxbtns">
+        <button class="m-btn m-big" id="m-fxr2" type="button">random</button>
+        <button class="m-btn" id="m-fxa2" type="button">alter</button>
+        <button class="m-btn" data-undo type="button" disabled>undo</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="m-panel" data-m-panel="comp">
+    <section class="m-card m-comp-card">
+      <div class="m-chead"><b>distortion</b></div>
+      <div class="m-faders m-row" id="m-dist"></div>
+      <div class="m-chead"><b>compressor</b><div class="m-gr" aria-label="gain reduction"><i><b id="m-gr"></b></i><output id="m-gr-out">0 dB</output></div><button class="m-toggle" id="m-comp-on" type="button" aria-pressed="true">on</button></div>
+      <div class="m-faders m-row" id="m-comp"></div>
+    </section>
+  </div>
+
+  <div class="m-panel" data-m-panel="presets">
+    <section class="m-card m-presets-card">
+      <div class="m-psaves"><button class="m-btn m-big" id="m-psave" type="button">save new</button><button class="m-btn" id="m-pover" type="button">save over</button></div>
+      <label class="m-chk"><input id="m-pbpm" type="checkbox" checked><i aria-hidden="true"></i>loading a preset uses its tempo</label>
+      <p class="m-note" id="m-pnote" aria-live="polite"></p>
+      <ul class="m-plist" id="m-plist"></ul>
+      <div class="m-pio">
+        <label class="m-btn m-file">import<input id="m-pimport" type="file" accept="application/json,.json" multiple></label>
+        <button class="m-btn" id="m-pexport" type="button">export</button>
+        <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
+      </div>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v@VER@, @BUILT@</footer>
+    </section>
+  </div>
+  </div>
+
+  <div class="m-seq" id="m-fs" hidden>
+    <section class="m-card m-seq-card" role="dialog" aria-labelledby="m-fs-name">
+      <div class="m-chead"><b><span id="m-fs-name"></span> seq</b><output id="m-fs-val"></output><button class="m-toggle" id="m-fs-on" type="button" aria-pressed="true">on</button></div>
+      <div class="m-seq-steps" id="m-fs-steps" aria-label="steps"></div>
+      <div class="m-seq-lenrow"><span>length</span><div class="m-seq-len" id="m-fs-len" role="slider" aria-label="length"><i></i></div><output id="m-fs-len-out"></output></div>
+      <div class="m-seq-lenrow"><span>slew</span><div class="m-seq-len" id="m-fs-slew" role="slider" aria-label="slew"><i></i></div><output id="m-fs-slew-out"></output></div>
+      <div class="m-seq-lenrow"><span>speed</span><div class="m-seq-len" id="m-fs-speed" role="slider" aria-label="speed"><i></i></div><output id="m-fs-speed-out"></output></div>
+      <div class="m-seq-lenrow"><span>depth</span><div class="m-seq-len" id="m-fs-depth" role="slider" aria-label="depth"><i></i></div><output id="m-fs-depth-out"></output></div>
+      <div class="m-seq-btns"><button class="m-btn m-big" id="m-fs-rand" type="button">randomise</button><button class="m-btn m-seq-type" id="m-fs-type" type="button" aria-label="kind of randomise (tap to change)"></button><button class="m-btn" id="m-fs-close" type="button">done</button></div>
+    </section>
+  </div>
+
+  <nav class="m-tabs" role="tablist" aria-label="pages">
+    <button type="button" role="tab" data-m-tab="play" aria-selected="true">perf</button>
+    <button type="button" role="tab" data-m-tab="seq" aria-selected="false">seq</button>
+    <button type="button" role="tab" data-m-tab="voice" aria-selected="false">voice</button>
+    <button type="button" role="tab" data-m-tab="xy" aria-selected="false">x/y</button>
+    <button type="button" role="tab" data-m-tab="fx" aria-selected="false">fx</button>
+    <button type="button" role="tab" data-m-tab="comp" aria-selected="false">mstr</button>
+    <button type="button" role="tab" data-m-tab="presets" aria-selected="false">prst</button>
+  </nav>
+</main>
+
+<script id="engine">
+/*@ENGINE@*/
+</script>
+<script id="player">
+/*@PLAYER@*/
+</script>
+<script>
+/*@PRESETS@*/
+/*@APP@*/
+</script>
+</html>

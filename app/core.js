@@ -1,0 +1,202 @@
+// ---- the state: the sound (drum 1's parameters and the perf macros), the note sequence, the effects and the master,
+// and the audio thread they're sent to ----
+const $ = (id) => document.getElementById(id);
+const { PAR, PARAM_DTYPES, MOD_TARGETS, MOD_TARGET_VOICE_RANGES, VOICE_PAGES, INIT_KIT, OSC_WAVE_NAMES, FILTER_TYPE_NAMES, LFO_SYNC_NAMES } = LXR;
+// iOS: play Web Audio through the ringer switch like a music app
+try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+const rnd = Math.random;
+const rIn = (lo, hi) => lo + Math.floor(rnd() * (hi - lo + 1));
+
+// ---- the sound: parameter values 0..127 by parameter number. Only drum 1's are used; the firmware's init kit, made
+// into a plain saw pluck (no kick drop, a low-pass with some resonance), is where everything starts ----
+const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+const noteName = (m) => NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+const SYNTH0 = { COARSE1: 36, OSC_WAVE_DRUM1: 2, VELOA1: 0, VELOD1: 70, VOL_SLOPE1: 40, MODAMNT1: 0, MOD_EG1: 20,
+  FILTER_FREQ_1: 70, RESO_1: 70, FILTER_TYPE_1: 0, FILTER_DRIVE_1: 20, DRIVE1: 63, VOL1: 110, VOICE_LFO1: 1,
+  AUDIO_OUT1: 0, FX_TYPE: LXR.FX_DELAY, FX_P1: 0, FX_P2: 0, FX_P3: 90, FX_P4: 50, FX_DELAY_TYPE: 0 };
+const initValues = new Uint8Array(PAR.END_OF_SOUND_PARAMETERS);
+for (let i = 8; i < PAR.END_OF_SOUND_PARAMETERS; i++) initValues[i - 8] = INIT_KIT[i];
+for (const [n, v] of Object.entries(SYNTH0)) initValues[PAR[n]] = v;
+const factoryInit = initValues.slice();
+const values = initValues.slice();
+// drum 1's targets (velocity and LFO) are only its own parameters
+const [T0, T1] = MOD_TARGET_VOICE_RANGES[0];
+const TARGETS = [0, ...Array.from({ length: T1 - T0 + 1 }, (_, i) => T0 + i)].filter((i) => !MOD_TARGETS[i][0].startsWith('FX_'));
+const nice = (t) => t.toLowerCase().replace(/_/g, ' ');
+// a parameter's range and readout, from the firmware's parameter_dtypes table (coarse reads as the note it plays)
+const TRANSIENT_NAMES = ['snap', 'offset', 'click', 'click 2', 'tick', 'kick', 'rim', 'drop', 'hat', 'clap', 'kick 2', 'snare', 'tom', 'snap 2', ...LXR.EXTRA_CLICK_NAMES];
+const LFO_WAVES = ['sin', 'tri', 'saw up', 'saw dn', 'square', 'random', 'exp up', 'exp dn'];
+function spec(par) {
+  const menu = (names) => ({ min: 0, max: names.length - 1, show: (v) => names[v] ?? String(v) });
+  if (par === PAR.COARSE1) return { min: 0, max: 127, show: (v) => noteName(v) };
+  if (par === PAR.FM_FREQ1) return { min: 0, max: 127, show: (v) => { const x = v - 60; return (x > 0 ? '+' : '') + x; } };
+  if (par === PAR.VEL_DEST_1 || par === PAR.TARGET_LFO1) return { min: 0, max: TARGETS.length - 1, idx: true, show: (i) => (i ? nice(MOD_TARGETS[TARGETS[i]][0]) : 'none') };
+  if (par === PAR.RETRIGGER_LFO1) return menu(['off', 'on']);
+  switch (PARAM_DTYPES[par] || '0B127') {
+    case 'PM63': return { min: 0, max: 127, show: (v) => { const x = v - 63; return (x > 0 ? '+' : '') + x; } };
+    case 'ON_OFF': case '0b1': return menu(['off', 'on']);
+    case 'menu:WAVEFORM': return menu(OSC_WAVE_NAMES.map((s) => s.toLowerCase()));
+    case 'menu:FILTER': return menu(FILTER_TYPE_NAMES.map((s) => s.toLowerCase()));
+    case 'menu:TRANS': return menu(TRANSIENT_NAMES);
+    case 'menu:LFO_WAVES': return menu(LFO_WAVES);
+    case 'menu:SYNC_RATES': return menu(LFO_SYNC_NAMES.map((s) => s.toLowerCase()));
+    case 'menu:MIX_FM': return menu(['fm', 'mix']);
+    default: return { min: 0, max: 127, show: String };
+  }
+}
+// a target menu's fader position is an index into TARGETS
+const parGet = (par) => (spec(par).idx ? Math.max(0, TARGETS.indexOf(values[par])) : values[par]);
+const parSet = (par, x) => setValue(par, spec(par).idx ? TARGETS[x] : x);
+
+// ---- the perf macros, offsets sent to the engine on top of the sound (the sound keeps its own values): decay, filter
+// and fm from -100% (down to 0) through 0 (as the sound) to +100% (all the way up); pitch moves every note by up to two
+// octaves either way in hundredths of a semitone (between semitones only the pitch moves; on one, the note is exact) ----
+const MACROS = { decay: PAR.VELOD1, filter: PAR.FILTER_FREQ_1, fm: PAR.FMAMNT1 };
+const MACRO0 = { pitch: 0, decay: 100, filter: 100, fm: 100 };
+const macro = { ...MACRO0 };
+const macroOf = Object.fromEntries(Object.entries(MACROS).map(([m, p]) => [p, m]));
+function eff(par, v) {
+  const m = macroOf[par];
+  if (!m || macro[m] === 100) return v;
+  const k = (macro[m] - 100) / 100;
+  return Math.round(k > 0 ? v + (127 - v) * k : v * (1 + k));
+}
+const effValues = () => Array.from(values, (v, par) => eff(par, v));
+function setMacro(m, v) {
+  macro[m] = v;
+  if (m === 'pitch') send({ type: 'pitch', v });
+  else send({ type: 'param', par: MACROS[m], value: eff(MACROS[m], values[MACROS[m]]) });
+}
+function setValue(par, v) {
+  values[par] = v;
+  send({ type: 'param', par, value: eff(par, v) });
+  // the LFO always runs on drum 1
+  if (par === PAR.TARGET_LFO1) send({ type: 'param', par: PAR.VOICE_LFO1, value: 1 });
+}
+
+// ---- the note sequence: 16 steps, each a degree of the scale (0 the root, up two octaves and more), a gate (0 rests, 1-4
+// a quarter to all of the step, 5 rings), an accent and a slide into the next; root and scale say which notes those are ----
+const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 10]], ['dorian', [0, 2, 3, 5, 7, 9, 10]],
+  ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
+  ['pent min', [0, 3, 5, 7, 10]], ['pent maj', [0, 2, 4, 7, 9]], ['blues', [0, 3, 5, 6, 7, 10]], ['chromatic', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]];
+const DEG_MAX = 15;
+const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100,
+  steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
+    [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
+const seq = structuredClone(SEQ0);
+// a degree's semitones above the root's C (the note heard: the voice's coarse, plus this, plus pitch)
+const degSemis = (d, sc = seq.scale, root = seq.root) => { const s = SCALES[sc][1]; return root + s[d % s.length] + 12 * Math.floor(d / s.length); };
+const stepNote = (st) => values[PAR.COARSE1] + degSemis(st.d);
+let playing = false, tempo = 120;
+function sendSeq() {
+  send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
+    steps: seq.steps.map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
+}
+
+// ---- effects and master: echo and ring mod sends; the echo's tone, feedback and ping pong are the engine's own FX bus
+// settings (in the sound); the distortion and compressor on the whole mix ----
+const FX0 = { send: 0, ring: 0, width: 100, ringWave: 0, ringFreq: 40 };
+const fx = { ...FX0 };
+const DIST0 = { mix: 0, type: 0, p: [70, 64, 80, 90] };
+const dist = structuredClone(DIST0);
+const MASTER0 = { comp: true, thresh: -12, ratio: 3, attack: 5, release: 120, makeup: 0 };
+const master = { ...MASTER0 };
+const RATIOS = [1.5, 2, 3, 4, 6, 8, 20];
+// musical echo times as fractions of a bar: straight, dotted and triplet, 1/128 .. 1/1
+const NOTES = [];
+for (let k = 0; k <= 7; k++) {
+  const d = 2 ** k;
+  NOTES.push([1 / d, '1/' + d]);
+  if (k > 0 && k < 7) NOTES.push([1.5 / d, '1/' + d + '.']);
+  if (k > 0) NOTES.push([2 / 3 / d, '1/' + d + 't']);
+}
+const posOf = (frac) => 1 + Math.log2(frac) / 7;
+let delayPos = posOf(3 / 16);
+const showDelay = (v) => {
+  const frac = Math.pow(2, -7 * (1 - v / 1000));
+  const [nf, name] = NOTES.reduce((a, b) => (Math.abs(Math.log2(b[0] / frac)) < Math.abs(Math.log2(a[0] / frac)) ? b : a));
+  return `${Math.abs(nf / frac - 1) < 0.004 ? '' : '≈'}${name}`;
+};
+// the echo time a randomiser picks: 1/16, 1/8, dotted 1/8 or 1/4, or a triplet 1/16, 1/8 or 1/4, up to 1% off
+function randomDelayPos() {
+  const pool = [1 / 16, 1 / 8, 3 / 16, 1 / 4, 1 / 24, 1 / 12, 1 / 6];
+  return Math.max(0, Math.min(1, posOf(pool[Math.floor(rnd() * pool.length)] * (1 + (rnd() * 2 - 1) * 0.01))));
+}
+function setDelay(pos) { delayPos = pos; send({ type: 'delay', pos }); }
+// an echo send above 0 routes the voice to the echo bus
+function sendMix() {
+  const out = fx.send > 0 ? LXR.MIXER_ROUTING_FX_BUS : 0;
+  if (values[PAR.AUDIO_OUT1] !== out) setValue(PAR.AUDIO_OUT1, out);
+  send({ type: 'mix', master: { ...master }, dist, ring: { wave: fx.ringWave, freq: fx.ringFreq }, sendE: fx.send / 100, sendR: fx.ring / 100, width: fx.width });
+}
+
+// ---- audio ----
+let ctx = null, node = null, fallback = null;
+const pending = [];
+// while barSync is set (a preset, or a randomise with next bar ticked), messages wait in the player for the next bar
+let barSync = false;
+function send(m) { if (barSync) m = { type: 'atBar', m }; if (node) node.port.postMessage(m); else if (fallback) fallback.msg(m); else pending.push(m); }
+async function startAudio() {
+  if (ctx) { if (ctx.state === 'suspended') await ctx.resume(); return; }
+  ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+  try {
+    const src = $('engine').textContent + $('player').textContent + `
+      registerProcessor('lxr', class extends AudioWorkletProcessor {
+        constructor() { super({ numberOfInputs: 0 }); this.p = new Player(sampleRate); this.port.onmessage = (e) => this.p.msg(e.data); }
+        process(_, outputs) { const o = outputs[0]; this.p.process(o[0], o[1] || o[0]);
+          if (this.p.events.length) { for (const ev of this.p.events) this.port.postMessage(ev); this.p.events.length = 0; } return true; }
+      });`;
+    const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    await ctx.audioWorklet.addModule(url);
+    node = new AudioWorkletNode(ctx, 'lxr', { numberOfInputs: 0, outputChannelCount: [2] });
+    node.port.onmessage = (e) => onEvent(e.data);
+    node.connect(ctx.destination);
+  } catch (err) {
+    // no AudioWorklet: the same player on the main thread
+    fallback = new Player(ctx.sampleRate);
+    const sp = ctx.createScriptProcessor(1024, 0, 2);
+    sp.onaudioprocess = (e) => {
+      fallback.process(e.outputBuffer.getChannelData(0), e.outputBuffer.getChannelData(1));
+      for (const ev of fallback.events) onEvent(ev);
+      fallback.events.length = 0;
+    };
+    sp.connect(ctx.destination);
+  }
+  // (anything sent before the audio started is in the state below, so it's sent fresh)
+  pending.length = 0;
+  sendAll();
+}
+// everything, to a new audio thread or for a preset
+function sendAll() {
+  send({ type: 'kit', values: effValues() });
+  send({ type: 'pitch', v: macro.pitch });
+  send({ type: 'delay', pos: delayPos });
+  sendMix(); sendSeq();
+}
+// events from the audio thread: each file adds its own handlers
+const eventHandlers = [];
+function onEvent(ev) { for (const h of eventHandlers) h(ev); }
+
+// ---- a snapshot of everything a preset keeps, and putting one back ----
+const PRESET_V = 1;
+let fseqSnapshot = () => ({}), fseqUse = () => {};
+function snapshot() {
+  return { v: PRESET_V, kit: Array.from(values), macro: { ...macro }, tempo, seq: structuredClone(seq), fx: { ...fx }, dpos: delayPos,
+    dist: structuredClone(dist), master: { ...master }, fseqs: fseqSnapshot() };
+}
+const drawHooks = [];
+const drawAll = () => drawHooks.forEach((d) => d());
+function useSnapshot(p, keepTempo) {
+  const kit = Uint8Array.from(p.kit);
+  values.set(kit.subarray(0, values.length));
+  values[PAR.VOICE_LFO1] = 1;
+  Object.assign(macro, MACRO0, p.macro);
+  if (!keepTempo && p.tempo) tempo = p.tempo;
+  Object.assign(seq, structuredClone(SEQ0), structuredClone(p.seq || {}));
+  Object.assign(fx, FX0, p.fx);
+  delayPos = typeof p.dpos === 'number' ? p.dpos : posOf(3 / 16);
+  Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
+  Object.assign(master, MASTER0, p.master);
+  fseqUse(p.fseqs || {});
+  sendAll(); drawAll();
+}
