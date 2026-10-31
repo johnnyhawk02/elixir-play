@@ -514,8 +514,9 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; min-height: 0; padding: 8px 2px; }
-.m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
+.m-home-card { position: relative; display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.m .m-pats .m-pat { aspect-ratio: 1; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
 .m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -539,3 +540,5 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pat { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-home-card .m-xfade { gap: 2px; padding-top: 6px; }
+.m .m-home-card .m-xf { height: 50px; }

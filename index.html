@@ -529,8 +529,9 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; min-height: 0; padding: 8px 2px; }
-.m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
+.m-home-card { position: relative; display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.m .m-pats .m-pat { aspect-ratio: 1; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
 .m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -554,11 +555,13 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pat { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-home-card .m-xfade { gap: 2px; padding-top: 6px; }
+.m .m-home-card .m-xf { height: 50px; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">17</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">18</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -671,6 +674,10 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
       </div>
+      <div class="m-xfade m-energy">
+        <div class="m-xfhead"><b>beat energy</b><output id="m-enev"></output></div>
+        <input class="m-xf" id="m-enex" type="range" min="0" max="100" step="1" value="60" aria-label="beat energy">
+      </div>
       <div class="m-xfade m-rot">
         <div class="m-xfhead"><b>synth rotate</b><output id="m-rotv">0</output></div>
         <input class="m-xf" id="m-rotx" type="range" min="0" max="15" step="1" value="0" aria-label="rotate the synth pattern against the beat, in steps">
@@ -723,7 +730,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v17, 31 Oct, 09:05</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v18, 31 Oct, 09:15</footer>
     </section>
   </div>
   </div>
@@ -6281,6 +6288,13 @@ snapParts.push({ key: 'beat', get: () => ({ ...bs, groove: { ...groove }, patter
   useKit(0);
   if (k) { bs.style = Math.max(0, STYLES.findIndex((s) => s.name === k.style)); bs.beat = k.beat || 0; bs.energy = k.energy ?? 60; bs.fills = k.fills ?? 40; if (k.groove) Object.assign(groove, k.groove); }
   bGenerate();
+}
+// the beat's energy as a slider on mix's patterns page too: the same setting as the energy dial
+{
+  const el = $('m-enex');
+  const show = () => { el.value = bs.energy; $('m-enev').textContent = `${B_ENERGY.find(([x]) => bs.energy < x)[1]} ${bs.energy}`; };
+  el.addEventListener('input', () => { bs.energy = +el.value; bGenerate(); drawAll(); });
+  drawHooks.push(show); show();
 }
 
 // ---- elixir-mix: a channel each for the synth and the beat's five voices (kick, tom, snare, cymbal, hats): its level

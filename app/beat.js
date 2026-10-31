@@ -223,3 +223,10 @@ snapParts.push({ key: 'beat', get: () => ({ ...bs, groove: { ...groove }, patter
   if (k) { bs.style = Math.max(0, STYLES.findIndex((s) => s.name === k.style)); bs.beat = k.beat || 0; bs.energy = k.energy ?? 60; bs.fills = k.fills ?? 40; if (k.groove) Object.assign(groove, k.groove); }
   bGenerate();
 }
+// the beat's energy as a slider on mix's patterns page too: the same setting as the energy dial
+{
+  const el = $('m-enex');
+  const show = () => { el.value = bs.energy; $('m-enev').textContent = `${B_ENERGY.find(([x]) => bs.energy < x)[1]} ${bs.energy}`; };
+  el.addEventListener('input', () => { bs.energy = +el.value; bGenerate(); drawAll(); });
+  drawHooks.push(show); show();
+}

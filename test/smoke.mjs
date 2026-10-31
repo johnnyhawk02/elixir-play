@@ -53,6 +53,10 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = -100; x.dispatchEvent(new Event('input')); });
   check(await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1 && document.getElementById('m-xfv').textContent === 'beat only'), 'the crossfader all the way left is the beat alone');
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = 0; x.dispatchEvent(new Event('input')); });
+  // the beat's energy as a slider there too, the same as the beat page's dial
+  check(await pg.evaluate(() => { const x = document.getElementById('m-enex'); x.value = 90; x.dispatchEvent(new Event('input'));
+    const r = bs.energy === 90 && /driving|peak/.test(document.getElementById('m-enev').textContent); x.value = 60; x.dispatchEvent(new Event('input')); return r && bs.energy === 60; }), 'the beat energy slider sets the beat\'s energy');
+  check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-pat')].every((b) => { const r = b.getBoundingClientRect(); return Math.abs(r.width - r.height) < 2; })), 'the pattern pads are square');
   // the synth rotate slider plays the note sequence from further on, without moving its steps
   const sent = await pg.evaluate(() => { const w = JSON.stringify(seq.steps); const x = document.getElementById('m-rotx'); x.value = 3; x.dispatchEvent(new Event('input'));
     return { r: seqRot, same: JSON.stringify(seq.steps) === w, txt: document.getElementById('m-rotv').textContent }; });
