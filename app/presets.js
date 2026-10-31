@@ -87,12 +87,13 @@ const patBtns = PAT0.map((_, i) => {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
   b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i)); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
-  // paste puts the copied pad's preset on that pad (the same preset, as picking it would) and plays it, as a tap on
-  // the pad would (at the next bar while playing); cancel or a paste ends it
+  // paste makes a real copy of the copied pad's preset (a new one of mine, "Acid Line 2"), so an edit saved over one
+  // pad leaves the other alone, puts it on that pad and plays it, as a tap on the pad would (at the next bar while
+  // playing); cancel or a paste ends it
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
   c.addEventListener('click', () => {
     if (patCopy === null) patCopy = i;
-    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i)); }
+    else if (patCopy !== i) { patSet(i, patDup(patPreset(patCopy))); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i)); }
     else patCopy = null;
     patDraw();
   });
@@ -145,6 +146,54 @@ $('m-pickx').addEventListener('click', patClose);
 // save preset: what's playing now as a new preset (two made-up words), on this pad; save over: what's playing now into
 // the pad's own preset (only one of mine; a built-in one can't be written over)
 const patSet = (i, k) => { patNames[i] = k.name; try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (e) {} };
+// a copy of a preset as a new one of mine, named after it with the next free number
+function patDup(src) {
+  const base = src.name.replace(/ \d+$/, '');
+  let n = 2; while (presetList.some((k) => k.name === `${base} ${n}`)) n++;
+  const k = { ...presetData(src), name: `${base} ${n}`, saved: true };
+  presetList.push(k); storePresets(); return k;
+}
+// pad sets: the eight pads' layout saved under a name, in this browser and in the exported file. Pick one in the list
+// to put all eight on the pads; save set keeps the pads as a new set, over writes them into the set picked, ✕ deletes it.
+// A set holds the presets' names, as the pads do: paste makes real copies, so the pads in a set are sounds of their own
+const SETS_KEY = 'elixir-synth-padsets', SETCUR_KEY = 'elixir-synth-padset';
+let padSets = [], padSetCur = '';
+try { const a = JSON.parse(localStorage.getItem(SETS_KEY)); if (Array.isArray(a)) padSets = a.filter((t) => t && typeof t.name === 'string' && Array.isArray(t.pads)); } catch (e) {}
+try { padSetCur = localStorage.getItem(SETCUR_KEY) || ''; } catch (e) {}
+function storeSets() { try { localStorage.setItem(SETS_KEY, JSON.stringify(padSets)); localStorage.setItem(SETCUR_KEY, padSetCur); } catch (e) {} }
+const setOf = () => padSets.find((t) => t.name === padSetCur);
+function setDraw() {
+  const sel = $('m-psets'), t = setOf();
+  sel.innerHTML = '';
+  const o = (v, txt) => { const e = document.createElement('option'); e.value = v; e.textContent = txt; sel.append(e); };
+  if (!t) o('', padSets.length ? 'pad sets' : 'pad sets: none yet');
+  padSets.forEach((x) => o(x.name, x.name));
+  sel.value = t ? t.name : '';
+  $('m-psetover').disabled = !t; $('m-psetdel').disabled = !t;
+}
+$('m-psets').addEventListener('change', (e) => {
+  const t = padSets.find((x) => x.name === e.target.value); if (!t) return;
+  padSetCur = t.name; patNames = PAT0.map((n, i) => (typeof t.pads[i] === 'string' ? t.pads[i] : n));
+  try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (err) {}
+  patCopy = null; patOn = null; storeSets(); setDraw(); patDraw();
+});
+$('m-psetsave').addEventListener('click', () => {
+  let n = 1; while (padSets.some((t) => t.name === `set ${n}`)) n++;
+  const name = (prompt('Name the pad set', `set ${n}`) || '').trim(); if (!name) return;
+  const old = padSets.find((t) => t.name === name);
+  if (old && !confirm(`Save the pads over ${name}?`)) return;
+  if (old) old.pads = patNames.slice(); else padSets.push({ name, pads: patNames.slice() });
+  padSetCur = name; storeSets(); setDraw();
+});
+$('m-psetover').addEventListener('click', () => {
+  const t = setOf(); if (!t || !confirm(`Save the pads over ${t.name}?`)) return;
+  t.pads = patNames.slice(); storeSets(); setDraw();
+});
+$('m-psetdel').addEventListener('click', () => {
+  const t = setOf(); if (!t || !confirm(`Delete the pad set ${t.name}?`)) return;
+  padSets.splice(padSets.indexOf(t), 1); padSetCur = ''; storeSets(); setDraw();
+});
+setDraw();
 $('m-picksave').addEventListener('click', () => {
   const k = { name: newName(), ...snapshot(), saved: true };
   presetList.push(k); storePresets(); pCur = k; pPending = null;
@@ -174,26 +223,32 @@ $('m-pover').addEventListener('click', () => {
 });
 // files: { elixirSynth: 1, presets: [...] }; a name already saved here is skipped
 $('m-pimport').addEventListener('change', async (e) => {
-  let n = 0, bad = 0;
+  let n = 0, ns = 0, bad = 0;
   for (const f of e.target.files) {
     try {
-      for (const p of JSON.parse(await f.text()).presets || []) {
+      const file = JSON.parse(await f.text());
+      for (const p of file.presets || []) {
         if (!p || p.v !== PRESET_V || !p.kit || !p.name) { bad++; continue; }
         if (presetList.some((k) => k.saved && k.name === p.name)) continue;
         presetList.push(fromData(p, { saved: true })); n++;
+      }
+      for (const t of file.padSets || []) {
+        if (!t || typeof t.name !== 'string' || !Array.isArray(t.pads) || padSets.some((x) => x.name === t.name)) continue;
+        padSets.push({ name: t.name, pads: t.pads.slice(0, 8).map((x) => (typeof x === 'string' ? x : '')) }); ns++;
       }
     } catch (err) { bad++; }
   }
   e.target.value = '';
   if (n) storePresets();
-  $('m-pnote').textContent = (n ? `Imported ${n}.` : 'Nothing new to import.') + (bad ? ` ${bad} skipped: not elixir-synth presets.` : '');
+  if (ns) { storeSets(); setDraw(); }
+  $('m-pnote').textContent = (n || ns ? `Imported ${n ? `${n} preset${n > 1 ? 's' : ''}` : ''}${n && ns ? ' and ' : ''}${ns ? `${ns} pad set${ns > 1 ? 's' : ''}` : ''}.` : 'Nothing new to import.') + (bad ? ` ${bad} skipped: not elixir-synth presets.` : '');
   pDraw();
 });
 $('m-pexport').addEventListener('click', async () => {
   const list = presetList.filter((k) => k.saved).map(presetData);
-  if (!list.length) { $('m-pnote').textContent = 'No presets of yours to export yet.'; return; }
-  const blob = new Blob([JSON.stringify({ elixirSynth: 1, presets: list }, null, 1)], { type: 'application/json' });
-  if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length > 1 ? 's' : ''}.`;
+  if (!list.length && !padSets.length) { $('m-pnote').textContent = 'No presets or pad sets of yours to export yet.'; return; }
+  const blob = new Blob([JSON.stringify({ elixirSynth: 1, presets: list, padSets }, null, 1)], { type: 'application/json' });
+  if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length !== 1 ? 's' : ''}${padSets.length ? ` and ${padSets.length} pad set${padSets.length > 1 ? 's' : ''}` : ''}.`;
 });
 pDraw();
 // ---- mix's patterns page, under the pads: seven dials, the synth's groove switch and six randomisers. The crossfader (beat to synth, both in the

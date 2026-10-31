@@ -595,3 +595,17 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="beat"], .m[data-mode="beat"] button, .m[data-mode="beat"] .m-title, .m[data-mode="beat"] .m-flab, .m[data-mode="beat"] .m-vf output {
   text-shadow: calc(.8px * var(--d)) calc(.9px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.06 + .02 * var(--d))); }
 .m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(23, 32, 14, .07)); }
+/* pad sets: a slim row under the pads, the list of sets, then save set, over and delete */
+.m-home-card { grid-template-rows: auto auto minmax(0, 1fr); }
+.m-psetrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 40px; gap: 6px; }
+.m-psetrow select { min-width: 0; height: 36px; font: inherit; font-size: min(var(--fs-xs), 3.6vw, 14px); text-transform: uppercase; color: var(--ink);
+  background: transparent; border: 2px solid var(--ink); border-radius: 3px; padding: 0 6px; }
+.m .m-psetrow .m-btn { height: 36px; min-height: 0; padding: 0 10px; font-size: min(var(--fs-xs), 3.6vw, 14px); }
+.m .m-psetrow .m-btn:disabled { opacity: .4; }
+.m .m-psetrow .m-btn { height: 32px; font-size: min(var(--fs-xs), 3.4vw, 13px) !important; letter-spacing: .04em; }
+.m-psetrow select { height: 32px; }
+/* every button: a soft, faint shadow beneath it, in all three modes (a tab not picked is bare text, so none) */
+.m :is(.m-btn, .m-toggle, .m-pload, .m-psetrow select, .m-tabs button[aria-selected="true"]),
+.m[data-mode] :is(.m-btn, .m-toggle, .m-pload, .m-psetrow select, .m-tabs button[aria-selected="true"]) {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .14), 0 2px 5px rgba(0, 0, 0, .07) !important; }
+.m .m-tabs button:not([aria-selected="true"]) { box-shadow: none !important; }
