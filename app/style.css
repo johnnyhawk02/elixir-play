@@ -619,7 +619,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-trans .m-play svg { width: 18px; height: 18px; }
 /* ==== synth: black pixels on a blue LCD, the top LCD too ==== */
 .m[data-mode="synth"] {
-  --panel: #5a78ff; --ink: #0a0c1c; --muted: rgba(10, 12, 28, .7);
+  --panel: #8ea3ff; --ink: #0a0c1c; --muted: rgba(10, 12, 28, .7);
   --tint: rgba(10, 12, 28, .07); --tint-2: rgba(10, 12, 28, .13); --ghost: rgba(10, 12, 28, .12); --led: #0a0c1c;
   --rule: 1px solid rgba(10, 12, 28, .35); }
 .m[data-mode="synth"] .m-screen {
