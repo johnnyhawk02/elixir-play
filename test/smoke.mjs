@@ -64,6 +64,17 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-pats .m-patc >> nth=2'); await pg.click('#m-pats .m-patc >> nth=2');
   check(await pg.evaluate(() => patCopy === null && document.querySelector('#m-pats .m-patw:nth-child(3) .m-patc').textContent === 'copy'), 'cancel ends the copy');
   check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.getBoundingClientRect().height >= 24)), 'the copy buttons are at least 24 px high');
+  // preferences: hold the cauldron; the mode stays, and download my presets saves presets and pad sets in one file
+  { const m0 = await pg.evaluate(() => mode), c = await box('#m-mode');
+    await pg.mouse.move(c.x + c.width / 2, c.y + c.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
+    check(await pg.evaluate((m0) => !document.getElementById('m-prefs').hidden && mode === m0, m0), 'holding the cauldron opens preferences, without turning the mode');
+    await pg.evaluate(() => { presetList.push({ name: 'Mine One', ...snapshot(), saved: true }); padSets.push({ name: 'gig0', pads: patNames.slice() }); });
+    const dl = pg.waitForEvent('download'); await pg.click('#m-prefsdl'); const d = await dl;
+    const j = JSON.parse(createRequire(import.meta.url)('fs').readFileSync(await d.path(), 'utf8'));
+    check(d.suggestedFilename() === 'elixir-synth-presets.json' && j.presets.some((p) => p.name === 'Mine One') && j.padSets.length === 1 && j.padSets[0].name === 'gig0' && /presets? and 1 pad set/.test(await pg.textContent('#m-prefsnote')), 'download my presets saves my presets and pad sets as a file');
+    await pg.click('#m-prefsx');
+    check(await pg.evaluate(() => document.getElementById('m-prefs').hidden), 'done closes preferences');
+    await pg.evaluate(() => { presetList.splice(presetList.findIndex((k) => k.name === 'Mine One'), 1); padSets.length = 0; }); }
   // pad sets: save the layout, change a pad, pick the set back, over, delete
   await pg.evaluate(() => { window.prompt = () => 'gig'; window.confirm = () => true; });
   await pg.click('#m-psetsave');

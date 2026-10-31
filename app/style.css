@@ -609,3 +609,8 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode] :is(.m-btn, .m-toggle, .m-pload, .m-psetrow select, .m-tabs button[aria-selected="true"]) {
   box-shadow: 0 1px 2px rgba(0, 0, 0, .14), 0 2px 5px rgba(0, 0, 0, .07) !important; }
 .m .m-tabs button:not([aria-selected="true"]) { box-shadow: none !important; }
+/* preferences, held open from the cauldron: over the whole screen */
+.m-prefs { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; gap: 12px; padding: 12px 10px; background: var(--panel); color: var(--ink); }
+.m-prefs[hidden] { display: none; }
+.m .m-prefs .m-big { min-height: 64px; }
+.m .m-top .m-ver { top: 37%; }

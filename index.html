@@ -624,11 +624,16 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode] :is(.m-btn, .m-toggle, .m-pload, .m-psetrow select, .m-tabs button[aria-selected="true"]) {
   box-shadow: 0 1px 2px rgba(0, 0, 0, .14), 0 2px 5px rgba(0, 0, 0, .07) !important; }
 .m .m-tabs button:not([aria-selected="true"]) { box-shadow: none !important; }
+/* preferences, held open from the cauldron: over the whole screen */
+.m-prefs { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; gap: 12px; padding: 12px 10px; background: var(--panel); color: var(--ink); }
+.m-prefs[hidden] { display: none; }
+.m .m-prefs .m-big { min-height: 64px; }
+.m .m-top .m-ver { top: 37%; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">33</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">34</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -643,6 +648,11 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
   </header>
 
   <div class="m-screen" id="m-screen">
+    <div class="m-prefs" id="m-prefs" role="dialog" aria-labelledby="m-prefst" hidden>
+      <div class="m-pickhead"><b id="m-prefst">preferences</b><button class="m-btn" id="m-prefsx" type="button">done</button></div>
+      <button class="m-btn m-big" id="m-prefsdl" type="button">download my presets</button>
+      <p class="m-note" id="m-prefsnote" aria-live="polite">Your presets and pad sets, in one file. Import it on the presets page.</p>
+    </div>
   <div class="m-pages" id="m-pages">
   <div class="m-panel" data-m-panel="play" data-modes="synth">
     <section class="m-card m-play-card"><div class="m-faders m-dials" id="m-perf"></div></section>
@@ -790,7 +800,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v33, 31 Oct, 14:51</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v34, 31 Oct, 14:57</footer>
     </section>
   </div>
   </div>
@@ -6684,11 +6694,36 @@ $('m-pimport').addEventListener('change', async (e) => {
   $('m-pnote').textContent = (n || ns ? `Imported ${n ? `${n} preset${n > 1 ? 's' : ''}` : ''}${n && ns ? ' and ' : ''}${ns ? `${ns} pad set${ns > 1 ? 's' : ''}` : ''}.` : 'Nothing new to import.') + (bad ? ` ${bad} skipped: not elixir-synth presets.` : '');
   pDraw();
 });
-$('m-pexport').addEventListener('click', async () => {
+// the file of mine: my presets and pad sets (null when there are none), and what it holds, in words
+function presetsFile() {
   const list = presetList.filter((k) => k.saved).map(presetData);
-  if (!list.length && !padSets.length) { $('m-pnote').textContent = 'No presets or pad sets of yours to export yet.'; return; }
+  if (!list.length && !padSets.length) return null;
   const blob = new Blob([JSON.stringify({ elixirSynth: 1, presets: list, padSets }, null, 1)], { type: 'application/json' });
-  if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length !== 1 ? 's' : ''}${padSets.length ? ` and ${padSets.length} pad set${padSets.length > 1 ? 's' : ''}` : ''}.`;
+  return { blob, name: 'elixir-synth-presets.json', what: `${list.length} preset${list.length !== 1 ? 's' : ''}${padSets.length ? ` and ${padSets.length} pad set${padSets.length > 1 ? 's' : ''}` : ''}` };
+}
+$('m-pexport').addEventListener('click', async () => {
+  const f = presetsFile();
+  if (!f) { $('m-pnote').textContent = 'No presets or pad sets of yours to export yet.'; return; }
+  if (await mOffer(f, 'application/json')) $('m-pnote').textContent = `Exported ${f.what}.`;
+});
+// preferences: hold the cauldron (a tap still turns the mode). Download my presets saves the file straight to the
+// phone's downloads, as export's file
+let prefsHold = null, prefsHeld = false;
+$('m-mode').addEventListener('pointerdown', () => {
+  prefsHeld = false; clearTimeout(prefsHold);
+  prefsHold = setTimeout(() => { prefsHeld = true; prefsOpen(); }, 600);
+});
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('m-mode').addEventListener(t, () => clearTimeout(prefsHold));
+$('m-mode').addEventListener('click', (e) => { if (prefsHeld) { prefsHeld = false; e.stopImmediatePropagation(); } }, true);
+function prefsOpen() {
+  $('m-prefsnote').textContent = 'Your presets and pad sets, in one file. Import it on the presets page.';
+  $('m-prefs').hidden = false;
+}
+$('m-prefsx').addEventListener('click', () => { $('m-prefs').hidden = true; });
+$('m-prefsdl').addEventListener('click', () => {
+  const f = presetsFile();
+  if (!f) { $('m-prefsnote').textContent = 'No presets or pad sets of yours to download yet.'; return; }
+  mDownload(f); $('m-prefsnote').textContent = `Downloaded ${f.what}.`;
 });
 pDraw();
 // ---- mix's patterns page, under the pads: seven dials, the synth's groove switch and six randomisers. The crossfader (beat to synth, both in the

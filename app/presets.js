@@ -244,11 +244,36 @@ $('m-pimport').addEventListener('change', async (e) => {
   $('m-pnote').textContent = (n || ns ? `Imported ${n ? `${n} preset${n > 1 ? 's' : ''}` : ''}${n && ns ? ' and ' : ''}${ns ? `${ns} pad set${ns > 1 ? 's' : ''}` : ''}.` : 'Nothing new to import.') + (bad ? ` ${bad} skipped: not elixir-synth presets.` : '');
   pDraw();
 });
-$('m-pexport').addEventListener('click', async () => {
+// the file of mine: my presets and pad sets (null when there are none), and what it holds, in words
+function presetsFile() {
   const list = presetList.filter((k) => k.saved).map(presetData);
-  if (!list.length && !padSets.length) { $('m-pnote').textContent = 'No presets or pad sets of yours to export yet.'; return; }
+  if (!list.length && !padSets.length) return null;
   const blob = new Blob([JSON.stringify({ elixirSynth: 1, presets: list, padSets }, null, 1)], { type: 'application/json' });
-  if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length !== 1 ? 's' : ''}${padSets.length ? ` and ${padSets.length} pad set${padSets.length > 1 ? 's' : ''}` : ''}.`;
+  return { blob, name: 'elixir-synth-presets.json', what: `${list.length} preset${list.length !== 1 ? 's' : ''}${padSets.length ? ` and ${padSets.length} pad set${padSets.length > 1 ? 's' : ''}` : ''}` };
+}
+$('m-pexport').addEventListener('click', async () => {
+  const f = presetsFile();
+  if (!f) { $('m-pnote').textContent = 'No presets or pad sets of yours to export yet.'; return; }
+  if (await mOffer(f, 'application/json')) $('m-pnote').textContent = `Exported ${f.what}.`;
+});
+// preferences: hold the cauldron (a tap still turns the mode). Download my presets saves the file straight to the
+// phone's downloads, as export's file
+let prefsHold = null, prefsHeld = false;
+$('m-mode').addEventListener('pointerdown', () => {
+  prefsHeld = false; clearTimeout(prefsHold);
+  prefsHold = setTimeout(() => { prefsHeld = true; prefsOpen(); }, 600);
+});
+for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('m-mode').addEventListener(t, () => clearTimeout(prefsHold));
+$('m-mode').addEventListener('click', (e) => { if (prefsHeld) { prefsHeld = false; e.stopImmediatePropagation(); } }, true);
+function prefsOpen() {
+  $('m-prefsnote').textContent = 'Your presets and pad sets, in one file. Import it on the presets page.';
+  $('m-prefs').hidden = false;
+}
+$('m-prefsx').addEventListener('click', () => { $('m-prefs').hidden = true; });
+$('m-prefsdl').addEventListener('click', () => {
+  const f = presetsFile();
+  if (!f) { $('m-prefsnote').textContent = 'No presets or pad sets of yours to download yet.'; return; }
+  mDownload(f); $('m-prefsnote').textContent = `Downloaded ${f.what}.`;
 });
 pDraw();
 // ---- mix's patterns page, under the pads: seven dials, the synth's groove switch and six randomisers. The crossfader (beat to synth, both in the
