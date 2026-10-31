@@ -19,12 +19,23 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
   --display: "VT323", ui-monospace, monospace; --body: "VT323", ui-monospace, monospace; --mono: "VT323", ui-monospace, monospace;
   --fs-xs: 1.12rem; --fs-s: 1.25rem; --fs-m: 1.3rem; --fs-l: 1.6rem;
   --rule: 1px solid rgba(225, 235, 255, .38);
-  position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto auto 1fr auto; gap: 0;
-  height: calc(100dvh - max(6px, env(safe-area-inset-top, 0px)) - max(6px, env(safe-area-inset-bottom, 0px))); padding: 8px 8px 10px;
+  position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 0;
+  height: calc(100dvh - max(6px, env(safe-area-inset-top, 0px)) - max(6px, env(safe-area-inset-bottom, 0px))); padding: 6px 8px 8px;
   font-family: var(--body); color: var(--ink);
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
   -webkit-touch-callout: none; /* a long hold mustn't bring up the phone's own menus */
-  border: 5px solid #0b0c0a; border-radius: 10px;
+  /* the case: a dark, slightly warm grey panel, faintly brushed, lit from above; the LCD sits in it below the controls */
+  border: 1px solid #070707; border-radius: 14px;
+  background: linear-gradient(180deg, #34363a, #26282b 22%, #1f2124),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px);
+  background-blend-mode: normal;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), inset 0 -1px 0 rgba(0, 0, 0, .5), 0 10px 30px rgba(0, 0, 0, .5);
+}
+/* the LCD: its pages and page buttons, in a black bezel sunk into the case */
+.m-screen {
+  position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; padding: 8px 8px 10px;
+  color: var(--ink);
+  border: 5px solid #0b0c0a; border-radius: 8px;
   /* uneven backlighting: lit from LEDs along the lower edge, as a cheap LCD is, so it glows brighter near
      the bottom corners, fades toward the top, and has a dim patch where the light doesn't quite reach; the glass
      texture sits over it (all behind the pixels, so the type stays as bright) */
@@ -44,7 +55,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 /* faded patches: an old LCD loses contrast in places, so a few soft patches show their pixels dimmer (a glass-coloured
    veil, clearest at the top right, a smaller one low on the left, a faint band down the right edge; it never takes a
    touch, and the sheets open above it) */
-.m::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 5;
+.m-screen::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 5;
   background: radial-gradient(34% 17% at 76% 24%, rgba(34, 56, 230, .42), rgba(34, 56, 230, 0) 100%),
     radial-gradient(22% 12% at 16% 66%, rgba(34, 56, 230, .38), rgba(34, 56, 230, 0) 100%),
     radial-gradient(14% 9% at 58% 83%, rgba(34, 56, 230, .3), rgba(34, 56, 230, 0) 100%),
@@ -62,7 +73,8 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="beat"] {
   --panel: #a7b58c; --ink: #17200e; --muted: rgba(23, 32, 14, .62);
   --tint: rgba(23, 32, 14, .07); --tint-2: rgba(23, 32, 14, .12); --ghost: rgba(23, 32, 14, .1); --led: #17200e;
-  --rule: 1px solid rgba(23, 32, 14, .32);
+  --rule: 1px solid rgba(23, 32, 14, .32); }
+.m[data-mode="beat"] .m-screen {
   background-image: linear-gradient(170deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .05)),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px),
     radial-gradient(60% 34% at 12% 100%, rgba(255, 252, 195, .6), rgba(255, 252, 200, 0) 70%),
@@ -72,7 +84,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     radial-gradient(30% 18% at 22% 30%, rgba(255, 255, 230, .08), rgba(255, 255, 230, 0) 70%),
     linear-gradient(180deg, rgba(30, 38, 20, .22) 0%, rgba(30, 38, 20, 0) 30%),
     radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(20, 26, 12, .3) 100%); }
-.m[data-mode="beat"]::after {
+.m[data-mode="beat"] .m-screen::after {
   background: radial-gradient(34% 17% at 76% 24%, rgba(167, 181, 140, .42), rgba(167, 181, 140, 0) 100%),
     radial-gradient(22% 12% at 16% 66%, rgba(167, 181, 140, .38), rgba(167, 181, 140, 0) 100%),
     radial-gradient(14% 9% at 58% 83%, rgba(167, 181, 140, .3), rgba(167, 181, 140, 0) 100%),
@@ -84,9 +96,9 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="mix"] {
   --panel: #000; --ink: #fff; --muted: rgba(255, 255, 255, .7);
   --tint: rgba(255, 255, 255, .08); --tint-2: rgba(255, 255, 255, .14); --ghost: rgba(255, 255, 255, .13); --led: #fff;
-  --rule: 1px solid rgba(255, 255, 255, .4);
-  background-image: none; }
-.m[data-mode="mix"]::after { background: none; }
+  --rule: 1px solid rgba(255, 255, 255, .4); }
+.m[data-mode="mix"] .m-screen { background-image: none; }
+.m[data-mode="mix"] .m-screen::after { background: none; }
 .m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output { text-shadow: none; }
 .m[data-mode="mix"] .m-vtrack i, .m[data-mode="mix"] .m-seq-steps i::after, .m[data-mode="mix"] .m-seq-steps i::before, .m[data-mode="mix"] .m-gr i b { filter: none; }
 .m[data-mode="mix"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: none; }
@@ -200,7 +212,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* play, rec, and the step light */
 .m-trans { padding: 8px 0; display: grid; grid-template-columns: 1.3fr 1fr 1.1fr; gap: 8px; align-items: stretch; }
-.m > .m-card.m-trans { border-bottom: var(--rule); }
+
 .m-play { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; background: var(--ink) !important;
   color: var(--panel) !important; font-weight: 400; text-transform: uppercase; }
 .m .m-play { border: 2px solid var(--ink); border-radius: 3px; letter-spacing: .1em; font-size: var(--fs-m) !important; }
@@ -227,7 +239,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-panel { display: grid; grid-template-rows: 1fr; gap: 12px; align-content: stretch; min-height: 0; overflow: hidden; }
 
 /* the page buttons, one line of seven along the bottom where a thumb reaches them (each page's full name is on the title line) */
-.m > .m-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; margin-top: 6px; padding: 8px 0 0; border-top: var(--rule); }
+.m-screen > .m-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; margin-top: 6px; padding: 8px 0 0; border-top: var(--rule); }
 .m-tabs button { border-color: transparent; min-width: 0; }
 .m-tabs button[aria-selected="true"] { border-color: var(--ink); }
 .m .m-tabs button { min-height: 56px; padding: 0; font-size: min(1.4rem, 5.2vw, 21.4px) !important; letter-spacing: 0; }
@@ -436,3 +448,42 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-meter { display: block; height: 10px; margin: 0 4px; overflow: hidden;
   background: repeating-linear-gradient(to right, var(--ghost) 0 4px, transparent 4px 6px); }
 .m-meter b { display: block; height: 100%; width: 0; background: repeating-linear-gradient(to right, var(--ink) 0 4px, transparent 4px 6px); transition: width .06s linear; }
+
+/* ==== the hardware above the LCD: the same in every mode. Silkscreened labels, the logo, and real keys: soft
+   rounded caps a little raised off the case, pressed in while held or chosen, each with a small LED that lights for the
+   mode showing, while playing (green) and while recording (red). The step lights are sixteen small amber LEDs ==== */
+.m-top, .m-trans { --hw-ink: #d4d6d0; --hw-dim: #8d908a; text-shadow: none; }
+.m .m-top, .m > .m-card.m-trans { border: 0; background: none; }
+.m-top { padding: 4px 4px 8px; }
+.m .m-top .m-title { color: var(--hw-ink); text-shadow: 0 -1px 0 rgba(0, 0, 0, .6); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.05rem; font-weight: 700; letter-spacing: .32em; }
+.m .m-top .m-ver { color: var(--hw-dim); font-weight: 400; letter-spacing: .08em; font-size: .62em; opacity: 1; }
+.m .m-top .m-btn, .m .m-trans button {
+  position: relative; color: var(--hw-ink) !important; text-shadow: 0 -1px 0 rgba(0, 0, 0, .55);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-weight: 600; letter-spacing: .12em;
+  background: linear-gradient(180deg, #44474c, #36383c 55%, #2f3134) !important;
+  border: 1px solid #0c0c0d; border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 2px 0 #121314, 0 3px 4px rgba(0, 0, 0, .45) !important;
+  transition: box-shadow .08s, transform .08s, background .08s; }
+.m .m-top .m-btn { font-size: .72rem !important; }
+.m .m-trans button { font-size: .9rem !important; }
+.m .m-top .m-btn:active, .m .m-top .m-btn[aria-selected="true"], .m .m-trans button:active, .m .m-trans .m-play[aria-pressed="true"], .m .m-trans .m-rec.on {
+  transform: translateY(1px); background: linear-gradient(180deg, #303236, #2b2d30) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .55), 0 1px 0 rgba(255, 255, 255, .04) !important; }
+/* the LEDs: a mode key's above its label, play's and rec's beside theirs */
+.m .m-top .m-btn::before { content: ""; position: absolute; left: 50%; top: 5px; width: 6px; height: 3px; margin-left: -3px; border-radius: 2px;
+  background: #3b2a12; box-shadow: inset 0 0 1px rgba(0, 0, 0, .6); }
+.m .m-top .m-btn[aria-selected="true"]::before { background: #ffb547; box-shadow: 0 0 5px rgba(255, 170, 60, .8); }
+.m .m-top .m-btn { padding-top: 8px; }
+.m .m-trans .m-play svg { width: 14px; height: 14px; fill: var(--hw-ink); }
+.m .m-trans .m-play::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #17331a; box-shadow: inset 0 0 1px rgba(0, 0, 0, .7); }
+.m .m-trans .m-play[aria-pressed="true"]::after { background: #59e46b; box-shadow: 0 0 6px rgba(80, 230, 100, .8); }
+.m .m-trans .m-rec i { width: 8px; height: 8px; border-radius: 50%; background: #3a1414; box-shadow: inset 0 0 1px rgba(0, 0, 0, .7); }
+.m .m-trans .m-rec.on i { width: 8px; height: 8px; border-radius: 50%; background: #ff4a3d; box-shadow: 0 0 6px rgba(255, 70, 50, .85); }
+.m .m-trans .m-rec span { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: .9rem; }
+.m-trans { padding: 2px 4px 10px; }
+.m .m-trans .m-steps-led { gap: 5px 4px; padding: 6px 4px; border-radius: 4px; background: #141517; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .05); }
+.m .m-trans .m-steps-led i { border-radius: 2px; background: #2e2210; box-shadow: none; }
+.m .m-trans .m-steps-led i:nth-child(4n+1) { background: #3a2a12; box-shadow: none; }
+.m .m-trans .m-steps-led i.on { background: #ffb547; box-shadow: 0 0 5px rgba(255, 170, 60, .75); }
+.m .m-top .m-modes-top .m-btn[aria-selected="true"] { color: #fff !important; }

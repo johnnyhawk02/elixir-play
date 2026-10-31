@@ -144,7 +144,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('[data-to-mode="synth"]');
   check(await pg.evaluate(() => mode) === 'synth', 'and the synth button back');
   // each mode its own LCD: blue for the synth, grey-green for the beat, black for the mix (the shared pages follow)
-  const lcd = () => pg.evaluate(() => getComputedStyle(document.getElementById('m')).backgroundColor);
+  const lcd = () => pg.evaluate(() => getComputedStyle(document.getElementById('m-screen')).backgroundColor);
   const looks = [await lcd()];
   for (let i = 0; i < 3; i++) { await pg.click('#m-mode'); looks.push(await lcd()); }
   check(looks.join() === 'rgb(34, 56, 230),rgb(167, 181, 140),rgb(0, 0, 0),rgb(34, 56, 230)', `each mode has its own LCD (${looks.join(' / ')})`);
