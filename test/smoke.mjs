@@ -65,8 +65,19 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pd('rotate', 0);
   check(await pd('tempo', 133) === '133 bpm' && await pg.evaluate(() => tempo === 133) && (await pd('tempo', 120), true), 'the tempo dial sets the tempo');
   const b4 = await pg.evaluate(() => ({ b: JSON.stringify(bs), s: JSON.stringify(seq.steps) }));
-  await pg.click('#m-prdrum'); await pg.click('#m-prsynth');
-  check(await pg.evaluate((b) => JSON.stringify(seq.steps) !== b.s && JSON.stringify(bs) !== b.b, b4), 'random drums makes a new beat and random synth new notes');
+  const k0 = await pg.evaluate(() => ({ kit: bs.kit, snd: JSON.stringify(Array.from(values)) }));
+  await pg.click('#m-pralt');
+  check(await pg.evaluate(([b, k]) => JSON.stringify(bs) !== b.b && bs.kit === k.kit, [b4, k0]), 'alt drm makes a new beat on the same kit');
+  await pg.click('#m-prsynth');
+  check(await pg.evaluate(([b, k]) => JSON.stringify(seq.steps) !== b.s && JSON.stringify(Array.from(values)) !== k.snd, [b4, k0]), 'rnd syn makes a new synth sound and notes');
+  await pg.click('#m-prdrum');
+  check(await pg.evaluate(() => !document.querySelector('[data-undo]').disabled), 'rnd drm randomises the whole beat, and can be undone');
+  const s1 = await pg.evaluate(() => ({ n: JSON.stringify(seq.steps), snd: JSON.stringify(Array.from(values)), fx: JSON.stringify(fx) }));
+  await pg.click('#m-pralts');
+  check(await pg.evaluate((s1) => JSON.stringify(seq.steps) !== s1.n && JSON.stringify(Array.from(values)) === s1.snd, s1), 'alt syn makes new notes on the same sound');
+  await pg.click('#m-prfx'); const f1 = await pg.evaluate(() => JSON.stringify(fx)); await pg.click('#m-praltfx');
+  check(f1 !== s1.fx && await pg.evaluate((f1) => JSON.stringify(fx) !== f1, f1) && await fits('home'), 'rnd fx and alt fx change the effects, and the page fits');
+  await pg.evaluate(() => useKit(0));
   await pg.evaluate(() => { localStorage.removeItem('elixir-synth-pats'); });
   await pg.click('[data-to-mode="synth"]');
   // the case: the cauldron, play, rec and the mode keys all on one line, the cauldron carrying the version

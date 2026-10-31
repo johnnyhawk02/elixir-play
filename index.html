@@ -548,14 +548,15 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-home-card /* under the pads: dials for the crossfader, the beat's energy, the synth's density, rotate and tempo, and the randomisers */
-#m-patsf { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 170px)); align-content: center; gap: 4px 2px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
-.m-patsbtns { order: 9; display: grid; grid-template-rows: 1fr 1fr; gap: 6px; min-height: 0; padding: 4px 2px; }
+#m-patsf { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 170px)); align-content: center; gap: 4px 2px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
+.m-patsbtns { order: 9; grid-column: 2 / 5; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 1fr 1fr; grid-auto-flow: column; align-self: center; height: min(100%, 130px); gap: 6px; min-height: 0; padding: 4px 2px; }
 .m .m-patsbtns .m-btn { min-height: 0; padding: 0 4px; line-height: 1.15; white-space: normal; }
+.m #m-patsf .m-dial output, .m #m-patsf .m-dial .m-flab { font-size: min(var(--fs-xs), 3.2vw, 14px); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">20</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">21</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -665,7 +666,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <ul class="m-plist m-picklist" id="m-picklist"></ul>
       </div>
       <div class="m-faders m-dials" id="m-patsf">
-        <div class="m-patsbtns"><button class="m-btn" id="m-prdrum" type="button">random drums</button><button class="m-btn" id="m-prsynth" type="button">random synth</button></div>
+        <div class="m-patsbtns"><button class="m-btn" id="m-prdrum" type="button">rnd drm</button><button class="m-btn" id="m-pralt" type="button">alt drm</button><button class="m-btn" id="m-prsynth" type="button">rnd syn</button><button class="m-btn" id="m-pralts" type="button">alt syn</button><button class="m-btn" id="m-prfx" type="button">rnd fx</button><button class="m-btn" id="m-praltfx" type="button">alt fx</button></div>
       </div>
     </section>
   </div>
@@ -715,7 +716,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v20, 31 Oct, 09:49</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v21, 31 Oct, 10:01</footer>
     </section>
   </div>
   </div>
@@ -6523,10 +6524,11 @@ $('m-pexport').addEventListener('click', async () => {
   if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length > 1 ? 's' : ''}.`;
 });
 pDraw();
-// ---- mix's patterns page, under the pads: five dials and two randomisers. The crossfader (beat to synth, both in the
+// ---- mix's patterns page, under the pads: five dials and six randomisers. The crossfader (beat to synth, both in the
 // middle), the beat's energy and the synth's density (the same settings as their own pages' dials), rotate (the note
-// sequence played 0 to 15 steps on against the beat, live) and tempo; random drums makes a new beat pattern on the kit,
-// random synth new notes by the synth's algorithm. Each can be undone, as on their own pages ----
+// sequence played 0 to 15 steps on against the beat, live) and tempo. rnd drm randomises the whole beat (a kit and a
+// pattern), alt drm only the pattern on the same kit, rnd syn the whole synth (sound and notes), alt syn only
+// its notes, rnd fx all the effects and alt fx a nudge to them, as their own pages' buttons. Each can be undone, as on their own pages ----
 {
   const pDial = (label, o) => mFader($('m-patsf'), label, { dial: true, ...o });
   pDial('x-fade', { min: -100, max: 100, get: () => xf, set: (v) => { xf = Math.abs(v) < 4 ? 0 : v; sendChans(); },
@@ -6535,8 +6537,12 @@ pDraw();
   pDial('density', { min: 0, max: 100, get: () => seq.dens, set: (v) => { seq.dens = v; sendSeq(); drawAll(); }, show: densName, dflt: 50 });
   pDial('rotate', { min: 0, max: 15, get: () => seqRot, set: (v) => { seqRot = v; sendSeq(); drawAll(); }, show: (v) => (v ? `+${v}` : '0'), dflt: 0 });
   pDial('tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); drawAll(); }, show: (v) => `${v} bpm`, dflt: 120 });
-  $('m-prdrum').addEventListener('click', (e) => mRandomise(e.currentTarget, bRandomPattern));
-  $('m-prsynth').addEventListener('click', (e) => mRandomise(e.currentTarget, randomNotes));
+  $('m-prdrum').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { useKit(rIn(0, BEAT_KITS.length - 1)); bRandomPattern(); }));
+  $('m-pralt').addEventListener('click', (e) => mRandomise(e.currentTarget, bRandomPattern));
+  $('m-prsynth').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); }));
+  $('m-pralts').addEventListener('click', (e) => mRandomise(e.currentTarget, randomNotes));
+  $('m-prfx').addEventListener('click', (e) => mRandomise(e.currentTarget, randomFx));
+  $('m-praltfx').addEventListener('click', (e) => mRandomise(e.currentTarget, () => alterFx()));
 }
 
 // ---- record: one press starts a take at once (and starts playing), the next stops it and downloads it as a WAV
