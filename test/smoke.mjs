@@ -38,8 +38,8 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const pr = await box('#m-pats .m-pat >> nth=4');
   await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
   check(await pg.evaluate(() => !document.getElementById('m-pick').hidden && document.querySelectorAll('#m-picklist .m-pload').length >= 9), 'a long press on a pad opens the preset picker');
-  await pg.click('#m-picklist .m-pload >> text=Acid Line');
-  check(await pg.evaluate(() => document.getElementById('m-pick').hidden && patPreset(4).name === 'Acid Line' && JSON.parse(localStorage.getItem('elixir-synth-pats'))[4] === 'Acid Line' && document.querySelector('#m-pats .m-patw:nth-child(5) .m-pat small').textContent === 'Acid Line'), 'picking a preset puts it on the pad and keeps it');
+  await pg.click('#m-picklist .m-pload >> text=Fenka Shizu');
+  check(await pg.evaluate(() => document.getElementById('m-pick').hidden && patPreset(4).name === 'Fenka Shizu' && JSON.parse(localStorage.getItem('elixir-synth-pats'))[4] === 'Fenka Shizu' && document.querySelector('#m-pats .m-patw:nth-child(5) .m-pat small').textContent === 'Fenka Shizu'), 'picking a preset puts it on the pad and keeps it');
   // and the picker saves: save new makes a preset of what's playing and puts it on the pad; save over writes it again
   await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
   check(await pg.evaluate(() => document.getElementById('m-picksover').disabled), 'save over is off for a built-in preset');
@@ -58,7 +58,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-pats .m-patc >> nth=0');
   check(await pg.evaluate(() => { const c = [...document.querySelectorAll('#m-pats .m-patc')].map((b) => b.textContent); return c[0] === 'cancel' && c.slice(1).every((t) => t === 'paste') && document.querySelector('#m-pats .m-patc').classList.contains('on'); }), 'copy on a pad: it reads cancel and flashes, the others read paste');
   await pg.click('#m-pats .m-patc >> nth=7');
-  check(await pg.evaluate(() => { const a = patPreset(0), b = patPreset(7); return b !== a && b.saved && b.name === `${a.name} 2` && JSON.stringify(b.kit) === JSON.stringify(a.kit) && b.kit !== a.kit && JSON.stringify(b.seq) === JSON.stringify(a.seq) && JSON.parse(localStorage.getItem('elixir-synth-presets')).some((p) => p.name === b.name) && (pCur === b || pPending === b) && [...document.querySelectorAll('#m-pats .m-patc')].every((x) => x.textContent === 'copy') && JSON.parse(localStorage.getItem('elixir-synth-pats'))[7] === b.name; }), 'paste makes a real copy of the copied pad\'s preset (Acid Line 2), puts it on the other pad and plays it');
+  check(await pg.evaluate(() => { const a = patPreset(0), b = patPreset(7); return b !== a && b.saved && b.name === `${a.name} 2` && JSON.stringify(b.kit) === JSON.stringify(a.kit) && b.kit !== a.kit && JSON.stringify(b.seq) === JSON.stringify(a.seq) && JSON.parse(localStorage.getItem('elixir-synth-presets')).some((p) => p.name === b.name) && (pCur === b || pPending === b) && [...document.querySelectorAll('#m-pats .m-patc')].every((x) => x.textContent === 'copy') && JSON.parse(localStorage.getItem('elixir-synth-pats'))[7] === b.name; }), 'paste makes a real copy of the copied pad\'s preset (Fenka Shizu 2), puts it on the other pad and plays it');
   await pg.click('#m-pats .m-pat >> nth=0');
   check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-pat')].map((b) => b.getAttribute('aria-pressed')).filter((x) => x === 'true').length === 1 && document.querySelector('#m-pats .m-pat').getAttribute('aria-pressed') === 'true'), 'two pads on the same preset: only the one pressed lights');
   await pg.click('#m-pats .m-patc >> nth=2'); await pg.click('#m-pats .m-patc >> nth=2');
@@ -80,12 +80,12 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-psetsave');
   check(await pg.evaluate(() => padSets.length === 1 && padSets[0].name === 'gig' && JSON.stringify(padSets[0].pads) === JSON.stringify(patNames) && JSON.parse(localStorage.getItem('elixir-synth-padsets'))[0].name === 'gig' && document.getElementById('m-psets').value === 'gig' && !document.getElementById('m-psetover').disabled), 'save set keeps the eight pads as a named set');
   const keep = await pg.evaluate(() => patNames.slice());
-  await pg.evaluate(() => patSet(2, presetList.find((k) => k.name === 'Zap Bass')));
+  await pg.evaluate(() => patSet(2, presetList.find((k) => k.name === 'Draree Poree')));
   await pg.evaluate(() => { const s = document.getElementById('m-psets'); s.value = 'gig'; s.dispatchEvent(new Event('change')); });
   check(await pg.evaluate((k) => JSON.stringify(patNames) === JSON.stringify(k), keep), 'picking the set puts all eight back on the pads');
-  await pg.evaluate(() => { patSet(2, presetList.find((k) => k.name === 'Zap Bass')); patDraw(); });
+  await pg.evaluate(() => { patSet(2, presetList.find((k) => k.name === 'Draree Poree')); patDraw(); });
   await pg.click('#m-psetover');
-  check(await pg.evaluate(() => padSets[0].pads[2] === 'Zap Bass'), 'over writes the pads into the set picked');
+  check(await pg.evaluate(() => padSets[0].pads[2] === 'Draree Poree'), 'over writes the pads into the set picked');
   check(await pg.evaluate(() => { const r = document.querySelector('.m-psetrow').getBoundingClientRect(), c = document.querySelector('.m-home-card').getBoundingClientRect(); return r.height >= 32 && r.bottom <= c.bottom; }), 'the pad sets row is at least 32 px high and fits');
   await pg.click('#m-psetdel');
   check(await pg.evaluate(() => padSets.length === 0 && document.getElementById('m-psetover').disabled), 'delete removes the set');
@@ -213,13 +213,14 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.isEnabled('#m-nalter ~ [data-undo]'), 'random notes can be undone');
   // play runs the steps
   await pg.click('#m-play'); await pg.waitForTimeout(1200);
+  check(await pg.evaluate(() => { const v = (q) => getComputedStyle(document.querySelector('#m-play ' + q)).display; return v('.i-stop') !== 'none' && v('.i-play') === 'none' && getComputedStyle(document.querySelector('#m-play'), '::after').display === 'none'; }), 'playing, the play button shows a square, not the triangle');
   check(await pg.evaluate(() => document.querySelectorAll('#m-led i.on').length === 1 && document.querySelectorAll('.m-step.now').length === 1), 'playing lights the step');
   // presets: load a built-in one, save a new one
   await pg.click('[data-m-tab="presets"]');
   const beatWas = await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]]));
-  await pg.click('#m-plist .m-pload >> text=Acid Line');
+  await pg.click('#m-plist .m-pload >> text=Fenka Shizu');
   await pg.waitForTimeout(1500);
-  check(await pg.evaluate(() => tempo === 128 && seq.root === 9), 'a built-in preset loads (at the next bar)');
+  check(await pg.evaluate(() => tempo === 135 && pCur.name === 'Fenka Shizu'), 'a built-in preset loads (at the next bar)');
   check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');

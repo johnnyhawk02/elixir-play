@@ -7,7 +7,9 @@ const fromData = (p, extra) => ({ ...structuredClone(p), ...extra });
 const presetList = [{ name: 'Init', ...snapshot(), builtin: true },
   ...BUILTIN_PRESETS.filter((p) => p && p.v === PRESET_V && p.kit).map((p) => fromData(p, { builtin: true }))];
 const presetData = (k) => { const { builtin, saved, ...p } = k; return structuredClone(p); };
-try { for (const p of JSON.parse(localStorage.getItem(SAVE_KEY)) || []) if (p && p.v === PRESET_V && p.kit) presetList.push(fromData(p, { saved: true })); } catch (e) {}
+// one of mine that is now a built-in one, the same in every way, is left out (the built-in one stands for it)
+const sameBuiltin = (p) => presetList.some((k) => k.builtin && k.name === p.name && JSON.stringify(presetData(k)) === JSON.stringify(p));
+try { for (const p of JSON.parse(localStorage.getItem(SAVE_KEY)) || []) if (p && p.v === PRESET_V && p.kit && !sameBuiltin(p)) presetList.push(fromData(p, { saved: true })); } catch (e) {}
 function storePresets() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(presetList.filter((k) => k.saved).map(presetData))); } catch (e) {} }
 let pCur = presetList[0], pPending = null, pShown = null;
 try { $('m-pbpm').checked = localStorage.getItem(BPM_KEY) !== '0'; } catch (e) {}
@@ -87,7 +89,7 @@ const patBtns = PAT0.map((_, i) => {
   b.addEventListener('contextmenu', (e) => e.preventDefault());
   b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i)); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
-  // paste makes a real copy of the copied pad's preset (a new one of mine, "Acid Line 2"), so an edit saved over one
+  // paste makes a real copy of the copied pad's preset (a new one of mine, "Fenka Shizu 2"), so an edit saved over one
   // pad leaves the other alone, puts it on that pad and plays it, as a tap on the pad would (at the next bar while
   // playing); cancel or a paste ends it
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';

@@ -614,3 +614,6 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-prefs[hidden] { display: none; }
 .m .m-prefs .m-big { min-height: 64px; }
 .m .m-top .m-ver { top: 37%; }
+/* play: one sign, a triangle while stopped and a square while playing (no light beside it) */
+.m .m-trans .m-play::after { display: none; }
+.m .m-trans .m-play svg { width: 18px; height: 18px; }
