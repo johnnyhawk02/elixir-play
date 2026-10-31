@@ -16,8 +16,8 @@ Three modes run at once on the one engine and clock, so play, tempo, record and 
 everything stays in sync. **Tap the title at the top left** to step from one to the next:
 elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps the page it was on.
 
-- **elixir-synth**: the mono synth on drum 1 (the pages below).
-- **elixir-beat**: the engine's other five voices as a drum machine: drum 2 as the kick, drum 3 as the tom, the
+- **elixir-synth**: the mono synth on drum 1 (the pages below), on a blue backlit LCD.
+- **elixir-beat**, on Elixir Mobile's original grey-green LCD: the engine's other five voices as a drum machine: drum 2 as the kick, drum 3 as the tom, the
   snare, the cymbal and the hats (closed and open). Its pattern comes from Elixir Mobile's generator.
   - **BEAT**: nine dials: style (electro, techno, broken beat, IDM, breakcore), pattern (32 grooves each), energy,
     fills, groove (straight, swing, triplet, shuffle, drunk and more), swing (how much of the groove plays), velocity,
@@ -25,7 +25,7 @@ elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps th
   - **STEPS**: the pattern as a grid, a row per track. Tap or drag to switch hits, or accents in accent mode. Hatched
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
-- **elixir-mix**: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
+- **elixir-mix**, white on a black LCD: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** are the synth's pages: the
   echo, reverb and master are shared by everything.
 

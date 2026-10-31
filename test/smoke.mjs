@@ -138,6 +138,11 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-mixmutes button >> nth=1');
   await pg.click('#m-mode');
   check(await pg.evaluate(() => mode) === 'synth' && await tabs() === 'play seq voice xy fx comp presets' && await page() === 'presets', 'and back to elixir-synth, on the page it was on');
+  // each mode its own LCD: blue for the synth, grey-green for the beat, black for the mix (the shared pages follow)
+  const lcd = () => pg.evaluate(() => getComputedStyle(document.getElementById('m')).backgroundColor);
+  const looks = [await lcd()];
+  for (let i = 0; i < 3; i++) { await pg.click('#m-mode'); looks.push(await lcd()); }
+  check(looks.join() === 'rgb(34, 56, 230),rgb(167, 181, 140),rgb(12, 13, 12),rgb(34, 56, 230)', `each mode has its own LCD (${looks.join(' / ')})`);
   // record: a take downloads as a WAV
   await pg.click('#m-rec'); await pg.waitForTimeout(1000);
   const dl = pg.waitForEvent('download', { timeout: 10000 }).catch(() => null);

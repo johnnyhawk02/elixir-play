@@ -71,6 +71,49 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(4, 10, 80, .14); }
 .m .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
 
+/* ---- each mode its own LCD: elixir-synth the blue backlit one above, elixir-beat Elixir Mobile's original grey-green
+   (dark ink on a pale green-grey glass, lit from below, its ink casting a shadow rather than glowing), elixir-mix white
+   pixels on black. The shared pages (fx, mstr, prst) take the look of the mode they're in ---- */
+.m[data-mode="beat"] {
+  --panel: #a7b58c; --ink: #17200e; --muted: rgba(23, 32, 14, .62);
+  --tint: rgba(23, 32, 14, .07); --tint-2: rgba(23, 32, 14, .12); --ghost: rgba(23, 32, 14, .1); --led: #17200e;
+  --rule: 1px solid rgba(23, 32, 14, .32);
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .05)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .03) 0 1px, transparent 1px 3px),
+    radial-gradient(60% 34% at 12% 100%, rgba(255, 252, 195, .6), rgba(255, 252, 200, 0) 70%),
+    radial-gradient(52% 30% at 88% 102%, rgba(250, 255, 200, .45), rgba(250, 255, 205, 0) 70%),
+    radial-gradient(45% 25% at 50% 104%, rgba(255, 255, 215, .26), rgba(255, 255, 220, 0) 75%),
+    radial-gradient(38% 22% at 72% 38%, rgba(40, 50, 25, .16), rgba(40, 50, 25, 0) 70%),
+    radial-gradient(30% 18% at 22% 30%, rgba(255, 255, 230, .08), rgba(255, 255, 230, 0) 70%),
+    linear-gradient(180deg, rgba(30, 38, 20, .22) 0%, rgba(30, 38, 20, 0) 30%),
+    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(20, 26, 12, .3) 100%); }
+.m[data-mode="beat"]::after {
+  background: radial-gradient(34% 17% at 76% 24%, rgba(167, 181, 140, .42), rgba(167, 181, 140, 0) 100%),
+    radial-gradient(22% 12% at 16% 66%, rgba(167, 181, 140, .38), rgba(167, 181, 140, 0) 100%),
+    radial-gradient(14% 9% at 58% 83%, rgba(167, 181, 140, .3), rgba(167, 181, 140, 0) 100%),
+    linear-gradient(90deg, rgba(167, 181, 140, 0) 88%, rgba(167, 181, 140, .22) 97%, rgba(167, 181, 140, .1)); }
+.m[data-mode="beat"], .m[data-mode="beat"] button, .m[data-mode="beat"] .m-title, .m[data-mode="beat"] .m-flab, .m[data-mode="beat"] .m-vf output {
+  text-shadow: calc(2px * var(--d)) calc(2.2px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.16 + .04 * var(--d))); }
+.m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
+.m[data-mode="beat"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
+.m[data-mode="mix"] {
+  --panel: #0c0d0c; --ink: #f4f4ef; --muted: rgba(244, 244, 239, .66);
+  --tint: rgba(244, 244, 239, .07); --tint-2: rgba(244, 244, 239, .13); --ghost: rgba(244, 244, 239, .12); --led: #f4f4ef;
+  --rule: 1px solid rgba(244, 244, 239, .32);
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 38%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px),
+    radial-gradient(60% 34% at 12% 100%, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(52% 30% at 88% 102%, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .4) 100%); }
+.m[data-mode="mix"]::after {
+  background: radial-gradient(34% 17% at 76% 24%, rgba(12, 13, 12, .3), rgba(12, 13, 12, 0) 100%),
+    radial-gradient(22% 12% at 16% 66%, rgba(12, 13, 12, .25), rgba(12, 13, 12, 0) 100%); }
+.m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output {
+  text-shadow: 0 0 calc(2.5px * var(--d)) rgba(255, 255, 250, calc(.3 + .08 * var(--d))); }
+.m[data-mode="mix"] .m-vtrack i, .m[data-mode="mix"] .m-seq-steps i::after, .m[data-mode="mix"] .m-seq-steps i::before, .m[data-mode="mix"] .m-gr i b { filter: none; }
+.m[data-mode="mix"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: none; }
+.m[data-mode] .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
+
 /* cards: the sheets are glass of their own; the sections inside the screen are bare */
 .m-card { padding: 16px; border: 4px solid #0b0c0a; border-radius: 8px; background-color: var(--panel);
   background-image: linear-gradient(170deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, .06)),
@@ -414,7 +457,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir-<span id="m-modename">synth</span><small class="m-ver">v6</small></button>
+    <button class="m-title" id="m-mode" type="button">elixir-<span id="m-modename">synth</span><small class="m-ver">v7</small></button>
     <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
   </header>
   <section class="m-card m-trans">
@@ -556,7 +599,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v6, 31 Oct, 07:04</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v7, 31 Oct, 07:12</footer>
     </section>
   </div>
   </div>
