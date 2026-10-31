@@ -632,11 +632,22 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 /* play: one sign, a triangle while stopped and a square while playing (no light beside it) */
 .m .m-trans .m-play::after { display: none; }
 .m .m-trans .m-play svg { width: 18px; height: 18px; }
+/* ==== synth inverted: blue pixels on a pale blue-white LCD, the top LCD too ==== */
+.m[data-mode="synth"] {
+  --panel: #e3e9ff; --ink: #2238e6; --muted: rgba(34, 56, 230, .7);
+  --tint: rgba(34, 56, 230, .07); --tint-2: rgba(34, 56, 230, .13); --ghost: rgba(34, 56, 230, .12); --led: #2238e6;
+  --rule: 1px solid rgba(34, 56, 230, .35); }
+.m[data-mode="synth"] .m-screen {
+  background-image: linear-gradient(170deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, .04)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .02) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .02) 0 1px, transparent 1px 3px); }
+.m[data-mode="synth"] .m-screen::after { background: none; }
+.m[data-mode="synth"], .m[data-mode="synth"] button, .m[data-mode="synth"] .m-title, .m[data-mode="synth"] .m-flab, .m[data-mode="synth"] .m-vf output {
+  text-shadow: calc(.8px * var(--d)) calc(.9px * var(--d)) calc(.3px * var(--d)) rgba(10, 20, 120, calc(.06 + .02 * var(--d))); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">35</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">36</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -803,7 +814,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v35, 31 Oct, 15:05</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v36, 31 Oct, 15:10</footer>
     </section>
   </div>
   </div>

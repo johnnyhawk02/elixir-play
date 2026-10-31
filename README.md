@@ -42,7 +42,7 @@ Presets keep all three. A preset saved before the modes leaves the beat and the 
 ## Synth pages
 
 Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
-turns the page. The case is plain black, and along the top a second LCD in the same colours as the screen below it (blue, grey-green or grey for synth, beat or mix), joined to it by a thin line of bezel, holds everything on one line: the cauldron (tap it for the next mode, hold it for preferences, where *download my presets* saves your presets and pad sets as one file; the version is stamped in its middle), play, record and the synth, beat and mix keys, with the sixteen step lights under them.
+turns the page. The case is plain black, and along the top a second LCD in the same colours as the screen below it (blue on pale blue, grey-green or grey for synth, beat or mix), joined to it by a thin line of bezel, holds everything on one line: the cauldron (tap it for the next mode, hold it for preferences, where *download my presets* saves your presets and pad sets as one file; the version is stamped in its middle), play, record and the synth, beat and mix keys, with the sixteen step lights under them.
 
 - **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, undo, and
   *next bar* (while playing, a randomise waits for the next bar). Drag a dial up or down to turn it. A MIDI controller

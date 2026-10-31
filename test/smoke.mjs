@@ -259,7 +259,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const lcd = () => pg.evaluate(() => getComputedStyle(document.getElementById('m-screen')).backgroundColor);
   const looks = [await lcd()];
   for (let i = 0; i < 3; i++) { await pg.click('#m-mode'); looks.push(await lcd()); }
-  check(looks.join() === 'rgb(34, 56, 230),rgb(167, 181, 140),rgb(179, 181, 176),rgb(34, 56, 230)', `each mode has its own LCD (${looks.join(' / ')})`);
+  check(looks.join() === 'rgb(227, 233, 255),rgb(167, 181, 140),rgb(179, 181, 176),rgb(227, 233, 255)', `each mode has its own LCD (${looks.join(' / ')})`);
   // record: a take downloads as a WAV
   await pg.click('#m-rec'); await pg.waitForTimeout(1000);
   const dl = pg.waitForEvent('download', { timeout: 10000 }).catch(() => null);
