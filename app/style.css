@@ -619,12 +619,16 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-trans .m-play svg { width: 18px; height: 18px; }
 /* ==== synth: black pixels on a blue LCD, the top LCD too ==== */
 .m[data-mode="synth"] {
-  --panel: #8ea3ff; --ink: #0a0c1c; --muted: rgba(10, 12, 28, .7);
+  --panel: #8e9bd2; --ink: #0a0c1c; --muted: rgba(10, 12, 28, .7);
   --tint: rgba(10, 12, 28, .07); --tint-2: rgba(10, 12, 28, .13); --ghost: rgba(10, 12, 28, .12); --led: #0a0c1c;
   --rule: 1px solid rgba(10, 12, 28, .35); }
 .m[data-mode="synth"] .m-screen {
   background-image: linear-gradient(170deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 40%, rgba(0, 0, 0, .05)),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .02) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0, 0, 0, .02) 0 1px, transparent 1px 3px); }
-.m[data-mode="synth"] .m-screen::after { background: none; }
+.m[data-mode="synth"] .m-screen::after {
+  background: radial-gradient(34% 17% at 76% 24%, rgba(110, 112, 120, .22), rgba(110, 112, 120, 0) 100%),
+    radial-gradient(22% 12% at 16% 66%, rgba(110, 112, 120, .2), rgba(110, 112, 120, 0) 100%),
+    radial-gradient(14% 9% at 58% 83%, rgba(110, 112, 120, .16), rgba(110, 112, 120, 0) 100%),
+    linear-gradient(90deg, rgba(110, 112, 120, 0) 88%, rgba(110, 112, 120, .14) 97%, rgba(110, 112, 120, .06)); }
 .m[data-mode="synth"], .m[data-mode="synth"] button, .m[data-mode="synth"] .m-title, .m[data-mode="synth"] .m-flab, .m[data-mode="synth"] .m-vf output {
   text-shadow: calc(.8px * var(--d)) calc(.9px * var(--d)) calc(.3px * var(--d)) rgba(0, 4, 40, calc(.06 + .02 * var(--d))); }
