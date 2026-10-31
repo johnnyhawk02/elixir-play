@@ -26,7 +26,7 @@ they were on.
   - **STEPS**: the pattern as a grid, a row per track. Tap or drag to switch hits, or accents in accent mode. Hatched
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
-- **elixir-mix**, white on black: **PATS**, the front page, has eight pattern pads (for now the first eight built-in
+- **elixir-mix**, black on a grey LCD: **PATS**, the front page, has eight pattern pads (for now the first eight built-in
   presets; a tap loads one at the next bar while playing) and a crossfader from the beat alone to the synth alone, both
   full in the middle. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the

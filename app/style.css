@@ -94,9 +94,9 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
 .m[data-mode="beat"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
 .m[data-mode="mix"] {
-  --panel: #000; --ink: #fff; --muted: rgba(255, 255, 255, .7);
-  --tint: rgba(255, 255, 255, .08); --tint-2: rgba(255, 255, 255, .14); --ghost: rgba(255, 255, 255, .13); --led: #fff;
-  --rule: 1px solid rgba(255, 255, 255, .4); }
+  --panel: #b3b5b0; --ink: #111; --muted: rgba(17, 17, 17, .7);
+  --tint: rgba(17, 17, 17, .07); --tint-2: rgba(17, 17, 17, .13); --ghost: rgba(17, 17, 17, .12); --led: #111;
+  --rule: 1px solid rgba(17, 17, 17, .35); }
 .m[data-mode="mix"] .m-screen { background-image: none; }
 .m[data-mode="mix"] .m-screen::after { background: none; }
 .m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output { text-shadow: none; }
