@@ -19,6 +19,10 @@ for (let i = 8; i < PAR.END_OF_SOUND_PARAMETERS; i++) initValues[i - 8] = INIT_K
 for (const [n, v] of Object.entries(SYNTH0)) initValues[PAR[n]] = v;
 const factoryInit = initValues.slice();
 const values = initValues.slice();
+// the beat's parameters: those of the engine's other five voices (drum 2, drum 3, snare, cymbal, hats). The synth owns
+// drum 1's and the FX bus; a synth preset from before the beat leaves the beat's alone
+const BEAT_PARS = new Set([...VOICE_PAGES.slice(1).flatMap((vp) => vp.groups.flatMap((g) => g.params.map(([, n]) => PAR[n]))),
+  ...[2, 3, 4, 5, 6].flatMap((n) => [PAR['VOICE_LFO' + n], PAR['TARGET_LFO' + n], PAR['AUDIO_OUT' + n]])]);
 // drum 1's targets (velocity and LFO) are only its own parameters
 const [T0, T1] = MOD_TARGET_VOICE_RANGES[0];
 const TARGETS = [0, ...Array.from({ length: T1 - T0 + 1 }, (_, i) => T0 + i)].filter((i) => !MOD_TARGETS[i][0].startsWith('FX_'));
@@ -173,8 +177,10 @@ async function startAudio() {
   sendAll();
 }
 // everything, to a new audio thread or for a preset
+const sendHooks = [];
 function sendAll() {
   send({ type: 'kit', values: effValues() });
+  sendHooks.forEach((h) => h());
   send({ type: 'pitch', v: macro.pitch });
   send({ type: 'delay', pos: delayPos });
   sendMix(); sendSeq();
@@ -186,15 +192,19 @@ function onEvent(ev) { for (const h of eventHandlers) h(ev); }
 // ---- a snapshot of everything a preset keeps, and putting one back ----
 const PRESET_V = 1;
 let fseqSnapshot = () => ({}), fseqUse = () => {};
+// the other modes' parts of a preset (beat, mix): each { key, get, put }; a preset without one leaves that part as it is
+const snapParts = [];
 function snapshot() {
-  return { v: PRESET_V, kit: Array.from(values), macro: { ...macro }, tempo, seq: structuredClone(seq), fx: { ...fx }, dpos: delayPos,
+  const p = { v: PRESET_V, kit: Array.from(values), macro: { ...macro }, tempo, seq: structuredClone(seq), fx: { ...fx }, dpos: delayPos,
     dist: structuredClone(dist), master: { ...master }, fseqs: fseqSnapshot() };
+  for (const sp of snapParts) p[sp.key] = sp.get();
+  return p;
 }
 const drawHooks = [];
 const drawAll = () => drawHooks.forEach((d) => d());
 function useSnapshot(p, keepTempo) {
   const kit = Uint8Array.from(p.kit);
-  values.set(kit.subarray(0, values.length));
+  for (let i = 0; i < Math.min(kit.length, values.length); i++) if (p.beat || !BEAT_PARS.has(i)) values[i] = kit[i];
   values[PAR.VOICE_LFO1] = 1;
   Object.assign(macro, MACRO0, p.macro);
   if (!keepTempo && p.tempo) tempo = p.tempo;
@@ -205,5 +215,6 @@ function useSnapshot(p, keepTempo) {
   Object.assign(dist, structuredClone(DIST0), structuredClone(p.dist || {}));
   Object.assign(master, MASTER0, p.master);
   fseqUse(p.fseqs || {});
+  for (const sp of snapParts) if (p[sp.key]) sp.put(structuredClone(p[sp.key]));
   sendAll(); drawAll();
 }

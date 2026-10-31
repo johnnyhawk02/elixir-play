@@ -3,22 +3,45 @@
 
 // ---- pages: swipe across the screen, or tap a page button. A swipe starts anywhere but on a fader, the x/y pad, the
 // steps or a list, so dragging those never turns the page ----
-const mPages = $('m-pages'), PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
-const PAGE_NAMES = { play: 'perform', seq: 'notes', voice: 'voice', xy: 'x/y', fx: 'effects', comp: 'master', presets: 'presets' };
-let mCur = 0;
-const pageHooks = [];
+// ---- modes: elixir-synth, elixir-beat and elixir-mix, three sets of pages over the one engine and clock, all playing at
+// once. A tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
+// are kept in this browser. A page (and its button) can belong to more than one mode (data-modes) ----
+const mPages = $('m-pages'), ALL_PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
+const MODES = ['synth', 'beat', 'mix'];
+const PAGE_NAMES = { play: 'perform', seq: 'notes', voice: 'voice', xy: 'x/y', fx: 'effects', comp: 'master', presets: 'presets',
+  beat: 'pattern', bsteps: 'steps', kit: 'kit', mix: 'mixer' };
+const MODE_KEY = 'elixir-synth-mode';
+const inMode = (el, m) => el.dataset.modes.split(' ').includes(m);
+let mode = 'synth', PANELS = ALL_PANELS, mCur = 0;
+const modePage = { synth: 'play', beat: 'beat', mix: 'mix' };
+try { const k = JSON.parse(localStorage.getItem(MODE_KEY)); if (k && MODES.includes(k.mode)) { mode = k.mode; Object.assign(modePage, k.pages); } } catch (e) {}
+const pageHooks = [], modeHooks = [];
 function mGo(i, smooth) {
   mCur = Math.max(0, Math.min(PANELS.length - 1, i));
   const t = PANELS[mCur].dataset.mPanel;
   mPages.scrollTo({ left: PANELS[mCur].offsetLeft - PANELS[0].offsetLeft, behavior: smooth ? 'smooth' : 'instant' });
   $('m-pagename').textContent = PAGE_NAMES[t];
   document.querySelectorAll('[data-m-tab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.mTab === t));
+  modePage[mode] = t;
+  try { localStorage.setItem(MODE_KEY, JSON.stringify({ mode, pages: modePage })); } catch (e) {}
   pageHooks.forEach((h) => h(t));
 }
+function setMode(m) {
+  mode = m;
+  PANELS = ALL_PANELS.filter((p) => inMode(p, m));
+  ALL_PANELS.forEach((p) => { p.hidden = !inMode(p, m); });
+  document.querySelectorAll('[data-m-tab]').forEach((b) => { b.hidden = !inMode(b, m); });
+  $('m').dataset.mode = m;
+  $('m-modename').textContent = m;
+  $('m-mode').setAttribute('aria-label', `elixir ${m}: tap for elixir ${MODES[(MODES.indexOf(m) + 1) % MODES.length]}`);
+  mGo(Math.max(0, PANELS.findIndex((p) => p.dataset.mPanel === modePage[m])));
+  modeHooks.forEach((h) => h(m));
+}
+$('m-mode').addEventListener('click', () => { setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); requestAnimationFrame(mDepth); });
 document.querySelectorAll('[data-m-tab]').forEach((b) => b.addEventListener('click', () => mGo(PANELS.findIndex((p) => p.dataset.mPanel === b.dataset.mTab))));
 addEventListener('resize', () => mGo(mCur));
 {
-  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, select, input';
+  const NOSWIPE = '.m-vtrack, .m-xy, .m-steps, .m-bgrid, select, input';
   let sw = null;
   mPages.addEventListener('pointerdown', (e) => {
     if (sw || e.target.closest(NOSWIPE)) return;
@@ -77,9 +100,9 @@ eventHandlers.push((ev) => {
 // resets it, and holding one still for half a second opens its step sequencer. While a sequencer runs, the fader sets
 // its base (fd.base) and the sequencer moves the value around it: the fill is the value heard, the bar the base ----
 const mFaders = [];
-function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1, cc = 0 }) {
+function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel = 1, cc = 0, dial = !!cc }) {
   const el = document.createElement('div');
-  el.className = cc ? 'm-vf m-dial' : 'm-vf';
+  el.className = dial ? 'm-vf m-dial' : 'm-vf';
   el.innerHTML = '<output></output><div class="m-vtrack" role="slider" tabindex="0"><i></i><b></b></div><span class="m-flab"></span>';
   // a dial (cc: its MIDI CC number, shown in its middle) turns by dragging up and down over 200 px
   if (cc) el.querySelector('.m-vtrack').insertAdjacentHTML('beforeend', `<em aria-hidden="true">${cc}</em>`);
@@ -102,7 +125,7 @@ function mFader(box, label, { min, max, step = 1, get, set, show, dflt, travel =
   let drag = null, hold = 0;
   tr.addEventListener('pointerdown', (e) => {
     tr.setPointerCapture(e.pointerId); el.classList.add('held');
-    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: cc ? 200 : tr.getBoundingClientRect().height };
+    drag = { y: e.clientY, v: fd.base !== null ? fd.base : get(), h: dial ? 200 : tr.getBoundingClientRect().height };
     clearTimeout(hold);
     hold = setTimeout(() => { if (!drag) return; const v = drag.v; end(); move(v); fsOpen(fd); }, 500);
   });
@@ -385,7 +408,7 @@ for (const id of ['m-fxa', 'm-fxa2']) $(id).addEventListener('click', (e) => mRa
 // by the CSS), worked out from where it sits on its own page, and again when the screen's size changes ----
 function mDepth() {
   const m = $('m').getBoundingClientRect();
-  for (const el of document.querySelectorAll('.m-vf, .m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-chead, .m-title, .m-trans button, .m-seq-lenrow, .m-step')) {
+  for (const el of document.querySelectorAll('.m-vf, .m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-chead, .m-title, .m-trans button, .m-seq-lenrow, .m-step, .m-bcell')) {
     const r = el.getBoundingClientRect();
     if (!r.width) continue;
     const x = (((r.left + r.width / 2 - m.left) % m.width) + m.width) % m.width / m.width, y = (r.top + r.height / 2 - m.top) / m.height;

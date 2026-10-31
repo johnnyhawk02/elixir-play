@@ -113,17 +113,17 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-vtrack.mod b { display: block; left: -3px; right: -3px; height: 4px; border-radius: 0; bottom: calc(var(--b) * (100% - 4px)); background: var(--ink); box-shadow: 0 0 0 2px var(--panel); }
 
 /* the big faders (perf): a two-line readout, tracks as tall as the page */
-#m-perf .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 3px; }
-#m-perf .m-vf output { font-size: min(var(--fs-xs), 3.9vw, 16px); line-height: 1; color: var(--ink); height: 2.5em; display: flex; align-items: flex-end; justify-content: center; flex: none; align-self: stretch; }
+:is(#m-perf, #m-beatf) .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 3px; }
+:is(#m-perf, #m-beatf) .m-vf output { font-size: min(var(--fs-xs), 3.9vw, 16px); line-height: 1; color: var(--ink); height: 2.5em; display: flex; align-items: flex-end; justify-content: center; flex: none; align-self: stretch; }
 .m #m-perf .m-flab { font-size: min(var(--fs-xs), 3.9vw, 16px); letter-spacing: -.02em; white-space: nowrap; line-height: 1.2; }
 #m-perf .m-vtrack { width: min(56px, 100%); flex: 1; height: auto; min-height: 48px; }
 
 /* the dials (perf): a ring of segments over three quarters of a turn, lit up to the value, the CC number in the middle;
    as big as the cell lets them be, the readout over and the label under */
 .m .m-dial { container-type: size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 0; }
-.m #m-perf .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
-.m #m-perf .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.m #m-perf .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
+.m :is(#m-perf, #m-beatf) .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
+.m :is(#m-perf, #m-beatf) .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m :is(#m-perf, #m-beatf) .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
   overflow: visible; cursor: ns-resize; background: none; }
 .m .m-dial .m-vtrack::before, .m .m-dial .m-vtrack i { content: ''; position: absolute; inset: 0; height: auto; border-radius: 50%;
   -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%), repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg);
@@ -151,6 +151,10 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-ver { margin-left: .5em; font-size: .7em; letter-spacing: .06em; text-transform: none; opacity: .7; }
 /* (on a narrow phone the title line's spacing tightens) */
 @media (max-width: 430px) { .m-title, .m-pagename { letter-spacing: .08em; } .m-top { gap: 6px; } }
+/* the title is the mode switch: a tap steps elixir-synth → elixir-beat → elixir-mix */
+.m .m-title { background: none; padding: 0; min-height: 36px; text-align: left; white-space: nowrap; cursor: pointer; }
+.m .m-title:active { opacity: .6; }
+.m-top { align-items: center; }
 .m-pagename { white-space: nowrap; font-family: var(--display); font-size: 1.5rem; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
 
 /* play, rec, and the step light */
@@ -182,7 +186,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-panel { display: grid; grid-template-rows: 1fr; gap: 12px; align-content: stretch; min-height: 0; overflow: hidden; }
 
 /* the page buttons, one line of seven along the bottom where a thumb reaches them (each page's full name is on the title line) */
-.m > .m-tabs { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-top: 6px; padding: 8px 0 0; border-top: var(--rule); }
+.m > .m-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; margin-top: 6px; padding: 8px 0 0; border-top: var(--rule); }
 .m-tabs button { border-color: transparent; min-width: 0; }
 .m-tabs button[aria-selected="true"] { border-color: var(--ink); }
 .m .m-tabs button { min-height: 56px; padding: 0; font-size: min(1.4rem, 5.2vw, 21.4px) !important; letter-spacing: 0; }
@@ -354,3 +358,40 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-vf.cc .m-vtrack i { transition: none; }
 @media (prefers-reduced-motion: reduce) { .m .m-vtrack i, .m .m-gr i b, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-trans button, .m .m-xy i { transition: none; } }
 .m-xyrow option, .m-xyrow optgroup { color: #0b0c0a; background: #eef3ff; }
+
+/* ==== elixir-beat ==== */
+/* pattern: nine dials, three by three, and the randomise column beside them */
+[data-m-panel="beat"] { grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
+#m-beatf { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 4px 2px; min-height: 0; }
+.m-brand { grid-template-rows: repeat(5, minmax(0, 1fr)); }
+/* steps: the mode and edit buttons, then a row per track of sixteen cells (a gap every four); a hit is filled, an accent
+   has a notch, a hit on some bars only is hatched, the step playing is outlined */
+.m-bstep-card { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px; min-height: 0; padding: 6px 2px; }
+.m-bgrid { display: grid; grid-template-columns: 3.3em repeat(16, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr)); gap: 6px 2px; min-height: 0; touch-action: none; }
+.m-blab { align-self: center; font-size: min(var(--fs-xs), 3.6vw, 15px); line-height: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.m .m-bcell { position: relative; min-width: 0; min-height: 0; border: 2px solid var(--ink); border-radius: 2px; opacity: .55; }
+.m .m-bcell[data-s="4"], .m .m-bcell[data-s="8"], .m .m-bcell[data-s="12"] { margin-left: 4px; }
+.m .m-bcell[data-s="0"], .m .m-bcell[data-s="4"], .m .m-bcell[data-s="8"], .m .m-bcell[data-s="12"] { opacity: .8; }
+.m .m-bcell.on { opacity: 1; background: var(--ink); }
+.m .m-bcell.cond { background: repeating-linear-gradient(135deg, var(--ink) 0 2px, transparent 2px 5px); }
+.m .m-bcell.acc::after { content: ""; position: absolute; left: 20%; right: 20%; top: 3px; height: 5px; background: var(--panel); }
+.m .m-bcell.now { outline: 2px solid var(--ink); outline-offset: 1px; opacity: 1; }
+.m-bgrid[data-mode="acc"] .m-bcell:not(.acc) { opacity: .35; }
+/* kit: the kit's name between two arrows, then a tab per voice and its faders */
+.m-kit-card { display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 10px; min-height: 0; padding: 8px 2px; }
+.m-kitrow { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: center; }
+.m .m-kitrow .m-btn { min-height: 48px; padding: 0; font-size: 1.6rem !important; }
+.m-kitrow output { text-align: center; text-transform: uppercase; font-size: var(--fs-m); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-bvsec { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.m .m-bvsec .m-btn { padding: 0 2px; font-size: min(var(--fs-xs), 3.8vw, 15.6px) !important; letter-spacing: 0; }
+
+/* ==== elixir-mix: a column per channel: level fader, meter, mute, then the echo and reverb sends ==== */
+.m-mix-card { display: grid; grid-template-rows: minmax(0, 1.7fr) auto auto auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; min-height: 0; padding: 6px 2px; }
+.m-mixlvl, .m-mixsend { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.m-mix-card .m-chead { border-top: var(--rule); padding-top: 4px; }
+.m-mix-card .m-chead b { font-size: var(--fs-s); }
+.m-mixstrip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.m .m-mute { min-width: 0; min-height: 40px; padding: 0; font-size: min(var(--fs-xs), 3.7vw, 15px) !important; letter-spacing: 0; }
+.m-meter { display: block; height: 10px; margin: 0 4px; overflow: hidden;
+  background: repeating-linear-gradient(to right, var(--ghost) 0 4px, transparent 4px 6px); }
+.m-meter b { display: block; height: 100%; width: 0; background: repeating-linear-gradient(to right, var(--ink) 0 4px, transparent 4px 6px); transition: width .06s linear; }

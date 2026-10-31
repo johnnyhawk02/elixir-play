@@ -11,4 +11,4 @@ $('m-install').addEventListener('click', async () => {
   mInstallEv = null; $('m-install').hidden = true;
 });
 // start: everything drawn, the first page shown
-mUndoDraw(); drawAll(); mGo(0); requestAnimationFrame(mDepth);
+mUndoDraw(); drawAll(); setMode(mode); requestAnimationFrame(mDepth);

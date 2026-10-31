@@ -1,7 +1,8 @@
 // Drives the built page in Chromium's phone emulation (Pixel 9a's 412 x 915 and a small 360 x 640): no errors, no page
 // scrolls but the presets list, swipes and page buttons turn the page, fader and pad drags don't, holding a fader opens
 // its sequencer, MIDI CC 1-12 turn the perf dials, the reverb sends, the note grid edits steps on four pages and copies
-// page 1 to the others, space plays and stops, play runs the steps, presets save and load, and record downloads a WAV.
+// page 1 to the others, space plays and stops, play runs the steps, presets save and load, the title steps through the
+// synth, beat and mix modes (the beat's dials, grid and kits, the mixer's meters and mutes), and record downloads a WAV.
 //   node test/smoke.mjs [index.html]   (needs Playwright)
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -102,11 +103,41 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => document.querySelectorAll('#m-led i.on').length === 1 && document.querySelectorAll('.m-step.now').length === 1), 'playing lights the step');
   // presets: load a built-in one, save a new one
   await pg.click('[data-m-tab="presets"]');
+  const beatWas = await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]]));
   await pg.click('.m-pload >> text=Acid Line');
   await pg.waitForTimeout(1500);
   check(await pg.evaluate(() => tempo === 128 && seq.root === 9), 'a built-in preset loads (at the next bar)');
+  check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');
+  // modes: the title steps elixir-synth → beat → mix → synth, each with its own pages
+  const tabs = () => pg.evaluate(() => [...document.querySelectorAll('[data-m-tab]')].filter((x) => !x.hidden).map((x) => x.dataset.mTab).join(' '));
+  const fits = (t) => pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth].every((v) => v <= 0); }, t);
+  await pg.click('#m-mode');
+  check(await pg.evaluate(() => mode) === 'beat' && await tabs() === 'beat bsteps kit presets' && await page() === 'beat' && await pg.textContent('#m-modename') === 'beat', 'the title turns to elixir-beat');
+  for (const t of ['beat', 'bsteps', 'kit']) { await pg.click(`[data-m-tab="${t}"]`); check(await fits(t), `${t}: fits the screen`); }
+  await pg.click('[data-m-tab="beat"]');
+  r = await box('#m-beatf .m-vtrack >> nth=2');
+  const en = await pg.evaluate(() => bs.energy);
+  await drag(r.x + r.width / 2, r.y + r.height / 2, r.x + r.width / 2, r.y - 60);
+  check(await page() === 'beat' && await pg.evaluate((en) => bs.energy > en, en), 'the energy dial moves, not the page');
+  await pg.click('[data-m-tab="bsteps"]');
+  const was = await pg.evaluate(() => !!(bPat.on[1][1] && !bPat.bar[1][1]));
+  r = await box('.m-bcell[data-r="0"][data-s="1"]');
+  await pg.mouse.click(r.x + r.width / 2, r.y + r.height / 2);
+  check(await pg.evaluate((w) => !!bPat.on[1][1] !== w, was) && await page() === 'bsteps', 'a tap on the steps grid switches a kick');
+  await pg.click('[data-m-tab="kit"]'); await pg.click('#m-knext');
+  check(await pg.evaluate(() => bs.kit === 1 && document.getElementById('m-kitname').textContent.startsWith('2 ')), 'the kit steps to the next one');
+  await pg.click('#m-mode');
+  check(await pg.evaluate(() => mode) === 'mix' && await tabs() === 'mix fx comp presets' && await page() === 'mix', 'then to elixir-mix');
+  check(await fits('mix'), 'mix: fits the screen');
+  await pg.waitForTimeout(600);
+  check(await pg.evaluate(() => [...document.querySelectorAll('.m-meter b')].filter((x) => parseFloat(x.style.width) > 0).length >= 3), 'the meters show the synth and the beat playing together');
+  await pg.click('#m-mixmutes button >> nth=1');
+  check(await pg.evaluate(() => chans[1].mute && document.querySelectorAll('#m-mixmutes [aria-pressed="true"]').length === 1), 'mute the kick');
+  await pg.click('#m-mixmutes button >> nth=1');
+  await pg.click('#m-mode');
+  check(await pg.evaluate(() => mode) === 'synth' && await tabs() === 'play seq voice xy fx comp presets' && await page() === 'presets', 'and back to elixir-synth, on the page it was on');
   // record: a take downloads as a WAV
   await pg.click('#m-rec'); await pg.waitForTimeout(1000);
   const dl = pg.waitForEvent('download', { timeout: 10000 }).catch(() => null);

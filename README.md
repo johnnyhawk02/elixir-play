@@ -10,7 +10,28 @@ The engine is a JavaScript port of the drum voices and FX bus in the Erica Synth
 ([erica-synths/lxr-desktop-app](https://github.com/erica-synths/lxr-desktop-app), GPL-3.0, commit a43cd4f).
 Elixir Synth is unofficial: it is not made, approved or endorsed by Erica Synths.
 
-## Pages
+## Modes
+
+Three modes run at once on the one engine and clock, so play, tempo, record and the step light are shared and
+everything stays in sync. **Tap the title at the top left** to step from one to the next:
+elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps the page it was on.
+
+- **elixir-synth**: the mono synth on drum 1 (the pages below).
+- **elixir-beat**: the engine's other five voices as a drum machine: drum 2 as the kick, drum 3 as the tom, the
+  snare, the cymbal and the hats (closed and open). Its pattern comes from Elixir Mobile's generator.
+  - **BEAT**: nine dials: style (electro, techno, broken beat, IDM, breakcore), pattern (32 grooves each), energy,
+    fills, groove (straight, swing, triplet, shuffle, drunk and more), swing (how much of the groove plays), velocity,
+    accent and tempo; randomise everything, the pattern, the kit, alter the kit, undo.
+  - **STEPS**: the pattern as a grid, a row per track. Tap or drag to switch hits, or accents in accent mode. Hatched
+    steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
+  - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
+- **elixir-mix**: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
+  echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** are the synth's pages: the
+  echo, reverb and master are shared by everything.
+
+Presets keep all three. A preset saved before the modes leaves the beat and the mixer as they are.
+
+## Synth pages
 
 Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
 turns the page. Play, record and the step light sit at the top.
