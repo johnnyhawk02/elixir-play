@@ -285,7 +285,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-steps[data-mode="acc"] .m-sm .a, .m-steps[data-mode="slide"] .m-sm .s { font-size: 1.3em; }
 .m-step.now { outline: 3px solid var(--ink); outline-offset: 1px; }
 .m-seqlow { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
-.m-seqf { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+.m-seqf { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
 .m-seqbtns, .m-fxbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
 .m-nalgo { display: block; margin-top: 4px; font-size: .85em; letter-spacing: 0; opacity: .8; }
 .m .m-seqbtns .m-btn, .m .m-fxbtns .m-btn { flex-direction: column; min-height: 0; font-size: min(var(--fs-xs), 3.8vw, 15.6px) !important; padding: 0 2px; }
@@ -542,3 +542,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-home-card .m-xfade { gap: 2px; padding-top: 6px; }
 .m .m-home-card .m-xf { height: 50px; }
+.m-xfpair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.m-xfpair .m-xfhead { gap: 6px; white-space: nowrap; }
+.m-xfpair .m-xfhead output { overflow: hidden; text-overflow: ellipsis; }
+.m .m-seqf .m-flab, .m .m-seqf .m-vf output { font-size: min(.95rem, 3.2vw, 13.2px); }

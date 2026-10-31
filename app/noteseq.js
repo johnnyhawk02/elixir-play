@@ -85,6 +85,8 @@ mFader($('m-seqf'), 'acc', { min: 0, max: 12, get: () => seq.accent, set: (v) =>
 mFader($('m-seqf'), 'len', { min: 1, max: NSTEPS, get: () => seq.len, set: (v) => { seq.len = v; sendSeq(); nsDraw(); }, show: String, dflt: NSTEPS });
 mFader($('m-seqf'), 'glide', { min: 0, max: 100, step: 5, get: () => seq.glide, set: (v) => { seq.glide = v; sendSeq(); }, show: (v) => v + '%', dflt: SEQ0.glide });
 
+mFader($('m-seqf'), 'dens', { min: 0, max: 100, get: () => seq.dens, set: (v) => { seq.dens = v; sendSeq(); drawAll(); }, show: String, dflt: 50 });
+
 // random: a new line for a page, made by the algorithm picked on the algo fader (kept in the preset). Each makes 16
 // steps of { d: degree of the scale, gate, acc, slide }, so whatever it makes stays in the key
 const st = (d, gate, acc = false, slide = false) => ({ d: Math.max(0, Math.min(DEG_MAX, d)), gate, acc, slide });

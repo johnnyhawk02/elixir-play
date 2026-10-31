@@ -86,7 +86,7 @@ const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 
   ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
   ['pent min', [0, 3, 5, 7, 10]], ['pent maj', [0, 2, 4, 7, 9]], ['blues', [0, 3, 5, 6, 7, 10]], ['chromatic', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]];
 const DEG_MAX = 15;
-const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64,
+const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50,
   steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
     [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
 const PAGES = 4, NSTEPS = PAGES * 16;
@@ -101,9 +101,29 @@ let playing = false, tempo = 120;
 // the rotate slider on mix's patterns page: the note sequence played from this many steps on, against the beat (live,
 // not kept in presets; the steps themselves don't move)
 let seqRot = 0;
+// density: 50 plays the steps as written; below that the least important notes drop out (offbeats before beats, the
+// bar's first step last), above it rests fill in, most important first, with the note before them. Nothing written changes.
+const densPri = (i) => (i % 16 === 0 ? 4 : i % 8 === 0 ? 3 : i % 4 === 0 ? 2 : i % 2 === 0 ? 1 : 0) + ((Math.imul(i + 1, 2654435761) >>> 0) % 997) / 997;
+function densSteps(steps) {
+  const d = seq.dens ?? 50, out = steps.map((st) => ({ ...st }));
+  if (d === 50) return out;
+  const idx = (on) => out.map((_, i) => i).filter((i) => (steps[i].gate > 0) === on);
+  if (d < 50) {
+    const on = idx(true).sort((a, b) => densPri(a) - densPri(b));
+    on.slice(0, Math.round(on.length * (50 - d) / 50)).forEach((i) => { out[i].gate = 0; });
+  } else {
+    const off = idx(false).sort((a, b) => densPri(b) - densPri(a)), first = steps.find((st) => st.gate > 0);
+    off.slice(0, Math.round(off.length * (d - 50) / 50)).forEach((i) => {
+      let j = i; while (j > 0 && steps[j - 1].gate === 0) j--;
+      out[i] = { d: (j > 0 ? steps[j - 1] : first || { d: 0 }).d, gate: 2, acc: false, slide: false };
+    });
+  }
+  return out;
+}
+const densName = (v) => `${v < 50 ? 'sparse' : v > 50 ? 'busy' : 'as is'}${v === 50 ? '' : ' ' + v}`;
 function sendSeq() {
   const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
-  const steps = seq.steps.slice(0, len);
+  const steps = densSteps(seq.steps.slice(0, len));
   send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
     steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }

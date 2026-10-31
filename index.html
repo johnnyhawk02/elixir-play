@@ -300,7 +300,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-steps[data-mode="acc"] .m-sm .a, .m-steps[data-mode="slide"] .m-sm .s { font-size: 1.3em; }
 .m-step.now { outline: 3px solid var(--ink); outline-offset: 1px; }
 .m-seqlow { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
-.m-seqf { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
+.m-seqf { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
 .m-seqbtns, .m-fxbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
 .m-nalgo { display: block; margin-top: 4px; font-size: .85em; letter-spacing: 0; opacity: .8; }
 .m .m-seqbtns .m-btn, .m .m-fxbtns .m-btn { flex-direction: column; min-height: 0; font-size: min(var(--fs-xs), 3.8vw, 15.6px) !important; padding: 0 2px; }
@@ -557,11 +557,15 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-home-card .m-xfade { gap: 2px; padding-top: 6px; }
 .m .m-home-card .m-xf { height: 50px; }
+.m-xfpair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.m-xfpair .m-xfhead { gap: 6px; white-space: nowrap; }
+.m-xfpair .m-xfhead output { overflow: hidden; text-overflow: ellipsis; }
+.m .m-seqf .m-flab, .m .m-seqf .m-vf output { font-size: min(.95rem, 3.2vw, 13.2px); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">18</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">19</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -674,9 +678,15 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
       </div>
-      <div class="m-xfade m-energy">
-        <div class="m-xfhead"><b>beat energy</b><output id="m-enev"></output></div>
-        <input class="m-xf" id="m-enex" type="range" min="0" max="100" step="1" value="60" aria-label="beat energy">
+      <div class="m-xfpair">
+        <div class="m-xfade m-energy">
+          <div class="m-xfhead"><b>energy</b><output id="m-enev"></output></div>
+          <input class="m-xf" id="m-enex" type="range" min="0" max="100" step="1" value="60" aria-label="beat energy">
+        </div>
+        <div class="m-xfade m-dens">
+          <div class="m-xfhead"><b>density</b><output id="m-densv"></output></div>
+          <input class="m-xf" id="m-densx" type="range" min="0" max="100" step="1" value="50" aria-label="synth pattern density">
+        </div>
       </div>
       <div class="m-xfade m-rot">
         <div class="m-xfhead"><b>synth rotate</b><output id="m-rotv">0</output></div>
@@ -730,7 +740,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v18, 31 Oct, 09:15</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v19, 31 Oct, 09:26</footer>
     </section>
   </div>
   </div>
@@ -4859,7 +4869,7 @@ const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 
   ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
   ['pent min', [0, 3, 5, 7, 10]], ['pent maj', [0, 2, 4, 7, 9]], ['blues', [0, 3, 5, 6, 7, 10]], ['chromatic', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]];
 const DEG_MAX = 15;
-const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64,
+const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50,
   steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
     [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
 const PAGES = 4, NSTEPS = PAGES * 16;
@@ -4874,9 +4884,29 @@ let playing = false, tempo = 120;
 // the rotate slider on mix's patterns page: the note sequence played from this many steps on, against the beat (live,
 // not kept in presets; the steps themselves don't move)
 let seqRot = 0;
+// density: 50 plays the steps as written; below that the least important notes drop out (offbeats before beats, the
+// bar's first step last), above it rests fill in, most important first, with the note before them. Nothing written changes.
+const densPri = (i) => (i % 16 === 0 ? 4 : i % 8 === 0 ? 3 : i % 4 === 0 ? 2 : i % 2 === 0 ? 1 : 0) + ((Math.imul(i + 1, 2654435761) >>> 0) % 997) / 997;
+function densSteps(steps) {
+  const d = seq.dens ?? 50, out = steps.map((st) => ({ ...st }));
+  if (d === 50) return out;
+  const idx = (on) => out.map((_, i) => i).filter((i) => (steps[i].gate > 0) === on);
+  if (d < 50) {
+    const on = idx(true).sort((a, b) => densPri(a) - densPri(b));
+    on.slice(0, Math.round(on.length * (50 - d) / 50)).forEach((i) => { out[i].gate = 0; });
+  } else {
+    const off = idx(false).sort((a, b) => densPri(b) - densPri(a)), first = steps.find((st) => st.gate > 0);
+    off.slice(0, Math.round(off.length * (d - 50) / 50)).forEach((i) => {
+      let j = i; while (j > 0 && steps[j - 1].gate === 0) j--;
+      out[i] = { d: (j > 0 ? steps[j - 1] : first || { d: 0 }).d, gate: 2, acc: false, slide: false };
+    });
+  }
+  return out;
+}
+const densName = (v) => `${v < 50 ? 'sparse' : v > 50 ? 'busy' : 'as is'}${v === 50 ? '' : ' ' + v}`;
 function sendSeq() {
   const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
-  const steps = seq.steps.slice(0, len);
+  const steps = densSteps(seq.steps.slice(0, len));
   send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
     steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
@@ -5508,6 +5538,8 @@ mFader($('m-seqf'), 'scale', { min: 0, max: SCALES.length - 1, get: () => seq.sc
 mFader($('m-seqf'), 'acc', { min: 0, max: 12, get: () => seq.accent, set: (v) => { seq.accent = v; sendSeq(); }, show: (v) => `+${v}dB`, dflt: SEQ0.accent });
 mFader($('m-seqf'), 'len', { min: 1, max: NSTEPS, get: () => seq.len, set: (v) => { seq.len = v; sendSeq(); nsDraw(); }, show: String, dflt: NSTEPS });
 mFader($('m-seqf'), 'glide', { min: 0, max: 100, step: 5, get: () => seq.glide, set: (v) => { seq.glide = v; sendSeq(); }, show: (v) => v + '%', dflt: SEQ0.glide });
+
+mFader($('m-seqf'), 'dens', { min: 0, max: 100, get: () => seq.dens, set: (v) => { seq.dens = v; sendSeq(); drawAll(); }, show: String, dflt: 50 });
 
 // random: a new line for a page, made by the algorithm picked on the algo fader (kept in the preset). Each makes 16
 // steps of { d: degree of the scale, gate, acc, slide }, so whatever it makes stays in the key
@@ -6358,6 +6390,14 @@ snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   el.addEventListener('input', () => { seqRot = +el.value; sendSeq(); show(); });
   el.addEventListener('dblclick', () => { seqRot = 0; el.value = 0; sendSeq(); show(); });
   show();
+}
+// the synth's density as a slider here too, the same setting as the dens fader on the synth's seq page
+{
+  const el = $('m-densx');
+  const show = () => { el.value = seq.dens; $('m-densv').textContent = densName(seq.dens); };
+  el.addEventListener('input', () => { seq.dens = +el.value; sendSeq(); drawAll(); });
+  el.addEventListener('dblclick', () => { seq.dens = 50; sendSeq(); drawAll(); });
+  drawHooks.push(show); show();
 }
 
 // ---- presets: everything (the sound, perf macros, notes, tempo, effects, master and the fader sequencers) under a

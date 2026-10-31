@@ -131,9 +131,15 @@
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
       </div>
-      <div class="m-xfade m-energy">
-        <div class="m-xfhead"><b>beat energy</b><output id="m-enev"></output></div>
-        <input class="m-xf" id="m-enex" type="range" min="0" max="100" step="1" value="60" aria-label="beat energy">
+      <div class="m-xfpair">
+        <div class="m-xfade m-energy">
+          <div class="m-xfhead"><b>energy</b><output id="m-enev"></output></div>
+          <input class="m-xf" id="m-enex" type="range" min="0" max="100" step="1" value="60" aria-label="beat energy">
+        </div>
+        <div class="m-xfade m-dens">
+          <div class="m-xfhead"><b>density</b><output id="m-densv"></output></div>
+          <input class="m-xf" id="m-densx" type="range" min="0" max="100" step="1" value="50" aria-label="synth pattern density">
+        </div>
       </div>
       <div class="m-xfade m-rot">
         <div class="m-xfhead"><b>synth rotate</b><output id="m-rotv">0</output></div>

@@ -60,3 +60,11 @@ snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   el.addEventListener('dblclick', () => { seqRot = 0; el.value = 0; sendSeq(); show(); });
   show();
 }
+// the synth's density as a slider here too, the same setting as the dens fader on the synth's seq page
+{
+  const el = $('m-densx');
+  const show = () => { el.value = seq.dens; $('m-densv').textContent = densName(seq.dens); };
+  el.addEventListener('input', () => { seq.dens = +el.value; sendSeq(); drawAll(); });
+  el.addEventListener('dblclick', () => { seq.dens = 50; sendSeq(); drawAll(); });
+  drawHooks.push(show); show();
+}
