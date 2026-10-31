@@ -301,7 +301,9 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-step.now { outline: 3px solid var(--ink); outline-offset: 1px; }
 .m-seqlow { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
 .m-seqf { grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
-.m-seqbtns, .m-fxbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
+.m-fxbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
+.m-seqpair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; min-height: 0; }
+.m-seqbtns { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 6px; min-height: 0; }
 .m-nalgo { display: block; margin-top: 4px; font-size: .85em; letter-spacing: 0; opacity: .8; }
 .m .m-seqbtns .m-btn, .m .m-fxbtns .m-btn { flex-direction: column; min-height: 0; font-size: min(var(--fs-xs), 3.8vw, 15.6px) !important; padding: 0 2px; }
 
@@ -548,15 +550,19 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-home-card /* under the pads: dials for the crossfader, the beat's energy, the synth's density, rotate and tempo, and the randomisers */
-#m-patsf { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 170px)); align-content: center; gap: 4px 2px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
-.m-patsbtns { order: 9; grid-column: 2 / 5; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 1fr 1fr; grid-auto-flow: column; align-self: center; height: min(100%, 130px); gap: 6px; min-height: 0; padding: 4px 2px; }
+#m-patsf { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 150px)) auto; align-content: center; gap: 4px 2px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
+.m-patsbtns { order: 9; grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); height: 52px; gap: 6px; min-height: 0; padding: 4px 2px; }
 .m .m-patsbtns .m-btn { min-height: 0; padding: 0 4px; line-height: 1.15; white-space: normal; }
 .m #m-patsf .m-dial output, .m #m-patsf .m-dial .m-flab { font-size: min(var(--fs-xs), 3.2vw, 14px); }
+.m-patfol { order: 8; align-self: center; height: min(100%, 64px); }
+.m .m-patfol { min-height: 0; padding: 0 2px; line-height: 1.15; white-space: normal; font-size: min(var(--fs-xs), 3.6vw, 15px) !important; }
+.m .m-patsbtns .m-btn { font-size: min(var(--fs-xs), 3.4vw, 14px) !important; }
+.m .m-seqf .m-flab, .m .m-seqf .m-vf output { font-size: min(.95rem, 3.2vw, 13.2px); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">21</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">22</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -606,8 +612,8 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <div class="m-faders m-seqf" id="m-seqf"></div>
         <div class="m-seqbtns">
           <button class="m-btn m-big" id="m-nrand" type="button">random<small class="m-nalgo" id="m-nalgo"></small></button>
-          <button class="m-btn" id="m-nalter" type="button">alter</button>
-          <button class="m-btn" data-undo type="button" disabled>undo</button>
+          <div class="m-seqpair"><button class="m-btn" id="m-nalter" type="button">alter</button><button class="m-btn" data-undo type="button" disabled>undo</button></div>
+          <button class="m-btn" id="m-nfollow" type="button" aria-pressed="true">groove</button>
         </div>
       </div>
     </section>
@@ -666,6 +672,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <ul class="m-plist m-picklist" id="m-picklist"></ul>
       </div>
       <div class="m-faders m-dials" id="m-patsf">
+        <button class="m-btn m-patfol" id="m-pfollow" type="button" aria-pressed="true">syn groove</button>
         <div class="m-patsbtns"><button class="m-btn" id="m-prdrum" type="button">rnd drm</button><button class="m-btn" id="m-pralt" type="button">alt drm</button><button class="m-btn" id="m-prsynth" type="button">rnd syn</button><button class="m-btn" id="m-pralts" type="button">alt syn</button><button class="m-btn" id="m-prfx" type="button">rnd fx</button><button class="m-btn" id="m-praltfx" type="button">alt fx</button></div>
       </div>
     </section>
@@ -716,7 +723,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v21, 31 Oct, 10:01</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v22, 31 Oct, 10:19</footer>
     </section>
   </div>
   </div>
@@ -4487,6 +4494,8 @@ class Player {
     // Hits are booked a step ahead, so one pushed early still comes in before its grid time
     this.beat = { pages: [] }; this.boff = null; this.bVel = 100; this.bAccGain = 0.5;
     this.queue = []; this.fresh = false;
+    // the synth following the beat's groove: its steps booked a step ahead too, moved as the closed hat's are (sq)
+    this.sq = []; this.sFollow = true;
     this.bGain = new Float32Array(6).fill(1); this.bGainTo = new Float32Array(6).fill(1);
     // the mixer, channel 0 the synth and 1 to 5 the beat's voices: level (0..1.4), mute, and the beat's echo and reverb
     // sends (the synth's are sendE and sendV); the channel gains ramp across a block so a move never clicks
@@ -4539,10 +4548,10 @@ class Player {
       // a live change wins over one still waiting for the bar
       this.atBar = this.atBar.filter((q) => q.type !== 'seq');
       this.steps = m.steps; this.bpm = m.bpm; this.e.bpm = m.bpm; this.vel = m.vel; this.glide = m.glide;
-      this.accGain = Math.pow(10, -m.accentDb / 20);
-      if (m.playing && !this.playing) { this.sPos = 0; this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.fresh = true; }
+      this.accGain = Math.pow(10, -m.accentDb / 20); this.sFollow = m.follow !== false;
+      if (m.playing && !this.playing) { this.sPos = 0; this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.sq = []; this.fresh = true; }
       this.playing = m.playing;
-      if (!this.playing) { this.flushBar(); this.cutAt = this.clock; this.queue = []; }
+      if (!this.playing) { this.flushBar(); this.cutAt = this.clock; this.queue = []; this.sq = []; }
     }
   }
   recFlush() {
@@ -4590,7 +4599,12 @@ class Player {
         const len = LXR.REAL_FS * 60 / this.bpm / 4;
         // the note sequence: its own place, round its length (up to four pages of 16), so a short one cycles against the bar
         const sp = (this.sPos || 0) % this.steps.length;
-        this.doStep(sp);
+        // following the groove: this step (on starting) and the next booked at the hats' offsets; else played on the grid
+        if (this.sFollow && this.boff) {
+          const H = this.boff[5];
+          if (this.fresh) this.sq.push({ at: Math.max(0, this.toNext + H[this.step] * len), s: sp });
+          this.sq.push({ at: Math.max(0, this.toNext + len + H[(this.step + 1) % 16] * len), s: sp + 1 });
+        } else this.doStep(sp);
         this.sPos = sp + 1;
         // the beat: this step's hits on starting, then each step books the next one's
         if (this.fresh) { this.fresh = false; this.schedule(this.step, this.bar, this.toNext); }
@@ -4604,6 +4618,12 @@ class Player {
         this.toNext += len;
       }
       this.toNext -= 64;
+    }
+    // the synth's steps due in this block
+    if (this.sq.length) {
+      const keep = [];
+      for (const q of this.sq) { if (q.at >= 64) { q.at -= 64; keep.push(q); } else this.doStep(q.s % this.steps.length); }
+      this.sq = keep;
     }
     // the beat's hits due in this block (a muted channel's are skipped)
     if (this.queue.length) {
@@ -4845,7 +4865,7 @@ const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 
   ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
   ['pent min', [0, 3, 5, 7, 10]], ['pent maj', [0, 2, 4, 7, 9]], ['blues', [0, 3, 5, 6, 7, 10]], ['chromatic', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]];
 const DEG_MAX = 15;
-const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50,
+const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50, follow: true,
   steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
     [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
 const PAGES = 4, NSTEPS = PAGES * 16;
@@ -4883,7 +4903,7 @@ const densName = (v) => `${v < 50 ? 'sparse' : v > 50 ? 'busy' : 'as is'}${v ===
 function sendSeq() {
   const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
   const steps = densSteps(seq.steps.slice(0, len));
-  send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
+  send({ type: 'seq', playing, bpm: tempo, follow: seq.follow !== false, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
     steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
 
@@ -5625,6 +5645,11 @@ $('m-ncopy').addEventListener('click', (e) => mRandomise(e.currentTarget, () => 
 // the algorithm random uses: its number on the fader, its name on the random button
 mFader($('m-seqf'), 'algo', { min: 0, max: SEQ_ALGOS.length - 1, get: () => seq.algo, set: (v) => { seq.algo = v; drawAll(); }, show: (v) => String(v + 1), dflt: 0 });
 drawHooks.push(() => { $('m-nalgo').textContent = `${seq.algo + 1} ${SEQ_ALGOS[seq.algo][0]}`; });
+// groove: the synth plays with the beat's groove (its notes moved off the grid as the closed hat's are); on by default, kept
+// in the preset. The same switch as on mix's patterns page
+const followSet = (on) => { seq.follow = on; sendSeq(); drawAll(); };
+$('m-nfollow').addEventListener('click', () => followSet(seq.follow === false));
+drawHooks.push(() => { const b = $('m-nfollow'); b.setAttribute('aria-pressed', seq.follow !== false); b.textContent = seq.follow !== false ? 'groove on' : 'groove off'; });
 
 // ---- fader step sequencers: holding a fader still for half a second opens one for it: 2 to 16 steps, each an offset
 // from the fader's setting (up or down, up to depth of its range) that it takes while playing (the step is the bar's
@@ -6524,9 +6549,10 @@ $('m-pexport').addEventListener('click', async () => {
   if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length > 1 ? 's' : ''}.`;
 });
 pDraw();
-// ---- mix's patterns page, under the pads: five dials and six randomisers. The crossfader (beat to synth, both in the
+// ---- mix's patterns page, under the pads: seven dials, the synth's groove switch and six randomisers. The crossfader (beat to synth, both in the
 // middle), the beat's energy and the synth's density (the same settings as their own pages' dials), rotate (the note
-// sequence played 0 to 15 steps on against the beat, live) and tempo. rnd drm randomises the whole beat (a kit and a
+// sequence played 0 to 15 steps on against the beat, live) tempo, and the beat's groove and its depth (the beat page's groove and swing
+// dials). rnd drm randomises the whole beat (a kit and a
 // pattern), alt drm only the pattern on the same kit, rnd syn the whole synth (sound and notes), alt syn only
 // its notes, rnd fx all the effects and alt fx a nudge to them, as their own pages' buttons. Each can be undone, as on their own pages ----
 {
@@ -6536,7 +6562,11 @@ pDraw();
   pDial('energy', { min: 0, max: 100, get: () => bs.energy, set: (v) => { bs.energy = v; bGenerate(); drawAll(); }, show: (v) => `${B_ENERGY.find(([x]) => v < x)[1]} ${v}`, dflt: BEAT0.energy });
   pDial('density', { min: 0, max: 100, get: () => seq.dens, set: (v) => { seq.dens = v; sendSeq(); drawAll(); }, show: densName, dflt: 50 });
   pDial('rotate', { min: 0, max: 15, get: () => seqRot, set: (v) => { seqRot = v; sendSeq(); drawAll(); }, show: (v) => (v ? `+${v}` : '0'), dflt: 0 });
+  pDial('groove', { min: 0, max: GROOVE_TYPES.length - 1, get: grooveIdx, set: (v) => { groove.type = GROOVE_TYPES[v].name; bSend(); drawAll(); }, show: (v) => GROOVE_TYPES[v].name, dflt: 0 });
+  pDial('depth', { min: 0, max: 100, get: () => groove.depth, set: (v) => { groove.depth = v; bSend(); drawAll(); }, show: (v) => `${v}%`, dflt: 100 });
   pDial('tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); drawAll(); }, show: (v) => `${v} bpm`, dflt: 120 });
+  $('m-pfollow').addEventListener('click', () => followSet(seq.follow === false));
+  drawHooks.push(() => { const b = $('m-pfollow'); b.setAttribute('aria-pressed', seq.follow !== false); b.textContent = `syn groove ${seq.follow !== false ? 'on' : 'off'}`; });
   $('m-prdrum').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { useKit(rIn(0, BEAT_KITS.length - 1)); bRandomPattern(); }));
   $('m-pralt').addEventListener('click', (e) => mRandomise(e.currentTarget, bRandomPattern));
   $('m-prsynth').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); }));

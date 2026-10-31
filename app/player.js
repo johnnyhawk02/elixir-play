@@ -53,6 +53,8 @@ class Player {
     // Hits are booked a step ahead, so one pushed early still comes in before its grid time
     this.beat = { pages: [] }; this.boff = null; this.bVel = 100; this.bAccGain = 0.5;
     this.queue = []; this.fresh = false;
+    // the synth following the beat's groove: its steps booked a step ahead too, moved as the closed hat's are (sq)
+    this.sq = []; this.sFollow = true;
     this.bGain = new Float32Array(6).fill(1); this.bGainTo = new Float32Array(6).fill(1);
     // the mixer, channel 0 the synth and 1 to 5 the beat's voices: level (0..1.4), mute, and the beat's echo and reverb
     // sends (the synth's are sendE and sendV); the channel gains ramp across a block so a move never clicks
@@ -105,10 +107,10 @@ class Player {
       // a live change wins over one still waiting for the bar
       this.atBar = this.atBar.filter((q) => q.type !== 'seq');
       this.steps = m.steps; this.bpm = m.bpm; this.e.bpm = m.bpm; this.vel = m.vel; this.glide = m.glide;
-      this.accGain = Math.pow(10, -m.accentDb / 20);
-      if (m.playing && !this.playing) { this.sPos = 0; this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.fresh = true; }
+      this.accGain = Math.pow(10, -m.accentDb / 20); this.sFollow = m.follow !== false;
+      if (m.playing && !this.playing) { this.sPos = 0; this.step = 0; this.bar = 0; this.toNext = 0; this.cutAt = Infinity; this.slideFrom = null; this.queue = []; this.sq = []; this.fresh = true; }
       this.playing = m.playing;
-      if (!this.playing) { this.flushBar(); this.cutAt = this.clock; this.queue = []; }
+      if (!this.playing) { this.flushBar(); this.cutAt = this.clock; this.queue = []; this.sq = []; }
     }
   }
   recFlush() {
@@ -156,7 +158,12 @@ class Player {
         const len = LXR.REAL_FS * 60 / this.bpm / 4;
         // the note sequence: its own place, round its length (up to four pages of 16), so a short one cycles against the bar
         const sp = (this.sPos || 0) % this.steps.length;
-        this.doStep(sp);
+        // following the groove: this step (on starting) and the next booked at the hats' offsets; else played on the grid
+        if (this.sFollow && this.boff) {
+          const H = this.boff[5];
+          if (this.fresh) this.sq.push({ at: Math.max(0, this.toNext + H[this.step] * len), s: sp });
+          this.sq.push({ at: Math.max(0, this.toNext + len + H[(this.step + 1) % 16] * len), s: sp + 1 });
+        } else this.doStep(sp);
         this.sPos = sp + 1;
         // the beat: this step's hits on starting, then each step books the next one's
         if (this.fresh) { this.fresh = false; this.schedule(this.step, this.bar, this.toNext); }
@@ -170,6 +177,12 @@ class Player {
         this.toNext += len;
       }
       this.toNext -= 64;
+    }
+    // the synth's steps due in this block
+    if (this.sq.length) {
+      const keep = [];
+      for (const q of this.sq) { if (q.at >= 64) { q.at -= 64; keep.push(q); } else this.doStep(q.s % this.steps.length); }
+      this.sq = keep;
     }
     // the beat's hits due in this block (a muted channel's are skipped)
     if (this.queue.length) {

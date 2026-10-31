@@ -63,6 +63,9 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const w0 = await pg.evaluate(() => JSON.stringify(seq.steps));
   check(await pd('rotate', 3) === '+3' && await pg.evaluate((w) => seqRot === 3 && JSON.stringify(seq.steps) === w, w0) && await fits('home'), 'the rotate dial turns the synth pattern 3 steps, leaving the steps as they are');
   await pd('rotate', 0);
+  check(await pd('groove', 4) === 'triplet' && await pg.evaluate(() => groove.type === 'triplet' && mFaders.find((f) => f.key === 'm-beatf:groove').el.querySelector('output').textContent === 'triplet') && await pd('depth', 50) === '50%' && await pg.evaluate(() => groove.depth === 50), 'the groove and depth dials are the beat page\'s groove and swing');
+  await pd('groove', 0); await pd('depth', 100);
+  check(await pg.evaluate(() => { const b = document.getElementById('m-pfollow'); const on = seq.follow; b.click(); const off = seq.follow === false && document.getElementById('m-nfollow').textContent === 'groove off'; b.click(); return on === true && off && seq.follow === true; }), 'the synth follows the groove by default, switched on both pages');
   check(await pd('tempo', 133) === '133 bpm' && await pg.evaluate(() => tempo === 133) && (await pd('tempo', 120), true), 'the tempo dial sets the tempo');
   const b4 = await pg.evaluate(() => ({ b: JSON.stringify(bs), s: JSON.stringify(seq.steps) }));
   const k0 = await pg.evaluate(() => ({ kit: bs.kit, snd: JSON.stringify(Array.from(values)) }));

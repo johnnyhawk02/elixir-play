@@ -176,9 +176,10 @@ $('m-pexport').addEventListener('click', async () => {
   if (await mOffer({ blob, name: 'elixir-synth-presets.json' }, 'application/json')) $('m-pnote').textContent = `Exported ${list.length} preset${list.length > 1 ? 's' : ''}.`;
 });
 pDraw();
-// ---- mix's patterns page, under the pads: five dials and six randomisers. The crossfader (beat to synth, both in the
+// ---- mix's patterns page, under the pads: seven dials, the synth's groove switch and six randomisers. The crossfader (beat to synth, both in the
 // middle), the beat's energy and the synth's density (the same settings as their own pages' dials), rotate (the note
-// sequence played 0 to 15 steps on against the beat, live) and tempo. rnd drm randomises the whole beat (a kit and a
+// sequence played 0 to 15 steps on against the beat, live) tempo, and the beat's groove and its depth (the beat page's groove and swing
+// dials). rnd drm randomises the whole beat (a kit and a
 // pattern), alt drm only the pattern on the same kit, rnd syn the whole synth (sound and notes), alt syn only
 // its notes, rnd fx all the effects and alt fx a nudge to them, as their own pages' buttons. Each can be undone, as on their own pages ----
 {
@@ -188,7 +189,11 @@ pDraw();
   pDial('energy', { min: 0, max: 100, get: () => bs.energy, set: (v) => { bs.energy = v; bGenerate(); drawAll(); }, show: (v) => `${B_ENERGY.find(([x]) => v < x)[1]} ${v}`, dflt: BEAT0.energy });
   pDial('density', { min: 0, max: 100, get: () => seq.dens, set: (v) => { seq.dens = v; sendSeq(); drawAll(); }, show: densName, dflt: 50 });
   pDial('rotate', { min: 0, max: 15, get: () => seqRot, set: (v) => { seqRot = v; sendSeq(); drawAll(); }, show: (v) => (v ? `+${v}` : '0'), dflt: 0 });
+  pDial('groove', { min: 0, max: GROOVE_TYPES.length - 1, get: grooveIdx, set: (v) => { groove.type = GROOVE_TYPES[v].name; bSend(); drawAll(); }, show: (v) => GROOVE_TYPES[v].name, dflt: 0 });
+  pDial('depth', { min: 0, max: 100, get: () => groove.depth, set: (v) => { groove.depth = v; bSend(); drawAll(); }, show: (v) => `${v}%`, dflt: 100 });
   pDial('tempo', { min: 40, max: 240, travel: 2, get: () => tempo, set: (v) => { tempo = v; sendSeq(); drawAll(); }, show: (v) => `${v} bpm`, dflt: 120 });
+  $('m-pfollow').addEventListener('click', () => followSet(seq.follow === false));
+  drawHooks.push(() => { const b = $('m-pfollow'); b.setAttribute('aria-pressed', seq.follow !== false); b.textContent = `syn groove ${seq.follow !== false ? 'on' : 'off'}`; });
   $('m-prdrum').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { useKit(rIn(0, BEAT_KITS.length - 1)); bRandomPattern(); }));
   $('m-pralt').addEventListener('click', (e) => mRandomise(e.currentTarget, bRandomPattern));
   $('m-prsynth').addEventListener('click', (e) => mRandomise(e.currentTarget, () => { randomSound(); randomNotes(); }));

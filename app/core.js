@@ -86,7 +86,7 @@ const SCALES = [['major', [0, 2, 4, 5, 7, 9, 11]], ['minor', [0, 2, 3, 5, 7, 8, 
   ['phrygian', [0, 1, 3, 5, 7, 8, 10]], ['mixolyd', [0, 2, 4, 5, 7, 9, 10]], ['harm min', [0, 2, 3, 5, 7, 8, 11]],
   ['pent min', [0, 3, 5, 7, 10]], ['pent maj', [0, 2, 4, 7, 9]], ['blues', [0, 3, 5, 6, 7, 10]], ['chromatic', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]];
 const DEG_MAX = 15;
-const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50,
+const SEQ0 = { root: 0, scale: 1, accent: 6, glide: 35, vel: 100, algo: 0, len: 64, dens: 50, follow: true,
   steps: [[0, 4, 1, 0], [0, 2, 0, 0], [7, 3, 0, 1], [8, 4, 0, 0], [0, 0, 0, 0], [3, 3, 1, 0], [0, 2, 0, 0], [5, 4, 0, 1],
     [4, 4, 0, 0], [0, 2, 1, 0], [0, 0, 0, 0], [7, 3, 0, 0], [6, 4, 1, 1], [7, 4, 0, 0], [2, 2, 0, 0], [0, 3, 0, 0]].map(([d, gate, acc, slide]) => ({ d, gate, acc: !!acc, slide: !!slide })) };
 const PAGES = 4, NSTEPS = PAGES * 16;
@@ -124,7 +124,7 @@ const densName = (v) => `${v < 50 ? 'sparse' : v > 50 ? 'busy' : 'as is'}${v ===
 function sendSeq() {
   const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
   const steps = densSteps(seq.steps.slice(0, len));
-  send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
+  send({ type: 'seq', playing, bpm: tempo, follow: seq.follow !== false, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
     steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
 

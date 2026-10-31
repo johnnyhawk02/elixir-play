@@ -27,10 +27,11 @@ they were on.
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
 - **elixir-mix**, black on a grey LCD: **PATS**, the front page, has eight pattern pads (for now the first eight built-in
-  presets; a tap loads one at the next bar while playing; square pads) and, under them, five dials and six buttons:
+  presets; a tap loads one at the next bar while playing; square pads) and, under them, seven dials and seven buttons:
   x-fade (from the beat alone to the synth alone, both full in the middle), energy (the beat page's energy dial), density
   (the synth seq page's dens fader), rotate (the note sequence played 0 to 15 steps on against the beat, live; the steps
-  don't move), tempo, **rnd drm** (the whole beat: a kit and a pattern), **alt drm** (a new pattern on the same
+  don't move), groove and depth (the beat page's groove and swing dials), tempo, **syn groove** (the synth playing with
+  the beat's groove: on by default, the same switch as **groove** on the synth's seq page), **rnd drm** (the whole beat: a kit and a pattern), **alt drm** (a new pattern on the same
   kit), **rnd syn** (the whole synth: a sound and notes), **alt syn** (new notes on the same sound), **rnd fx** (all the
   effects) and **alt fx** (a nudge to them); each can be undone. Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the
@@ -60,7 +61,7 @@ turns the page. The case along the top holds everything on one line: the cauldro
   (from a quarter step to ringing out; the bottom rests it), an accent and a slide into the next step. Pick the page
   (the one playing is underlined) and what a touch sets (note, gate, accent, slide), then draw across the steps.
   *Copy 1 → 2-4* copies page 1 onto the other three, each with a few steps changed. Root, scale, accent amount (acc),
-  length (len: 1 to 64 steps; the steps past it are dimmed and skipped, so a short line cycles against the bar), density (dens: 50 plays it as written, lower drops the offbeat notes first, higher fills rests with the note before; the steps themselves don't change), glide
+  length (len: 1 to 64 steps; the steps past it are dimmed and skipped, so a short line cycles against the bar), groove (on by default: the notes move off the grid with the beat's groove, as its closed hat does), density (dens: 50 plays it as written, lower drops the offbeat notes first, higher fills rests with the note before; the steps themselves don't change), glide
   time, and random (a new page 1 and pages 2 to 4 as its variations), alter (the page shown) and undo. The algo fader
   picks how random writes a page: 1 dice,
   2 acid, 3 euclid, 4 arp, 5 walk, 6 motif, 7 groove, 8 phrase. Presets from before there were pages play their one page

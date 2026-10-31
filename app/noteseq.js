@@ -195,3 +195,8 @@ $('m-ncopy').addEventListener('click', (e) => mRandomise(e.currentTarget, () => 
 // the algorithm random uses: its number on the fader, its name on the random button
 mFader($('m-seqf'), 'algo', { min: 0, max: SEQ_ALGOS.length - 1, get: () => seq.algo, set: (v) => { seq.algo = v; drawAll(); }, show: (v) => String(v + 1), dflt: 0 });
 drawHooks.push(() => { $('m-nalgo').textContent = `${seq.algo + 1} ${SEQ_ALGOS[seq.algo][0]}`; });
+// groove: the synth plays with the beat's groove (its notes moved off the grid as the closed hat's are); on by default, kept
+// in the preset. The same switch as on mix's patterns page
+const followSet = (on) => { seq.follow = on; sendSeq(); drawAll(); };
+$('m-nfollow').addEventListener('click', () => followSet(seq.follow === false));
+drawHooks.push(() => { const b = $('m-nfollow'); b.setAttribute('aria-pressed', seq.follow !== false); b.textContent = seq.follow !== false ? 'groove on' : 'groove off'; });
