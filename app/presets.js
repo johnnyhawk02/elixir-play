@@ -85,14 +85,14 @@ const patBtns = PAT0.map((_, i) => {
     b.addEventListener('pointerup', up, { once: true }); b.addEventListener('pointercancel', up, { once: true });
   });
   b.addEventListener('contextmenu', (e) => e.preventDefault());
-  b.addEventListener('click', () => { if (held) { held = false; return; } pLoad(patPreset(i)); });
+  b.addEventListener('click', () => { if (held) { held = false; return; } patOn = i; pLoad(patPreset(i)); });
   // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
   // paste puts the copied pad's preset on that pad (the same preset, as picking it would) and plays it, as a tap on
   // the pad would (at the next bar while playing); cancel or a paste ends it
   const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
   c.addEventListener('click', () => {
     if (patCopy === null) patCopy = i;
-    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); pLoad(patPreset(i)); }
+    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); patOn = i; pLoad(patPreset(i)); }
     else patCopy = null;
     patDraw();
   });
@@ -100,13 +100,18 @@ const patBtns = PAT0.map((_, i) => {
   $('m-pats').append(w); b.copyBtn = c; return b;
 });
 let patCopy = null;
+// the pad last pressed: the one lit while its preset plays, so two pads on the same preset don't both light
+let patOn = null;
 function patDraw() {
   const cur = pPending ? pShown : pCur;
+  // the pad to light for a preset: the one pressed if it plays that preset, else the first that does
+  const padOf = (k) => (k && patOn !== null && patPreset(patOn) === k ? patOn : patBtns.findIndex((_, j) => patPreset(j) === k));
+  const on = padOf(cur), wait = pPending ? padOf(pPending) : -1;
   patBtns.forEach((b, i) => {
     const k = patPreset(i);
     b.querySelector('small').textContent = k.name;
     b.setAttribute('aria-label', `pattern ${i + 1}: ${k.name} (hold to change)`);
-    b.setAttribute('aria-pressed', k === cur); b.classList.toggle('pending', k === pPending);
+    b.setAttribute('aria-pressed', i === on); b.classList.toggle('pending', i === wait);
     const c = b.copyBtn, m = patCopy === null ? 'copy' : patCopy === i ? 'cancel' : 'paste';
     c.textContent = m; c.classList.toggle('on', patCopy === i); c.classList.toggle('paste', m === 'paste');
     c.setAttribute('aria-label', m === 'copy' ? `copy pad ${i + 1}` : m === 'cancel' ? 'cancel the copy' : `paste pad ${patCopy + 1} onto pad ${i + 1}`);
