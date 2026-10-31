@@ -601,11 +601,20 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 /* the two screens meet along a thin line of bezel */
 .m .m-top { margin-bottom: 0; border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .m-screen { border-top-width: 2px; border-top-left-radius: 0; border-top-right-radius: 0; }
+/* softer shadows inside both screens */
+.m-screen { box-shadow: inset 0 2px 5px rgba(0, 0, 0, .12), inset 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 0 rgba(255, 255, 255, .05); }
+.m .m-top { box-shadow: inset 0 1px 4px rgba(0, 0, 0, .1), inset 0 0 0 1px rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .05); }
+/* the LCD's drop shadow under lit pixels and keys, kept faint */
+.m .m-vtrack i, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-gr i b { filter: drop-shadow(calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(4, 10, 80, .07)); }
+.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(4, 10, 80, .06); }
+.m[data-mode="beat"], .m[data-mode="beat"] button, .m[data-mode="beat"] .m-title, .m[data-mode="beat"] .m-flab, .m[data-mode="beat"] .m-vf output {
+  text-shadow: calc(.8px * var(--d)) calc(.9px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.06 + .02 * var(--d))); }
+.m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(23, 32, 14, .07)); }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">31</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">32</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -766,7 +775,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v31, 31 Oct, 14:34</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v32, 31 Oct, 14:39</footer>
     </section>
   </div>
   </div>

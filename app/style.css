@@ -586,3 +586,12 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 /* the two screens meet along a thin line of bezel */
 .m .m-top { margin-bottom: 0; border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 .m-screen { border-top-width: 2px; border-top-left-radius: 0; border-top-right-radius: 0; }
+/* softer shadows inside both screens */
+.m-screen { box-shadow: inset 0 2px 5px rgba(0, 0, 0, .12), inset 0 0 0 1px rgba(255, 255, 255, .08), 0 1px 0 rgba(255, 255, 255, .05); }
+.m .m-top { box-shadow: inset 0 1px 4px rgba(0, 0, 0, .1), inset 0 0 0 1px rgba(255, 255, 255, .1), 0 1px 0 rgba(255, 255, 255, .05); }
+/* the LCD's drop shadow under lit pixels and keys, kept faint */
+.m .m-vtrack i, .m .m-seq-steps i::after, .m .m-seq-steps i::before, .m .m-gr i b { filter: drop-shadow(calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(4, 10, 80, .07)); }
+.m .m-btn, .m .m-toggle, .m .m-pload, .m .m-tabs button, .m .m-xy, .m .m-seq-len, .m .m-xyrow select { box-shadow: calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(4, 10, 80, .06); }
+.m[data-mode="beat"], .m[data-mode="beat"] button, .m[data-mode="beat"] .m-title, .m[data-mode="beat"] .m-flab, .m[data-mode="beat"] .m-vf output {
+  text-shadow: calc(.8px * var(--d)) calc(.9px * var(--d)) calc(.3px * var(--d)) rgba(23, 32, 14, calc(.06 + .02 * var(--d))); }
+.m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(.8px * var(--d, 1)) calc(.9px * var(--d, 1)) 0 rgba(23, 32, 14, .07)); }
