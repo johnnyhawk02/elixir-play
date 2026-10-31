@@ -533,7 +533,17 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
    under them the crossfader, beat to synth */
 .m-home-card { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.m .m-pats .m-pat { aspect-ratio: 1; }
+.m-patw { position: relative; aspect-ratio: 1; min-width: 0; }
+.m .m-pats .m-pat { position: absolute; inset: 0; width: 100%; height: 100%; padding-top: 25px; }
+/* the pad's copy / cancel / paste button: a strip along its top, over the pad */
+.m .m-patc { position: absolute; left: 4px; right: 4px; top: 4px; height: 24px; min-height: 0; padding: 0 2px; z-index: 1;
+  font-size: min(.72rem, 3vw, 12px) !important; letter-spacing: .04em; border-width: 1.5px; background: var(--panel); color: var(--ink); text-shadow: none; }
+.m .m-pat[aria-pressed="true"] + .m-patc { border-color: var(--panel); background: var(--ink); color: var(--panel); }
+.m .m-patc.on { animation: m-blink .5s steps(1) infinite; background: var(--ink) !important; color: var(--panel) !important; }
+.m .m-patc.paste { font-weight: 700; border-style: dashed; }
+.m .m-pat.flash { animation: m-blink .2s steps(1) 2; }
+.m .m-patw .m-pat { gap: 2px; padding-bottom: 2px; }
+.m .m-patw .m-pat b { font-size: min(1.9rem, 6.4vw); }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
 .m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -562,7 +572,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">22</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">23</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -723,7 +733,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v22, 31 Oct, 10:19</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v23, 31 Oct, 11:04</footer>
     </section>
   </div>
   </div>
@@ -6459,8 +6469,19 @@ const patBtns = PAT0.map((_, i) => {
   });
   b.addEventListener('contextmenu', (e) => e.preventDefault());
   b.addEventListener('click', () => { if (held) { held = false; return; } pLoad(patPreset(i)); });
-  $('m-pats').append(b); return b;
+  // copy: a small button along the pad's top. Pressed, it flashes and reads cancel, and every other pad's reads paste;
+  // paste puts the copied pad's preset on that pad (the same preset, as picking it would), cancel or a paste ends it
+  const c = document.createElement('button'); c.type = 'button'; c.className = 'm-btn m-patc';
+  c.addEventListener('click', () => {
+    if (patCopy === null) patCopy = i;
+    else if (patCopy !== i) { patSet(i, patPreset(patCopy)); patCopy = null; b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 400); }
+    else patCopy = null;
+    patDraw();
+  });
+  const w = document.createElement('div'); w.className = 'm-patw'; w.append(b, c);
+  $('m-pats').append(w); b.copyBtn = c; return b;
 });
+let patCopy = null;
 function patDraw() {
   const cur = pPending ? pShown : pCur;
   patBtns.forEach((b, i) => {
@@ -6468,6 +6489,9 @@ function patDraw() {
     b.querySelector('small').textContent = k.name;
     b.setAttribute('aria-label', `pattern ${i + 1}: ${k.name} (hold to change)`);
     b.setAttribute('aria-pressed', k === cur); b.classList.toggle('pending', k === pPending);
+    const c = b.copyBtn, m = patCopy === null ? 'copy' : patCopy === i ? 'cancel' : 'paste';
+    c.textContent = m; c.classList.toggle('on', patCopy === i); c.classList.toggle('paste', m === 'paste');
+    c.setAttribute('aria-label', m === 'copy' ? `copy pad ${i + 1}` : m === 'cancel' ? 'cancel the copy' : `paste pad ${patCopy + 1} onto pad ${i + 1}`);
   });
 }
 // the picker: over the pads, a list of every preset; a tap puts it on the pad (without loading it)

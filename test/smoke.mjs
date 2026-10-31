@@ -33,13 +33,13 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => mode === 'mix' && [...document.querySelectorAll('[data-to-mode]')].map((b) => b.dataset.toMode).join() === 'mix,synth,beat') && await page() === 'home', 'it opens on mix, the keys in the order mix, synth, beat');
   check(await pg.evaluate(() => document.querySelectorAll('#m-pats .m-pat').length === 8) && await fits('home'), 'the patterns page has eight pads and fits');
   await pg.click('#m-pats .m-pat >> nth=1');
-  check(await pg.evaluate(() => pCur === patPreset(1) && document.querySelector('#m-pats .m-pat:nth-child(2)').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
+  check(await pg.evaluate(() => pCur === patPreset(1) && document.querySelector('#m-pats .m-patw:nth-child(2) .m-pat').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset');
   // a long press on a pad opens the picker; a tap there puts that preset on the pad, kept in the browser
   const pr = await box('#m-pats .m-pat >> nth=4');
   await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
   check(await pg.evaluate(() => !document.getElementById('m-pick').hidden && document.querySelectorAll('#m-picklist .m-pload').length >= 9), 'a long press on a pad opens the preset picker');
   await pg.click('#m-picklist .m-pload >> text=Acid Line');
-  check(await pg.evaluate(() => document.getElementById('m-pick').hidden && patPreset(4).name === 'Acid Line' && JSON.parse(localStorage.getItem('elixir-synth-pats'))[4] === 'Acid Line' && document.querySelector('#m-pats .m-pat:nth-child(5) small').textContent === 'Acid Line'), 'picking a preset puts it on the pad and keeps it');
+  check(await pg.evaluate(() => document.getElementById('m-pick').hidden && patPreset(4).name === 'Acid Line' && JSON.parse(localStorage.getItem('elixir-synth-pats'))[4] === 'Acid Line' && document.querySelector('#m-pats .m-patw:nth-child(5) .m-pat small').textContent === 'Acid Line'), 'picking a preset puts it on the pad and keeps it');
   // and the picker saves: save new makes a preset of what's playing and puts it on the pad; save over writes it again
   await pg.mouse.move(pr.x + pr.width / 2, pr.y + pr.height / 2); await pg.mouse.down(); await pg.waitForTimeout(800); await pg.mouse.up();
   check(await pg.evaluate(() => document.getElementById('m-picksover').disabled), 'save over is off for a built-in preset');
@@ -54,6 +54,15 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const pd = (l, v) => pg.evaluate(([l, v]) => { const f = mFaders.find((f) => f.key === 'm-patsf:' + l); f.put(v); return f.el.querySelector('output').textContent; }, [l, v]);
   check(await pd('x-fade', -100) === 'beat' && await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1) && await pd('x-fade', 2) === 'both' && await pg.evaluate(() => xf === 0), 'the crossfader dial: all the way left is the beat alone, the middle both');
   check(/driving|peak/.test(await pd('energy', 90)) && await pg.evaluate(() => bs.energy === 90 && mFaders.find((f) => f.key === 'm-beatf:energy').el.querySelector('output').textContent.endsWith('90')) && (await pd('energy', 60), true), 'the energy dial is the beat page\'s energy');
+  // copy and paste: copy on pad 1 flashes and reads cancel, the others paste; a paste puts pad 1's preset on pad 8 and ends it
+  await pg.click('#m-pats .m-patc >> nth=0');
+  check(await pg.evaluate(() => { const c = [...document.querySelectorAll('#m-pats .m-patc')].map((b) => b.textContent); return c[0] === 'cancel' && c.slice(1).every((t) => t === 'paste') && document.querySelector('#m-pats .m-patc').classList.contains('on'); }), 'copy on a pad: it reads cancel and flashes, the others read paste');
+  await pg.click('#m-pats .m-patc >> nth=7');
+  check(await pg.evaluate(() => patPreset(7) === patPreset(0) && [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.textContent === 'copy') && JSON.parse(localStorage.getItem('elixir-synth-pats'))[7] === patPreset(0).name), 'paste puts the copied pad\'s preset on the other pad');
+  await pg.click('#m-pats .m-patc >> nth=2'); await pg.click('#m-pats .m-patc >> nth=2');
+  check(await pg.evaluate(() => patCopy === null && document.querySelector('#m-pats .m-patw:nth-child(3) .m-patc').textContent === 'copy'), 'cancel ends the copy');
+  check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-patc')].every((b) => b.getBoundingClientRect().height >= 24)), 'the copy buttons are at least 24 px high');
+  await pg.evaluate(() => { localStorage.removeItem('elixir-synth-pats'); patNames = PAT0.slice(); patDraw(); });
   check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-pat')].every((b) => { const r = b.getBoundingClientRect(); return Math.abs(r.width - r.height) < 2; })), 'the pattern pads are square');
   const n0 = await pg.evaluate(() => seq.steps.filter((s) => s.gate > 0).length);
   await pd('density', 0); const lo = await pg.evaluate(() => densSteps(seq.steps).filter((s) => s.gate > 0).length);

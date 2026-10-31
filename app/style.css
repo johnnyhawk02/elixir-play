@@ -518,7 +518,17 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
    under them the crossfader, beat to synth */
 .m-home-card { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.m .m-pats .m-pat { aspect-ratio: 1; }
+.m-patw { position: relative; aspect-ratio: 1; min-width: 0; }
+.m .m-pats .m-pat { position: absolute; inset: 0; width: 100%; height: 100%; padding-top: 25px; }
+/* the pad's copy / cancel / paste button: a strip along its top, over the pad */
+.m .m-patc { position: absolute; left: 4px; right: 4px; top: 4px; height: 24px; min-height: 0; padding: 0 2px; z-index: 1;
+  font-size: min(.72rem, 3vw, 12px) !important; letter-spacing: .04em; border-width: 1.5px; background: var(--panel); color: var(--ink); text-shadow: none; }
+.m .m-pat[aria-pressed="true"] + .m-patc { border-color: var(--panel); background: var(--ink); color: var(--panel); }
+.m .m-patc.on { animation: m-blink .5s steps(1) infinite; background: var(--ink) !important; color: var(--panel) !important; }
+.m .m-patc.paste { font-weight: 700; border-style: dashed; }
+.m .m-pat.flash { animation: m-blink .2s steps(1) 2; }
+.m .m-patw .m-pat { gap: 2px; padding-bottom: 2px; }
+.m .m-patw .m-pat b { font-size: min(1.9rem, 6.4vw); }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
 .m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
