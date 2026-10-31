@@ -569,39 +569,40 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-patsbtns .m-btn { font-size: min(var(--fs-xs), 3.4vw, 14px) !important; }
 .m .m-seqf .m-flab, .m .m-seqf .m-vf output { font-size: min(.95rem, 3.2vw, 13.2px); }
 
-/* ==== the case as a circuit board: green solder mask over faint copper traces and vias, white silkscreen (the cauldron, the outlines round each part), and the keys tactile switches soldered on:
-   a steel body with a dark cap, each in its silkscreened footprint. The same in every mode ==== */
-.m {
-  border: 1px solid #0b2414; border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .05), transparent 30%, rgba(0, 0, 0, .18)),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180"><g fill="none" stroke="#8fe0a0" stroke-opacity=".2" stroke-width="2" stroke-linejoin="round"><path d="M0 24h52l18 18h110"/><path d="M0 34h46l18 18h40l14-14h62"/><path d="M28 0v70l16 16v94"/><path d="M38 0v64l16 16v40l-14 14v46"/><path d="M180 112h-54l-20 20h-40"/><path d="M120 180v-30l20-20h40"/><path d="M150 0v18l-12 12h-20"/></g><g fill="none" stroke="#d9b45a" stroke-opacity=".28" stroke-width="1.6"><circle cx="66" cy="132" r="3.2"/><circle cx="118" cy="30" r="3.2"/><circle cx="104" cy="52" r="3.2"/><circle cx="40" cy="134" r="3.2"/></g></svg>'),
-    #1c5530;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 2px rgba(0, 0, 0, .18), 0 10px 30px rgba(0, 0, 0, .55);
-}
-body { background: radial-gradient(120% 80% at 50% 0%, #23261f, #121411) fixed; }
-.m-top, .m-trans { --hw-ink: #e6e8e0; --hw-dim: #9fb7a4; }
+/* ==== the top as a second LCD: a yellow-green backlit strip with dark pixels in its own black bezel, the same in every
+   mode, the cauldron, keys and step lights all drawn on it; the case round both screens plain black ==== */
+.m { border-color: #050505; background: linear-gradient(180deg, #1b1b1c, #111112 30%, #0c0c0d); }
+.m .m-top {
+  --yl: #c9d43a; --yk: #1e2208; --yg: rgba(30, 34, 8, .16);
+  margin-bottom: 8px; padding: 8px 8px 9px; border: 5px solid #0b0c0a; border-radius: 8px;
+  background: radial-gradient(130% 120% at 50% 115%, #dbe45a, #c2cd35 55%, #a9b42a);
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 1px 0 rgba(255, 255, 255, .06);
+  text-shadow: none; }
 .m .m-top .m-btn, .m .m-trans button {
-  border: 1px solid #1a1b1d; border-radius: 4px;
-  background: radial-gradient(70% 60% at 50% 40%, #3a3c40, #232427 75%) !important;
-  box-shadow: 0 0 0 2px #b9bdc1, 0 0 0 3px #5c6064, 0 3px 0 3px #2b2e30, 0 4px 6px 3px rgba(0, 0, 0, .35),
-    inset 0 1px 0 rgba(255, 255, 255, .14) !important;
-  outline: 1px solid rgba(236, 240, 226, .42); outline-offset: 5px; }
+  font-family: var(--display); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--yk) !important; text-shadow: none;
+  background: transparent !important; border: 2px solid var(--yk); border-radius: 3px; box-shadow: none !important; transform: none; }
 .m .m-top .m-btn:active, .m .m-top .m-btn[aria-selected="true"], .m .m-trans button:active, .m .m-trans .m-play[aria-pressed="true"], .m .m-trans .m-rec.on {
-  transform: translateY(1px); background: radial-gradient(70% 60% at 50% 45%, #2c2e31, #1c1d1f 75%) !important;
-  box-shadow: 0 0 0 2px #a9adb1, 0 0 0 3px #55595d, 0 1px 0 3px #2b2e30, inset 0 2px 4px rgba(0, 0, 0, .6) !important; }
-.m .m-top { gap: 10px 12px; padding: 7px 8px 10px; }
-.m .m-top .m-trans { gap: 12px; }
-.m .m-top .m-modes-top { gap: 12px !important; }
-.m .m-top .m-cauldron { background: #eceee4; filter: none; opacity: .92; }
-.m .m-top .m-ver { color: #1c5530; }
-.m .m-top .m-steps-led { background: #101211; border-radius: 2px; box-shadow: 0 0 0 1px rgba(236, 240, 226, .35), inset 0 1px 3px rgba(0, 0, 0, .7); }
-.m-screen { outline: 1px solid rgba(236, 240, 226, .3); outline-offset: 0; }
+  transform: none; background: var(--yk) !important; color: var(--yl) !important; box-shadow: none !important; }
+.m .m-top .m-modes-top .m-btn { font-size: min(1.25rem, 4.6vw) !important; padding-top: 0; }
+.m .m-top .m-modes-top .m-btn[aria-selected="true"] { color: var(--yl) !important; }
+.m .m-top .m-btn::before { display: none; }
+.m .m-trans .m-play svg { fill: currentColor; }
+.m .m-trans .m-play::after { width: 6px; height: 6px; border-radius: 0; background: var(--yg); box-shadow: none; }
+.m .m-trans .m-play[aria-pressed="true"]::after { background: var(--yl); box-shadow: none; }
+.m .m-trans .m-rec i { width: 9px; height: 9px; border-radius: 50%; background: var(--yk); box-shadow: none; }
+.m .m-trans .m-rec.on i, .m .m-trans .m-rec.on.on i { background: var(--yl); box-shadow: none; }
+.m .m-trans .m-rec span { font-family: var(--mono); font-size: 1rem; }
+.m .m-top .m-cauldron { background: var(--yk); filter: none; }
+.m .m-top .m-ver { color: var(--yl); font-family: var(--mono); font-weight: 400; font-size: 13px; }
+.m .m-top .m-steps-led { padding: 2px 0 0; background: none; box-shadow: none; }
+.m .m-top .m-steps-led i, .m .m-top .m-steps-led i:nth-child(4n+1) { border-radius: 0; background: var(--yg); box-shadow: none; }
+.m .m-top .m-steps-led i:nth-child(4n+1) { background: rgba(30, 34, 8, .28); }
+.m .m-top .m-steps-led i.on { background: var(--yk); box-shadow: none; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">25</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">26</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -762,7 +763,7 @@ body { background: radial-gradient(120% 80% at 50% 0%, #23261f, #121411) fixed; 
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v25, 31 Oct, 11:13</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v26, 31 Oct, 11:59</footer>
     </section>
   </div>
   </div>
