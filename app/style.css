@@ -583,3 +583,6 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-top .m-steps-led i, .m .m-top .m-steps-led i:nth-child(4n+1) { border-radius: 0; background: var(--yg); box-shadow: none; }
 .m .m-top .m-steps-led i:nth-child(4n+1) { background: var(--tint-2); }
 .m .m-top .m-steps-led i.on { background: var(--yk); box-shadow: none; }
+/* the two screens meet along a thin line of bezel */
+.m .m-top { margin-bottom: 0; border-bottom-width: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.m-screen { border-top-width: 2px; border-top-left-radius: 0; border-top-right-radius: 0; }
