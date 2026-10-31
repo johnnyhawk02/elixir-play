@@ -45,26 +45,3 @@ drawHooks.push(() => [...$('m-mixmutes').children].forEach((b, n) => b.setAttrib
 // presets keep the mixer
 snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   put: (c) => { const d = CHAN0(); chans.forEach((ch, n) => Object.assign(ch, d[n], (Array.isArray(c) && c[n]) || {})); } });
-{
-  const el = $('m-xf');
-  const show = () => { $('m-xfv').textContent = Math.abs(xf) < 3 ? 'beat + synth' : xf < 0 ? `beat ${100 + xf < 1 ? 'only' : '+ synth ' + (100 + xf) + '%'}` : `synth ${100 - xf < 1 ? 'only' : '+ beat ' + (100 - xf) + '%'}`; };
-  el.addEventListener('input', () => { xf = +el.value; if (Math.abs(xf) < 3) xf = 0; sendChans(); show(); });
-  el.addEventListener('dblclick', () => { xf = 0; el.value = 0; sendChans(); show(); });
-  show();
-}
-// the synth rotate slider: the note sequence played 0 to 15 steps on, the beat staying where it is
-{
-  const el = $('m-rotx');
-  const show = () => { $('m-rotv').textContent = seqRot ? `+${seqRot} step${seqRot > 1 ? 's' : ''}` : '0'; };
-  el.addEventListener('input', () => { seqRot = +el.value; sendSeq(); show(); });
-  el.addEventListener('dblclick', () => { seqRot = 0; el.value = 0; sendSeq(); show(); });
-  show();
-}
-// the synth's density as a slider here too, the same setting as the dens fader on the synth's seq page
-{
-  const el = $('m-densx');
-  const show = () => { el.value = seq.dens; $('m-densv').textContent = densName(seq.dens); };
-  el.addEventListener('input', () => { seq.dens = +el.value; sendSeq(); drawAll(); });
-  el.addEventListener('dblclick', () => { seq.dens = 50; sendSeq(); drawAll(); });
-  drawHooks.push(show); show();
-}

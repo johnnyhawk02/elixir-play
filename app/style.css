@@ -161,17 +161,17 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-vtrack.mod b { display: block; left: -3px; right: -3px; height: 4px; border-radius: 0; bottom: calc(var(--b) * (100% - 4px)); background: var(--ink); box-shadow: 0 0 0 2px var(--panel); }
 
 /* the big faders (perf): a two-line readout, tracks as tall as the page */
-:is(#m-perf, #m-beatf) .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 3px; }
-:is(#m-perf, #m-beatf) .m-vf output { font-size: min(var(--fs-xs), 3.9vw, 16px); line-height: 1; color: var(--ink); height: 2.5em; display: flex; align-items: flex-end; justify-content: center; flex: none; align-self: stretch; }
+:is(#m-perf, #m-beatf, #m-patsf) .m-vf { display: flex; flex-direction: column; align-items: center; min-height: 0; gap: 3px; }
+:is(#m-perf, #m-beatf, #m-patsf) .m-vf output { font-size: min(var(--fs-xs), 3.9vw, 16px); line-height: 1; color: var(--ink); height: 2.5em; display: flex; align-items: flex-end; justify-content: center; flex: none; align-self: stretch; }
 .m #m-perf .m-flab { font-size: min(var(--fs-xs), 3.9vw, 16px); letter-spacing: -.02em; white-space: nowrap; line-height: 1.2; }
 #m-perf .m-vtrack { width: min(56px, 100%); flex: 1; height: auto; min-height: 48px; }
 
 /* the dials (perf): a ring of segments over three quarters of a turn, lit up to the value, the CC number in the middle;
    as big as the cell lets them be, the readout over and the label under */
 .m .m-dial { container-type: size; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 0; }
-.m :is(#m-perf, #m-beatf) .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
-.m :is(#m-perf, #m-beatf) .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.m :is(#m-perf, #m-beatf) .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
+.m :is(#m-perf, #m-beatf, #m-patsf) .m-dial output { height: auto; font-size: min(var(--fs-xs), 3.7vw, 15.2px); white-space: nowrap; align-items: center; }
+.m :is(#m-perf, #m-beatf, #m-patsf) .m-dial .m-flab { font-size: min(var(--fs-xs), 3.7vw, 15.2px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.m :is(#m-perf, #m-beatf, #m-patsf) .m-dial .m-vtrack { --s: min(100cqw - 6px, 100cqh - 44px, 96px); flex: none; width: var(--s); height: var(--s); min-height: 0; border-radius: 50%;
   overflow: visible; cursor: ns-resize; background: none; }
 .m .m-dial .m-vtrack::before, .m .m-dial .m-vtrack i { content: ''; position: absolute; inset: 0; height: auto; border-radius: 50%;
   -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 65%, #000 99%, transparent 100%), repeating-conic-gradient(from 225deg, #000 0 7deg, transparent 7deg 10deg);
@@ -514,7 +514,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { position: relative; display: grid; grid-template-rows: auto auto auto auto; align-content: start; gap: 8px; min-height: 0; padding: 8px 2px; }
+.m-home-card { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 8px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .m .m-pats .m-pat { aspect-ratio: 1; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
@@ -522,14 +522,6 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pat small { font-size: min(.8rem, 3.2vw); letter-spacing: .02em; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .m .m-pat[aria-pressed="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
 .m .m-pat.pending { animation: m-blink .5s steps(1) infinite; }
-.m-xfade { display: grid; gap: 6px; border-top: var(--rule); padding-top: 8px; }
-.m-xfhead { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-s); text-transform: uppercase; }
-.m-xfhead output { font-size: var(--fs-xs); opacity: .8; }
-.m .m-xf { -webkit-appearance: none; appearance: none; width: 100%; height: 56px; margin: 0; background: transparent; touch-action: none; }
-.m .m-xf::-webkit-slider-runnable-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: linear-gradient(90deg, transparent calc(50% - 1px), var(--ink) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)); }
-.m .m-xf::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 48px; margin-top: -21px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); box-shadow: inset 0 0 0 6px var(--panel), inset 0 0 0 8px var(--ink); }
-.m .m-xf::-moz-range-track { height: 10px; border: 2px solid var(--ink); border-radius: 2px; background: transparent; }
-.m .m-xf::-moz-range-thumb { width: 30px; height: 44px; border: 2px solid var(--ink); border-radius: 3px; background: var(--ink); }
 /* the pad's preset picker: over the whole page, a list of every preset */
 .m-pick { position: absolute; inset: 0; z-index: 5; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 6px; padding: 8px 2px; background: var(--panel); }
 .m-pick[hidden] { display: none; }
@@ -540,9 +532,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-pat { -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .m-pickbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .m .m-pickbtns .m-btn { min-height: 46px; padding: 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.m-home-card .m-xfade { gap: 2px; padding-top: 6px; }
-.m .m-home-card .m-xf { height: 50px; }
-.m-xfpair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.m-xfpair .m-xfhead { gap: 6px; white-space: nowrap; }
-.m-xfpair .m-xfhead output { overflow: hidden; text-overflow: ellipsis; }
-.m .m-seqf .m-flab, .m .m-seqf .m-vf output { font-size: min(.95rem, 3.2vw, 13.2px); }
+.m-home-card /* under the pads: dials for the crossfader, the beat's energy, the synth's density, rotate and tempo, and the randomisers */
+#m-patsf { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 170px)); align-content: center; gap: 4px 2px; min-height: 0; border-top: var(--rule); padding-top: 6px; }
+.m-patsbtns { order: 9; display: grid; grid-template-rows: 1fr 1fr; gap: 6px; min-height: 0; padding: 4px 2px; }
+.m .m-patsbtns .m-btn { min-height: 0; padding: 0 4px; line-height: 1.15; white-space: normal; }

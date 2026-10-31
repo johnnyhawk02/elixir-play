@@ -50,24 +50,24 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-picksover');
   check(await pg.evaluate(() => patPreset(4).tempo === 133 && JSON.parse(localStorage.getItem('elixir-synth-presets')).find((p) => p.name === patPreset(4).name).tempo === 133), 'save over writes the pad\'s own preset');
   await pg.evaluate(() => { tempo = 120; localStorage.removeItem('elixir-synth-presets'); presetList.splice(presetList.indexOf(patPreset(4)), 1); localStorage.removeItem('elixir-synth-pats'); patNames = PAT0.slice(); patDraw(); });
-  await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = -100; x.dispatchEvent(new Event('input')); });
-  check(await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1 && document.getElementById('m-xfv').textContent === 'beat only'), 'the crossfader all the way left is the beat alone');
-  await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = 0; x.dispatchEvent(new Event('input')); });
-  // the beat's energy as a slider there too, the same as the beat page's dial
-  check(await pg.evaluate(() => { const x = document.getElementById('m-enex'); x.value = 90; x.dispatchEvent(new Event('input'));
-    const r = bs.energy === 90 && /driving|peak/.test(document.getElementById('m-enev').textContent); x.value = 60; x.dispatchEvent(new Event('input')); return r && bs.energy === 60; }), 'the beat energy slider sets the beat\'s energy');
+  // the dials under the pads: crossfader, energy, density, rotate, tempo, and random drums and synth
+  const pd = (l, v) => pg.evaluate(([l, v]) => { const f = mFaders.find((f) => f.key === 'm-patsf:' + l); f.put(v); return f.el.querySelector('output').textContent; }, [l, v]);
+  check(await pd('x-fade', -100) === 'beat' && await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1) && await pd('x-fade', 2) === 'both' && await pg.evaluate(() => xf === 0), 'the crossfader dial: all the way left is the beat alone, the middle both');
+  check(/driving|peak/.test(await pd('energy', 90)) && await pg.evaluate(() => bs.energy === 90 && mFaders.find((f) => f.key === 'm-beatf:energy').el.querySelector('output').textContent.endsWith('90')) && (await pd('energy', 60), true), 'the energy dial is the beat page\'s energy');
   check(await pg.evaluate(() => [...document.querySelectorAll('#m-pats .m-pat')].every((b) => { const r = b.getBoundingClientRect(); return Math.abs(r.width - r.height) < 2; })), 'the pattern pads are square');
-  // the synth's density: thinner drops notes, busier fills rests, as written at 50, the same as the seq page's fader
-  check(await pg.evaluate(() => { const x = document.getElementById('m-densx'), on = () => densSteps(seq.steps).filter((s) => s.gate > 0).length, n = seq.steps.filter((s) => s.gate > 0).length;
-    x.value = 0; x.dispatchEvent(new Event('input')); const lo = on();
-    x.value = 100; x.dispatchEvent(new Event('input')); const hi = on(), t = document.getElementById('m-densv').textContent;
-    x.value = 50; x.dispatchEvent(new Event('input'));
-    return lo === 0 && hi === 64 && on() === n && seq.steps.filter((s) => s.gate > 0).length === n && t === 'busy 100' && seq.dens === 50; }), 'the synth density slider thins and fills the pattern without changing it');
-  // the synth rotate slider plays the note sequence from further on, without moving its steps
-  const sent = await pg.evaluate(() => { const w = JSON.stringify(seq.steps); const x = document.getElementById('m-rotx'); x.value = 3; x.dispatchEvent(new Event('input'));
-    return { r: seqRot, same: JSON.stringify(seq.steps) === w, txt: document.getElementById('m-rotv').textContent }; });
-  check(sent.r === 3 && sent.same && sent.txt === '+3 steps' && await fits('home'), 'the synth rotate slider turns the pattern 3 steps, leaving the steps as they are');
-  await pg.evaluate(() => { const x = document.getElementById('m-rotx'); x.value = 0; x.dispatchEvent(new Event('input')); });
+  const n0 = await pg.evaluate(() => seq.steps.filter((s) => s.gate > 0).length);
+  await pd('density', 0); const lo = await pg.evaluate(() => densSteps(seq.steps).filter((s) => s.gate > 0).length);
+  const t = await pd('density', 100); const hi = await pg.evaluate(() => densSteps(seq.steps).filter((s) => s.gate > 0).length);
+  await pd('density', 50);
+  check(lo === 0 && hi === 64 && t === 'busy 100' && await pg.evaluate((n) => seq.dens === 50 && seq.steps.filter((s) => s.gate > 0).length === n, n0), 'the density dial thins and fills the synth pattern without changing it');
+  const w0 = await pg.evaluate(() => JSON.stringify(seq.steps));
+  check(await pd('rotate', 3) === '+3' && await pg.evaluate((w) => seqRot === 3 && JSON.stringify(seq.steps) === w, w0) && await fits('home'), 'the rotate dial turns the synth pattern 3 steps, leaving the steps as they are');
+  await pd('rotate', 0);
+  check(await pd('tempo', 133) === '133 bpm' && await pg.evaluate(() => tempo === 133) && (await pd('tempo', 120), true), 'the tempo dial sets the tempo');
+  const b4 = await pg.evaluate(() => ({ b: JSON.stringify(bs), s: JSON.stringify(seq.steps) }));
+  await pg.click('#m-prdrum'); await pg.click('#m-prsynth');
+  check(await pg.evaluate((b) => JSON.stringify(seq.steps) !== b.s && JSON.stringify(bs) !== b.b, b4), 'random drums makes a new beat and random synth new notes');
+  await pg.evaluate(() => { localStorage.removeItem('elixir-synth-pats'); });
   await pg.click('[data-to-mode="synth"]');
   // the case: the cauldron, play, rec and the mode keys all on one line, the cauldron carrying the version
   check(await pg.evaluate(() => { const ts = ['#m-mode', '#m-play', '#m-rec', '[data-to-mode="synth"]', '[data-to-mode="mix"]'].map((q) => document.querySelector(q).getBoundingClientRect());

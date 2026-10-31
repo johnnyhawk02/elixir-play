@@ -27,8 +27,11 @@ they were on.
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
 - **elixir-mix**, black on a grey LCD: **PATS**, the front page, has eight pattern pads (for now the first eight built-in
-  presets; a tap loads one at the next bar while playing) and a crossfader from the beat alone to the synth alone, both
-  full in the middle. Pads are square. The energy slider is the beat page's energy dial and the density slider is the synth seq page's dens fader, side by side under the crossfader. The synth rotate slider plays the note sequence 0 to 15 steps on against the beat (live; the steps don't move). Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
+  presets; a tap loads one at the next bar while playing; square pads) and, under them, five dials and two buttons:
+  x-fade (from the beat alone to the synth alone, both full in the middle), energy (the beat page's energy dial), density
+  (the synth seq page's dens fader), rotate (the note sequence played 0 to 15 steps on against the beat, live; the steps
+  don't move), tempo, **random drums** (a new beat pattern on the same kit) and **random synth** (new notes by the synth's
+  algorithm); both can be undone on their own pages. Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the
   echo, reverb and master are shared by everything.
 
