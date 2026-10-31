@@ -52,3 +52,11 @@ snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   el.addEventListener('dblclick', () => { xf = 0; el.value = 0; sendChans(); show(); });
   show();
 }
+// the synth rotate slider: the note sequence played 0 to 15 steps on, the beat staying where it is
+{
+  const el = $('m-rotx');
+  const show = () => { $('m-rotv').textContent = seqRot ? `+${seqRot} step${seqRot > 1 ? 's' : ''}` : '0'; };
+  el.addEventListener('input', () => { seqRot = +el.value; sendSeq(); show(); });
+  el.addEventListener('dblclick', () => { seqRot = 0; el.value = 0; sendSeq(); show(); });
+  show();
+}

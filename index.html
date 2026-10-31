@@ -529,7 +529,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 /* mix's patterns page: eight pads in two rows of four, the one playing filled, the one waiting for the bar flashing; and
    under them the crossfader, beat to synth */
-.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px; min-height: 0; padding: 8px 2px; }
+.m-home-card { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto auto; gap: 10px; min-height: 0; padding: 8px 2px; }
 .m-pats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px; min-height: 0; }
 .m .m-pat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 4px 2px; overflow: hidden; }
 .m .m-pat b { font-size: min(2.2rem, 9vw); line-height: 1; }
@@ -558,7 +558,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">16</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">17</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -671,6 +671,10 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <div class="m-xfhead"><b>beat</b><output id="m-xfv">beat + synth</output><b>synth</b></div>
         <input class="m-xf" id="m-xf" type="range" min="-100" max="100" step="1" value="0" aria-label="crossfader, beat to synth">
       </div>
+      <div class="m-xfade m-rot">
+        <div class="m-xfhead"><b>synth rotate</b><output id="m-rotv">0</output></div>
+        <input class="m-xf" id="m-rotx" type="range" min="0" max="15" step="1" value="0" aria-label="rotate the synth pattern against the beat, in steps">
+      </div>
     </section>
   </div>
 
@@ -719,7 +723,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v16, 31 Oct, 08:59</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v17, 31 Oct, 09:05</footer>
     </section>
   </div>
   </div>
@@ -4860,9 +4864,14 @@ const seq = structuredClone(SEQ0);
 const degSemis = (d, sc = seq.scale, root = seq.root) => { const s = SCALES[sc][1]; return root + s[d % s.length] + 12 * Math.floor(d / s.length); };
 const stepNote = (st) => values[PAR.COARSE1] + degSemis(st.d);
 let playing = false, tempo = 120;
+// the rotate slider on mix's patterns page: the note sequence played from this many steps on, against the beat (live,
+// not kept in presets; the steps themselves don't move)
+let seqRot = 0;
 function sendSeq() {
+  const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
+  const steps = seq.steps.slice(0, len);
   send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
-    steps: seq.steps.slice(0, Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS))).map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
+    steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
 
 // ---- effects and master: echo, reverb and ring mod sends; the echo's tone, feedback and ping pong are the engine's own
@@ -5479,6 +5488,9 @@ function nsNow() {
 }
 eventHandlers.push((ev) => {
   if (ev.type !== 'step') return;
+  // the step heard, in the sequence as written (the rotate slider plays it from further on)
+  const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), at = ((ev.page * 16 + ev.nstep) + seqRot) % len;
+  ev = { ...ev, page: at >> 4, nstep: at & 15 };
   setTimeout(() => { if (playing) { nsAt = ev; nsNow(); } }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
 });
 stopHooks.push(() => { nsAt = null; nsNow(); });
@@ -6323,6 +6335,14 @@ snapParts.push({ key: 'mix', get: () => structuredClone(chans),
   const show = () => { $('m-xfv').textContent = Math.abs(xf) < 3 ? 'beat + synth' : xf < 0 ? `beat ${100 + xf < 1 ? 'only' : '+ synth ' + (100 + xf) + '%'}` : `synth ${100 - xf < 1 ? 'only' : '+ beat ' + (100 - xf) + '%'}`; };
   el.addEventListener('input', () => { xf = +el.value; if (Math.abs(xf) < 3) xf = 0; sendChans(); show(); });
   el.addEventListener('dblclick', () => { xf = 0; el.value = 0; sendChans(); show(); });
+  show();
+}
+// the synth rotate slider: the note sequence played 0 to 15 steps on, the beat staying where it is
+{
+  const el = $('m-rotx');
+  const show = () => { $('m-rotv').textContent = seqRot ? `+${seqRot} step${seqRot > 1 ? 's' : ''}` : '0'; };
+  el.addEventListener('input', () => { seqRot = +el.value; sendSeq(); show(); });
+  el.addEventListener('dblclick', () => { seqRot = 0; el.value = 0; sendSeq(); show(); });
   show();
 }
 

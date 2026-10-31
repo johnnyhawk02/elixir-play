@@ -53,6 +53,11 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = -100; x.dispatchEvent(new Event('input')); });
   check(await pg.evaluate(() => xf === -100 && xfGain(0) === 0 && xfGain(3) === 1 && document.getElementById('m-xfv').textContent === 'beat only'), 'the crossfader all the way left is the beat alone');
   await pg.evaluate(() => { const x = document.getElementById('m-xf'); x.value = 0; x.dispatchEvent(new Event('input')); });
+  // the synth rotate slider plays the note sequence from further on, without moving its steps
+  const sent = await pg.evaluate(() => { const w = JSON.stringify(seq.steps); const x = document.getElementById('m-rotx'); x.value = 3; x.dispatchEvent(new Event('input'));
+    return { r: seqRot, same: JSON.stringify(seq.steps) === w, txt: document.getElementById('m-rotv').textContent }; });
+  check(sent.r === 3 && sent.same && sent.txt === '+3 steps' && await fits('home'), 'the synth rotate slider turns the pattern 3 steps, leaving the steps as they are');
+  await pg.evaluate(() => { const x = document.getElementById('m-rotx'); x.value = 0; x.dispatchEvent(new Event('input')); });
   await pg.click('[data-to-mode="synth"]');
   // the case: the cauldron, play, rec and the mode keys all on one line, the cauldron carrying the version
   check(await pg.evaluate(() => { const ts = ['#m-mode', '#m-play', '#m-rec', '[data-to-mode="synth"]', '[data-to-mode="mix"]'].map((q) => document.querySelector(q).getBoundingClientRect());

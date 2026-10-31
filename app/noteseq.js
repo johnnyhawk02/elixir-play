@@ -71,6 +71,9 @@ function nsNow() {
 }
 eventHandlers.push((ev) => {
   if (ev.type !== 'step') return;
+  // the step heard, in the sequence as written (the rotate slider plays it from further on)
+  const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), at = ((ev.page * 16 + ev.nstep) + seqRot) % len;
+  ev = { ...ev, page: at >> 4, nstep: at & 15 };
   setTimeout(() => { if (playing) { nsAt = ev; nsNow(); } }, ctx && ctx.outputLatency ? ctx.outputLatency * 1000 : 0);
 });
 stopHooks.push(() => { nsAt = null; nsNow(); });

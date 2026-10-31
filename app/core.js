@@ -98,9 +98,14 @@ const seq = structuredClone(SEQ0);
 const degSemis = (d, sc = seq.scale, root = seq.root) => { const s = SCALES[sc][1]; return root + s[d % s.length] + 12 * Math.floor(d / s.length); };
 const stepNote = (st) => values[PAR.COARSE1] + degSemis(st.d);
 let playing = false, tempo = 120;
+// the rotate slider on mix's patterns page: the note sequence played from this many steps on, against the beat (live,
+// not kept in presets; the steps themselves don't move)
+let seqRot = 0;
 function sendSeq() {
+  const len = Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS)), r = seqRot % len;
+  const steps = seq.steps.slice(0, len);
   send({ type: 'seq', playing, bpm: tempo, vel: seq.vel, glide: seq.glide / 100, accentDb: seq.accent,
-    steps: seq.steps.slice(0, Math.max(1, Math.min(NSTEPS, seq.len || NSTEPS))).map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
+    steps: [...steps.slice(r), ...steps.slice(0, r)].map((st) => ({ n: degSemis(st.d), gate: st.gate, acc: st.acc, slide: st.slide })) });
 }
 
 // ---- effects and master: echo, reverb and ring mod sends; the echo's tone, feedback and ping pong are the engine's own
