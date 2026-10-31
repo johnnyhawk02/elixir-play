@@ -272,6 +272,17 @@ function prefsOpen() {
   $('m-prefsnote').textContent = 'Your presets and pad sets, in one file. Import it on the presets page.';
   $('m-prefs').hidden = false;
 }
+// new pads from factory: clears the eight pads and fills them with eight factory presets picked at random (a new
+// pick each time); my presets and pad sets stay
+$('m-prefspads').addEventListener('click', () => {
+  if (!confirm('Clear all eight pads and fill them with new factory presets?')) return;
+  const pool = presetList.filter((k) => k.builtin && k.name !== 'Init').map((k) => k.name);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  patNames = PAT0.map((n, i) => pool[i] || n);
+  try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (e) {}
+  patCopy = null; patOn = null; padSetCur = ''; storeSets(); setDraw(); patDraw();
+  $('m-prefsnote').textContent = 'The pads have eight new factory presets.';
+});
 $('m-prefsx').addEventListener('click', () => { $('m-prefs').hidden = true; });
 $('m-prefsdl').addEventListener('click', () => {
   const f = presetsFile();

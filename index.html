@@ -647,7 +647,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">37</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">38</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -665,6 +665,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     <div class="m-prefs" id="m-prefs" role="dialog" aria-labelledby="m-prefst" hidden>
       <div class="m-pickhead"><b id="m-prefst">preferences</b><button class="m-btn" id="m-prefsx" type="button">done</button></div>
       <button class="m-btn m-big" id="m-prefsdl" type="button">download my presets</button>
+      <button class="m-btn m-big" id="m-prefspads" type="button">new pads from factory</button>
       <p class="m-note" id="m-prefsnote" aria-live="polite">Your presets and pad sets, in one file. Import it on the presets page.</p>
     </div>
   <div class="m-pages" id="m-pages">
@@ -814,7 +815,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v37, 31 Oct, 15:15</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v38, 31 Oct, 15:26</footer>
     </section>
   </div>
   </div>
@@ -6736,6 +6737,17 @@ function prefsOpen() {
   $('m-prefsnote').textContent = 'Your presets and pad sets, in one file. Import it on the presets page.';
   $('m-prefs').hidden = false;
 }
+// new pads from factory: clears the eight pads and fills them with eight factory presets picked at random (a new
+// pick each time); my presets and pad sets stay
+$('m-prefspads').addEventListener('click', () => {
+  if (!confirm('Clear all eight pads and fill them with new factory presets?')) return;
+  const pool = presetList.filter((k) => k.builtin && k.name !== 'Init').map((k) => k.name);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  patNames = PAT0.map((n, i) => pool[i] || n);
+  try { localStorage.setItem(PATS_KEY, JSON.stringify(patNames)); } catch (e) {}
+  patCopy = null; patOn = null; padSetCur = ''; storeSets(); setDraw(); patDraw();
+  $('m-prefsnote').textContent = 'The pads have eight new factory presets.';
+});
 $('m-prefsx').addEventListener('click', () => { $('m-prefs').hidden = true; });
 $('m-prefsdl').addEventListener('click', () => {
   const f = presetsFile();

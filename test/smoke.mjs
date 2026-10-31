@@ -73,6 +73,9 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
     const dl = pg.waitForEvent('download'); await pg.click('#m-prefsdl'); const d = await dl;
     const j = JSON.parse(createRequire(import.meta.url)('fs').readFileSync(await d.path(), 'utf8'));
     check(d.suggestedFilename() === 'elixir-synth-presets.json' && j.presets.some((p) => p.name === 'Mine One') && j.padSets.length === 1 && j.padSets[0].name === 'gig0' && /presets? and 1 pad set/.test(await pg.textContent('#m-prefsnote')), 'download my presets saves my presets and pad sets as a file');
+    await pg.evaluate(() => { window.confirm = () => true; patSet(0, presetList.find((k) => k.name === 'Mine One')); });
+    await pg.click('#m-prefspads');
+    check(await pg.evaluate(() => { const n = JSON.parse(localStorage.getItem('elixir-synth-pats')); return n.length === 8 && new Set(n).size === 8 && n.every((x) => presetList.some((k) => k.builtin && k.name === x && x !== 'Init')) && patBtns.every((b, i) => b.querySelector('small').textContent === n[i]); }), 'new pads from factory fills the eight pads with eight different factory presets');
     await pg.click('#m-prefsx');
     check(await pg.evaluate(() => document.getElementById('m-prefs').hidden), 'done closes preferences');
     await pg.evaluate(() => { presetList.splice(presetList.findIndex((k) => k.name === 'Mine One'), 1); padSets.length = 0; }); }
