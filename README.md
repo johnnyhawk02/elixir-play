@@ -34,7 +34,7 @@ Presets keep all three. A preset saved before the modes leaves the beat and the 
 ## Synth pages
 
 Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
-turns the page. Play, record and the step light sit at the top.
+turns the page. The case along the top holds everything on one line: the cauldron (tap it for the next mode; the version is stamped on it), play, record and the synth, beat and mix keys, with the sixteen step lights under them.
 
 - **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, undo, and
   *next bar* (while playing, a randomise waits for the next bar). Drag a dial up or down to turn it. A MIDI controller

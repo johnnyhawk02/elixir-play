@@ -34,7 +34,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
   --display: "VT323", ui-monospace, monospace; --body: "VT323", ui-monospace, monospace; --mono: "VT323", ui-monospace, monospace;
   --fs-xs: 1.12rem; --fs-s: 1.25rem; --fs-m: 1.3rem; --fs-l: 1.6rem;
   --rule: 1px solid rgba(225, 235, 255, .38);
-  position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 0;
+  position: relative; max-width: 480px; margin: 0 auto; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0;
   height: calc(100dvh - max(6px, env(safe-area-inset-top, 0px)) - max(6px, env(safe-area-inset-bottom, 0px))); padding: 6px 8px 8px;
   font-family: var(--body); color: var(--ink);
   touch-action: manipulation; -webkit-user-select: none; user-select: none;
@@ -497,31 +497,52 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-trans .m-rec.on i { width: 8px; height: 8px; border-radius: 50%; background: #ff4a3d; box-shadow: 0 0 6px rgba(255, 70, 50, .85); }
 .m .m-trans .m-rec span { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: .9rem; }
 .m-trans { padding: 2px 4px 10px; }
-.m .m-trans .m-steps-led { gap: 5px 4px; padding: 6px 4px; border-radius: 4px; background: #141517; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .05); }
-.m .m-trans .m-steps-led i { border-radius: 2px; background: #2e2210; box-shadow: none; }
-.m .m-trans .m-steps-led i:nth-child(4n+1) { background: #3a2a12; box-shadow: none; }
-.m .m-trans .m-steps-led i.on { background: #ffb547; box-shadow: 0 0 5px rgba(255, 170, 60, .75); }
+.m .m-top .m-steps-led { gap: 5px 4px; padding: 6px 4px; border-radius: 4px; background: #141517; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .7), 0 1px 0 rgba(255, 255, 255, .05); }
+.m .m-top .m-steps-led i { border-radius: 2px; background: #2e2210; box-shadow: none; }
+.m .m-top .m-steps-led i:nth-child(4n+1) { background: #3a2a12; box-shadow: none; }
+.m .m-top .m-steps-led i.on { background: #ffb547; box-shadow: 0 0 5px rgba(255, 170, 60, .75); }
 .m .m-top .m-modes-top .m-btn[aria-selected="true"] { color: #fff !important; }
 
 /* steps and pages past the note sequence's length: there, but not played */
 .m .m-step.out, .m .m-npages .m-btn.out { opacity: .32; }
+
+/* ==== one line of hardware: the cauldron (tap: the next mode; the version stamped on it in the case's colour), play,
+   rec and the three mode keys, with the sixteen step LEDs in a slim strip under them ==== */
+.m .m-top { display: grid; grid-template-columns: 46px minmax(0, 1fr) minmax(0, 2.4fr); grid-template-rows: auto auto; align-items: stretch;
+  gap: 6px 6px; padding: 2px 2px 8px; }
+.m .m-top .m-title { position: relative; display: block; width: 46px; height: 44px; min-height: 0; padding: 0; letter-spacing: 0; }
+.m .m-top .m-cauldron { position: absolute; inset: 0; background: linear-gradient(180deg, #e2e4de, #b9bcb5);
+  -webkit-mask: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAQAAABNTyozAAAD/UlEQVR42u2dbXLjIAyGIXucnke+z15HnGd7HfZHJp00/gCBLCSQPG2nM20Mj199IBwnBDc3Nzc3Nze3NS2KnAU+fh79FkI6/C3NBwjevvgsvX0ZBPQEAmLjfqJK+l0UAoY89EDBy0Ky0WAUg9KG5lZMkehQPXGmLi/BaZart40vOkWScoCEgjPn0DPjJhvCoULcclEAKpODiqgzNjiWQA3FoynBwjhEaKj2wBGI9idUWpidQgLZ0+k30THbUs/ZqDvs0di40L0+FBx1NqchkB3zceoEtXDE8xhcFIj6lSMyUu1NhvKiQzwn6ABV26rrHFesRERratzVO6Y3drvX9LXtjnaFpN13SqqGrjQdZSWdTR2DYiMaQDMscQAxPI7UDYxSDyrF9K4aHLWohsPhjAX1251wdBl77esQUAQWHp75phAdiYDOUvl+Gxi6k3SpsoKLfQ62PY1IcjGsnEztztd53XT+v3WbPyls8oBy49Vvu5UFOgvFKB1/rBWKKK0gC93oGzRU23LFYM+yHCAw0qwXu6yfBVc2e8DHbKDfT9GoWm6KTY+d386OhzjHP8YzVWvJ8h2+6YBWwUNCFJfEQ4hFj5ENJgtFwMvF/u3WUH9DCF/TwDiaz1d9JMKTrbY8zVGaKakRZnV5Wrd0RXpjDU6Y4kSA8okckOpgeKor6wcUBVHlYDClg11denAHu54bUtZiqbpzbLN6rut7fwCChsa6dUCEmT5ILzYjoOCAGFuus2M5urUhlQClhRA13vuxT4YwXYp/nx15sbGvOXFaQNCyXJ1XLwz7r48QLLw9/8Y+UVUW25bFUwQUf1YnK1Y+FV3pVx20LehopKZ9CNtSjpZa7/2YOcWz3UUNK6f12sWqmwNyQA7IASkFNHPJmFxBIuV2Xmy+ZAUlV86agBIXIDdXUG/QmjNMRz4X21w/14CSAyqJLruDXWexzfVToppdP9d1UHL9lLjm1fVTqqTT6vopk81r66e8Fktr66eGbV5ZPzWr+W1lPDWAkmk3Exo7rrLR3C7AvKJ71bkY26ks4qG0XK0hGpJcFnzMZCQjWsa5qC72OnVaCU+bwdyJfe66SIn5M4AN19WuH+0a0r8uc/1o1hBeDguEngYMhUulsAKCX3+FQm8jUFcN0UTNB+r8/RWqNASN1wsaHsX9fKg2dGhakX54FypcURG1hGdgzYM47MINci9qJQWDxzbYvcpOxqvu4YCAGXdWMj6mASC7HpE5BOBYQBoC/vVrCioIWK8N3BIzbvnwEdrnajxP2b8ZffYJHZHhQnKNcXCDO+tst/fvatxpKvdLHJAhQG6FpBxcQW4dpSc6kutiUanFwZCYyzo3Nzc3Nzc3Nzcu+w/LwR5ZYlbbAAAAAABJRU5ErkJggg==) center / contain no-repeat; mask: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAQAAABNTyozAAAD/UlEQVR42u2dbXLjIAyGIXucnke+z15HnGd7HfZHJp00/gCBLCSQPG2nM20Mj199IBwnBDc3Nzc3Nze3NS2KnAU+fh79FkI6/C3NBwjevvgsvX0ZBPQEAmLjfqJK+l0UAoY89EDBy0Ky0WAUg9KG5lZMkehQPXGmLi/BaZart40vOkWScoCEgjPn0DPjJhvCoULcclEAKpODiqgzNjiWQA3FoynBwjhEaKj2wBGI9idUWpidQgLZ0+k30THbUs/ZqDvs0di40L0+FBx1NqchkB3zceoEtXDE8xhcFIj6lSMyUu1NhvKiQzwn6ABV26rrHFesRERratzVO6Y3drvX9LXtjnaFpN13SqqGrjQdZSWdTR2DYiMaQDMscQAxPI7UDYxSDyrF9K4aHLWohsPhjAX1251wdBl77esQUAQWHp75phAdiYDOUvl+Gxi6k3SpsoKLfQ62PY1IcjGsnEztztd53XT+v3WbPyls8oBy49Vvu5UFOgvFKB1/rBWKKK0gC93oGzRU23LFYM+yHCAw0qwXu6yfBVc2e8DHbKDfT9GoWm6KTY+d386OhzjHP8YzVWvJ8h2+6YBWwUNCFJfEQ4hFj5ENJgtFwMvF/u3WUH9DCF/TwDiaz1d9JMKTrbY8zVGaKakRZnV5Wrd0RXpjDU6Y4kSA8okckOpgeKor6wcUBVHlYDClg11denAHu54bUtZiqbpzbLN6rut7fwCChsa6dUCEmT5ILzYjoOCAGFuus2M5urUhlQClhRA13vuxT4YwXYp/nx15sbGvOXFaQNCyXJ1XLwz7r48QLLw9/8Y+UVUW25bFUwQUf1YnK1Y+FV3pVx20LehopKZ9CNtSjpZa7/2YOcWz3UUNK6f12sWqmwNyQA7IASkFNHPJmFxBIuV2Xmy+ZAUlV86agBIXIDdXUG/QmjNMRz4X21w/14CSAyqJLruDXWexzfVToppdP9d1UHL9lLjm1fVTqqTT6vopk81r66e8Fktr66eGbV5ZPzWr+W1lPDWAkmk3Exo7rrLR3C7AvKJ71bkY26ks4qG0XK0hGpJcFnzMZCQjWsa5qC72OnVaCU+bwdyJfe66SIn5M4AN19WuH+0a0r8uc/1o1hBeDguEngYMhUulsAKCX3+FQm8jUFcN0UTNB+r8/RWqNASN1wsaHsX9fKg2dGhakX54FypcURG1hGdgzYM47MINci9qJQWDxzbYvcpOxqvu4YCAGXdWMj6mASC7HpE5BOBYQBoC/vVrCioIWK8N3BIzbvnwEdrnajxP2b8ZffYJHZHhQnKNcXCDO+tst/fvatxpKvdLHJAhQG6FpBxcQW4dpSc6kutiUanFwZCYyzo3Nzc3Nzc3Nzcu+w/LwR5ZYlbbAAAAAABJRU5ErkJggg==) center / contain no-repeat;
+  filter: drop-shadow(0 -1px 0 rgba(0, 0, 0, .5)); }
+.m .m-top .m-ver { position: absolute; left: 0; right: 0; top: 52%; margin: 0; text-align: center; color: #2a2c2f; font: 700 10px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0; opacity: 1; text-shadow: none; }
+.m .m-top .m-trans { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0; }
+.m .m-top .m-trans button { min-height: 44px; padding: 0 2px; gap: 5px; }
+.m .m-top .m-trans .m-play { display: flex; }
+.m .m-top .m-trans .m-rec span { font-size: .68rem; letter-spacing: .02em; overflow: hidden; }
+/* rec is its red LED alone until it's recording, then the time beside it */
+.m .m-top .m-trans .m-rec:not(.on) span { display: none; }
+.m .m-top .m-trans button { overflow: hidden; }
+.m .m-top .m-modes-top { flex: none; }
+.m .m-top .m-modes-top .m-btn { min-height: 44px; font-size: min(.72rem, 3.1vw) !important; letter-spacing: .08em; }
+.m .m-top .m-steps-led { grid-column: 1 / -1; grid-template-columns: repeat(16, 1fr); grid-template-rows: 5px; gap: 3px; padding: 4px 6px; }
 </style>
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v12</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">synth</span></span><small class="m-ver">13</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
+    <div class="m-trans">
+      <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
+      <button class="m-rec" id="m-rec" type="button" aria-pressed="false" aria-label="Record"><i></i><span id="m-rec-t">rec</span></button>
+    </div>
     <div class="m-modes-top" role="tablist" aria-label="mode">
       <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
       <button class="m-btn" type="button" role="tab" data-to-mode="beat" aria-selected="false">beat</button>
       <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="false">mix</button>
     </div>
-  </header>
-  <section class="m-card m-trans">
-    <button class="m-play" id="m-play" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg><span>play</span></button>
-    <button class="m-rec" id="m-rec" type="button" aria-pressed="false" aria-label="Record"><i></i><span id="m-rec-t">rec</span></button>
     <output class="m-steps-led" id="m-led" aria-hidden="true"></output>
-  </section>
+  </header>
 
   <div class="m-screen" id="m-screen">
   <div class="m-pages" id="m-pages">
@@ -655,7 +676,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v12, 31 Oct, 08:02</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v13, 31 Oct, 08:31</footer>
     </section>
   </div>
   </div>
@@ -4999,7 +5020,7 @@ $('m').addEventListener('contextmenu', (e) => e.preventDefault());
 // ---- transport ----
 function setPlaying(on) {
   playing = on;
-  $('m-play').setAttribute('aria-pressed', on); $('m-play').querySelector('span').textContent = on ? 'stop' : 'play';
+  $('m-play').setAttribute('aria-pressed', on); $('m-play').setAttribute('aria-label', on ? 'stop' : 'play');
   sendSeq();
   if (!on) { mLed(-1); stopHooks.forEach((h) => h()); }
 }

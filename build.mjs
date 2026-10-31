@@ -35,7 +35,7 @@ const APP = ['core', 'ui', 'noteseq', 'fseq', 'grooves', 'beat', 'mix', 'presets
 const app = APP.map((f) => read(`app/${f}.js`)).join('\n');
 const esc = (t) => t.replace(/<\/script/gi, '<\\/script');
 const page = read('index.src.html')
-  .replace('/*@CSS@*/\n', () => read('app/style.css'))
+  .replace('/*@CSS@*/\n', () => read('app/style.css').replaceAll('@CAULDRON@', 'data:image/png;base64,' + readFileSync(new URL('art/cauldron.png', here)).toString('base64')))
   .replace('/*@PLAYER@*/\n', () => read('app/player.js'))
   .replace('/*@APP@*/\n', () => app)
   .replace('/*@ENGINE@*/\n', () => esc(bundle))

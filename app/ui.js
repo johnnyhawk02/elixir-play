@@ -76,7 +76,7 @@ $('m').addEventListener('contextmenu', (e) => e.preventDefault());
 // ---- transport ----
 function setPlaying(on) {
   playing = on;
-  $('m-play').setAttribute('aria-pressed', on); $('m-play').querySelector('span').textContent = on ? 'stop' : 'play';
+  $('m-play').setAttribute('aria-pressed', on); $('m-play').setAttribute('aria-label', on ? 'stop' : 'play');
   sendSeq();
   if (!on) { mLed(-1); stopHooks.forEach((h) => h()); }
 }

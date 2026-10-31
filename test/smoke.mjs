@@ -29,6 +29,9 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const drag = async (x0, y0, x1, y1, steps = 12) => { await pg.mouse.move(x0, y0); await pg.mouse.down(); await pg.mouse.move(x1, y1, { steps }); await pg.mouse.up(); await pg.waitForTimeout(450); };
   const tabs = () => pg.evaluate(() => [...document.querySelectorAll('[data-m-tab]')].filter((x) => !x.hidden).map((x) => x.dataset.mTab).join(' '));
   const fits = (t) => pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth].every((v) => v <= 0); }, t);
+  // the case: the cauldron, play, rec and the mode keys all on one line, the cauldron carrying the version
+  check(await pg.evaluate(() => { const ts = ['#m-mode', '#m-play', '#m-rec', '[data-to-mode="synth"]', '[data-to-mode="mix"]'].map((q) => document.querySelector(q).getBoundingClientRect());
+    return ts.every((r) => Math.abs(r.top - ts[0].top) < 4 && r.right <= innerWidth) && /^\d+$/.test(document.querySelector('#m-mode .m-ver').textContent); }), 'the case controls are on one line, with the version on the cauldron');
   // no page scrolls; every panel fits
   for (const t of ['play', 'seq', 'voice', 'xy', 'presets']) {
     await pg.click(`[data-m-tab="${t}"]`);
