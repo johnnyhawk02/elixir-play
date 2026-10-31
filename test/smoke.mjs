@@ -27,8 +27,10 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   const box = async (sel) => pg.locator(sel).first().boundingBox();
   // drag with the mouse (pointer events), from one point to another
   const drag = async (x0, y0, x1, y1, steps = 12) => { await pg.mouse.move(x0, y0); await pg.mouse.down(); await pg.mouse.move(x1, y1, { steps }); await pg.mouse.up(); await pg.waitForTimeout(450); };
+  const tabs = () => pg.evaluate(() => [...document.querySelectorAll('[data-m-tab]')].filter((x) => !x.hidden).map((x) => x.dataset.mTab).join(' '));
+  const fits = (t) => pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth].every((v) => v <= 0); }, t);
   // no page scrolls; every panel fits
-  for (const t of ['play', 'seq', 'voice', 'xy', 'fx', 'comp', 'presets']) {
+  for (const t of ['play', 'seq', 'voice', 'xy', 'presets']) {
     await pg.click(`[data-m-tab="${t}"]`);
     const o = await pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth]; }, t);
     check(o.every((v) => v <= 0), `${t}: fits the screen (${o})`);
@@ -53,10 +55,14 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.evaluate(() => { window.__midiIn.onmidimessage({ data: [0xb0, 4, 127] }); window.__midiIn.onmidimessage({ data: [0xb3, 10, 64] }); });
   check(await pg.evaluate(() => macro.filter === 200 && fx.verb === 50 && document.querySelectorAll('#m-perf .m-dial').length === 12), 'MIDI CC 4 and 10 turn the filter and reverb dials');
   // the reverb: the FX page's reverb send is the same as the dial's
-  await pg.click('[data-m-tab="fx"]');
-  check(await pg.evaluate(() => document.querySelector('#m-verb .m-vtrack').getAttribute('aria-valuenow') === '50'), 'the fx page shows the reverb send');
+  await pg.click('[data-to-mode="mix"]'); await pg.click('[data-m-tab="fx"]');
+  check(await pg.evaluate(() => document.querySelector('#m-verb .m-vtrack').getAttribute('aria-valuenow') === '50'), 'the fx page (in mix) shows the reverb send');
+  check(await fits('fx'), 'fx: fits the screen');
+  await pg.click('[data-m-tab="comp"]');
+  check(await fits('comp'), 'mstr: fits the screen');
+  await pg.click('[data-m-tab="mix"]');
   await pg.evaluate(() => window.__midiIn.onmidimessage({ data: [0xb0, 10, 0] }));
-  await pg.click('[data-m-tab="play"]');
+  await pg.click('[data-to-mode="synth"]'); await pg.click('[data-m-tab="play"]');
   // the x/y pad
   await pg.click('[data-m-tab="xy"]');
   r = await box('.m-xy');
@@ -111,8 +117,6 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');
   // modes: the title steps elixir-synth → beat → mix → synth, each with its own pages
-  const tabs = () => pg.evaluate(() => [...document.querySelectorAll('[data-m-tab]')].filter((x) => !x.hidden).map((x) => x.dataset.mTab).join(' '));
-  const fits = (t) => pg.evaluate((t) => { const p = document.querySelector(`[data-m-panel="${t}"]`); return [p.scrollHeight - p.clientHeight, document.documentElement.scrollHeight - innerHeight, document.documentElement.scrollWidth - innerWidth].every((v) => v <= 0); }, t);
   await pg.click('#m-mode');
   check(await pg.evaluate(() => mode) === 'beat' && await tabs() === 'beat bsteps kit presets' && await page() === 'beat' && await pg.textContent('#m-modename') === 'beat', 'the title turns to elixir-beat');
   for (const t of ['beat', 'bsteps', 'kit']) { await pg.click(`[data-m-tab="${t}"]`); check(await fits(t), `${t}: fits the screen`); }
@@ -137,7 +141,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => chans[1].mute && document.querySelectorAll('#m-mixmutes [aria-pressed="true"]').length === 1), 'mute the kick');
   await pg.click('#m-mixmutes button >> nth=1');
   await pg.click('#m-mode');
-  check(await pg.evaluate(() => mode) === 'synth' && await tabs() === 'play seq voice xy fx comp presets' && await page() === 'presets', 'and back to elixir-synth, on the page it was on');
+  check(await pg.evaluate(() => mode) === 'synth' && await tabs() === 'play seq voice xy presets' && await page() === 'presets', 'and back to elixir-synth, on the page it was on');
   // the buttons at the top go straight to a mode
   await pg.click('[data-to-mode="mix"]');
   check(await pg.evaluate(() => mode === 'mix' && document.querySelector('[data-to-mode="mix"]').getAttribute('aria-selected') === 'true'), 'the mix button goes straight to elixir-mix');

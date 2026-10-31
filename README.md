@@ -26,7 +26,7 @@ elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps th
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
 - **elixir-mix**, white on black: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
-  echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** are the synth's pages: the
+  echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the
   echo, reverb and master are shared by everything.
 
 Presets keep all three. A preset saved before the modes leaves the beat and the mixer as they are.

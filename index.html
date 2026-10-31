@@ -506,7 +506,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v9</small></button>
+    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v10</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-modes-top" role="tablist" aria-label="mode">
       <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
@@ -621,7 +621,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     </section>
   </div>
 
-  <div class="m-panel" data-m-panel="fx" data-modes="synth mix">
+  <div class="m-panel" data-m-panel="fx" data-modes="mix">
     <section class="m-card m-fx-card">
       <div class="m-fx-row"><div class="m-fxhead"><b>echo</b><label class="m-chk"><input id="m-pp" type="checkbox"><i aria-hidden="true"></i>ping pong</label></div><div class="m-faders m-row" id="m-echo"></div></div>
       <div class="m-fx-row"><div class="m-fxhead"><b>reverb</b></div><div class="m-faders m-row" id="m-verb"></div></div>
@@ -634,7 +634,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     </section>
   </div>
 
-  <div class="m-panel" data-m-panel="comp" data-modes="synth mix">
+  <div class="m-panel" data-m-panel="comp" data-modes="mix">
     <section class="m-card m-comp-card">
       <div class="m-chead"><b>distortion</b></div>
       <div class="m-faders m-row" id="m-dist"></div>
@@ -654,7 +654,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v9, 31 Oct, 07:36</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v10, 31 Oct, 07:43</footer>
     </section>
   </div>
   </div>
@@ -680,8 +680,8 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
     <button type="button" role="tab" data-m-tab="bsteps" data-modes="beat" aria-selected="false">steps</button>
     <button type="button" role="tab" data-m-tab="kit" data-modes="beat" aria-selected="false">kit</button>
     <button type="button" role="tab" data-m-tab="mix" data-modes="mix" aria-selected="false">mix</button>
-    <button type="button" role="tab" data-m-tab="fx" data-modes="synth mix" aria-selected="false">fx</button>
-    <button type="button" role="tab" data-m-tab="comp" data-modes="synth mix" aria-selected="false">mstr</button>
+    <button type="button" role="tab" data-m-tab="fx" data-modes="mix" aria-selected="false">fx</button>
+    <button type="button" role="tab" data-m-tab="comp" data-modes="mix" aria-selected="false">mstr</button>
     <button type="button" role="tab" data-m-tab="presets" data-modes="synth beat mix" aria-selected="false">prst</button>
   </nav>
   </div>
