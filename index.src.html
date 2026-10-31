@@ -18,8 +18,13 @@
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir-<span id="m-modename">synth</span><small class="m-ver">v@VER@</small></button>
-    <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
+    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v@VER@</small></button>
+    <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
+    <div class="m-modes-top" role="tablist" aria-label="mode">
+      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="beat" aria-selected="false">beat</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="false">mix</button>
+    </div>
   </header>
   <section class="m-card m-trans">
     <button class="m-play" id="m-play" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg><span>play</span></button>

@@ -97,19 +97,12 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
 .m[data-mode="beat"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
 .m[data-mode="mix"] {
-  --panel: #0c0d0c; --ink: #f4f4ef; --muted: rgba(244, 244, 239, .66);
-  --tint: rgba(244, 244, 239, .07); --tint-2: rgba(244, 244, 239, .13); --ghost: rgba(244, 244, 239, .12); --led: #f4f4ef;
-  --rule: 1px solid rgba(244, 244, 239, .32);
-  background-image: linear-gradient(170deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 38%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px),
-    radial-gradient(60% 34% at 12% 100%, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(52% 30% at 88% 102%, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .4) 100%); }
-.m[data-mode="mix"]::after {
-  background: radial-gradient(34% 17% at 76% 24%, rgba(12, 13, 12, .3), rgba(12, 13, 12, 0) 100%),
-    radial-gradient(22% 12% at 16% 66%, rgba(12, 13, 12, .25), rgba(12, 13, 12, 0) 100%); }
-.m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output {
-  text-shadow: 0 0 calc(2.5px * var(--d)) rgba(255, 255, 250, calc(.3 + .08 * var(--d))); }
+  --panel: #000; --ink: #fff; --muted: rgba(255, 255, 255, .7);
+  --tint: rgba(255, 255, 255, .08); --tint-2: rgba(255, 255, 255, .14); --ghost: rgba(255, 255, 255, .13); --led: #fff;
+  --rule: 1px solid rgba(255, 255, 255, .4);
+  background-image: none; }
+.m[data-mode="mix"]::after { background: none; }
+.m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output { text-shadow: none; }
 .m[data-mode="mix"] .m-vtrack i, .m[data-mode="mix"] .m-seq-steps i::after, .m[data-mode="mix"] .m-seq-steps i::before, .m[data-mode="mix"] .m-gr i b { filter: none; }
 .m[data-mode="mix"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: none; }
 .m[data-mode] .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
@@ -213,6 +206,11 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-title { background: none; padding: 0; min-height: 36px; text-align: left; white-space: nowrap; cursor: pointer; }
 .m .m-title:active { opacity: .6; }
 .m-top { align-items: center; }
+/* the mode buttons: synth, beat, mix, the one showing inverted */
+.m-modes-top { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; flex: 0 1 230px; }
+.m .m-modes-top .m-btn { min-height: 40px; padding: 0 2px; font-size: min(var(--fs-xs), 4vw, 16.5px) !important; letter-spacing: .04em; }
+.m .m-modes-top .m-btn[aria-selected="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .m-pagename { white-space: nowrap; font-family: var(--display); font-size: 1.5rem; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
 
 /* play, rec, and the step light */
@@ -457,8 +455,13 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button">elixir-<span id="m-modename">synth</span><small class="m-ver">v7</small></button>
-    <b class="m-pagename" id="m-pagename" aria-live="polite">perform</b>
+    <button class="m-title" id="m-mode" type="button">elixir<span class="m-sr">-<span id="m-modename">synth</span></span><small class="m-ver">v8</small></button>
+    <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
+    <div class="m-modes-top" role="tablist" aria-label="mode">
+      <button class="m-btn" type="button" role="tab" data-to-mode="synth" aria-selected="true">synth</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="beat" aria-selected="false">beat</button>
+      <button class="m-btn" type="button" role="tab" data-to-mode="mix" aria-selected="false">mix</button>
+    </div>
   </header>
   <section class="m-card m-trans">
     <button class="m-play" id="m-play" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg><span>play</span></button>
@@ -599,7 +602,7 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v7, 31 Oct, 07:12</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v8, 31 Oct, 07:20</footer>
     </section>
   </div>
   </div>
@@ -4864,7 +4867,7 @@ function useSnapshot(p, keepTempo) {
 // ---- pages: swipe across the screen, or tap a page button. A swipe starts anywhere but on a fader, the x/y pad, the
 // steps or a list, so dragging those never turns the page ----
 // ---- modes: elixir-synth, elixir-beat and elixir-mix, three sets of pages over the one engine and clock, all playing at
-// once. A tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
+// once. The synth, beat and mix buttons at the top go straight to one, and a tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
 // are kept in this browser. A page (and its button) can belong to more than one mode (data-modes) ----
 const mPages = $('m-pages'), ALL_PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
 const MODES = ['synth', 'beat', 'mix'];
@@ -4893,11 +4896,14 @@ function setMode(m) {
   document.querySelectorAll('[data-m-tab]').forEach((b) => { b.hidden = !inMode(b, m); });
   $('m').dataset.mode = m;
   $('m-modename').textContent = m;
+  document.querySelectorAll('[data-to-mode]').forEach((b) => b.setAttribute('aria-selected', b.dataset.toMode === m));
   $('m-mode').setAttribute('aria-label', `elixir ${m}: tap for elixir ${MODES[(MODES.indexOf(m) + 1) % MODES.length]}`);
   mGo(Math.max(0, PANELS.findIndex((p) => p.dataset.mPanel === modePage[m])));
   modeHooks.forEach((h) => h(m));
 }
 $('m-mode').addEventListener('click', () => { setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); requestAnimationFrame(mDepth); });
+// or straight to one with the buttons at the top
+document.querySelectorAll('[data-to-mode]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.toMode !== mode) { setMode(b.dataset.toMode); requestAnimationFrame(mDepth); } }));
 document.querySelectorAll('[data-m-tab]').forEach((b) => b.addEventListener('click', () => mGo(PANELS.findIndex((p) => p.dataset.mPanel === b.dataset.mTab))));
 addEventListener('resize', () => mGo(mCur));
 {

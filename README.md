@@ -13,7 +13,7 @@ Elixir Synth is unofficial: it is not made, approved or endorsed by Erica Synths
 ## Modes
 
 Three modes run at once on the one engine and clock, so play, tempo, record and the step light are shared and
-everything stays in sync. **Tap the title at the top left** to step from one to the next:
+everything stays in sync. **The synth, beat and mix buttons at the top** go straight to one; a tap on the title steps from one to the next:
 elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps the page it was on.
 
 - **elixir-synth**: the mono synth on drum 1 (the pages below), on a blue backlit LCD.
@@ -25,7 +25,7 @@ elixir-synth → elixir-beat → elixir-mix → elixir-synth. Each mode keeps th
   - **STEPS**: the pattern as a grid, a row per track. Tap or drag to switch hits, or accents in accent mode. Hatched
     steps play only on some bars (fills, the crash after one). Moving a BEAT dial makes a fresh pattern over edits.
   - **KIT**: step through Elixir Mobile's 33 kits, and each voice's main settings.
-- **elixir-mix**, white on a black LCD: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
+- **elixir-mix**, white on black: **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
   echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** are the synth's pages: the
   echo, reverb and master are shared by everything.
 

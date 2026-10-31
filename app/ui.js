@@ -4,7 +4,7 @@
 // ---- pages: swipe across the screen, or tap a page button. A swipe starts anywhere but on a fader, the x/y pad, the
 // steps or a list, so dragging those never turns the page ----
 // ---- modes: elixir-synth, elixir-beat and elixir-mix, three sets of pages over the one engine and clock, all playing at
-// once. A tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
+// once. The synth, beat and mix buttons at the top go straight to one, and a tap on the title steps synth → beat → mix → synth; each mode keeps the page it was on, and the mode and pages
 // are kept in this browser. A page (and its button) can belong to more than one mode (data-modes) ----
 const mPages = $('m-pages'), ALL_PANELS = [...mPages.querySelectorAll('[data-m-panel]')];
 const MODES = ['synth', 'beat', 'mix'];
@@ -33,11 +33,14 @@ function setMode(m) {
   document.querySelectorAll('[data-m-tab]').forEach((b) => { b.hidden = !inMode(b, m); });
   $('m').dataset.mode = m;
   $('m-modename').textContent = m;
+  document.querySelectorAll('[data-to-mode]').forEach((b) => b.setAttribute('aria-selected', b.dataset.toMode === m));
   $('m-mode').setAttribute('aria-label', `elixir ${m}: tap for elixir ${MODES[(MODES.indexOf(m) + 1) % MODES.length]}`);
   mGo(Math.max(0, PANELS.findIndex((p) => p.dataset.mPanel === modePage[m])));
   modeHooks.forEach((h) => h(m));
 }
 $('m-mode').addEventListener('click', () => { setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]); requestAnimationFrame(mDepth); });
+// or straight to one with the buttons at the top
+document.querySelectorAll('[data-to-mode]').forEach((b) => b.addEventListener('click', () => { if (b.dataset.toMode !== mode) { setMode(b.dataset.toMode); requestAnimationFrame(mDepth); } }));
 document.querySelectorAll('[data-m-tab]').forEach((b) => b.addEventListener('click', () => mGo(PANELS.findIndex((p) => p.dataset.mPanel === b.dataset.mTab))));
 addEventListener('resize', () => mGo(mCur));
 {

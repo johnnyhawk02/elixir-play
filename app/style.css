@@ -82,19 +82,12 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m[data-mode="beat"] .m-vtrack i, .m[data-mode="beat"] .m-seq-steps i::after, .m[data-mode="beat"] .m-seq-steps i::before, .m[data-mode="beat"] .m-gr i b { filter: drop-shadow(calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .17)); }
 .m[data-mode="beat"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: calc(2px * var(--d, 1)) calc(2.2px * var(--d, 1)) 0 rgba(23, 32, 14, .14); }
 .m[data-mode="mix"] {
-  --panel: #0c0d0c; --ink: #f4f4ef; --muted: rgba(244, 244, 239, .66);
-  --tint: rgba(244, 244, 239, .07); --tint-2: rgba(244, 244, 239, .13); --ghost: rgba(244, 244, 239, .12); --led: #f4f4ef;
-  --rule: 1px solid rgba(244, 244, 239, .32);
-  background-image: linear-gradient(170deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, 0) 38%),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255, 255, 255, .015) 0 1px, transparent 1px 3px),
-    radial-gradient(60% 34% at 12% 100%, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(52% 30% at 88% 102%, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 70%),
-    radial-gradient(130% 100% at 50% 60%, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, .4) 100%); }
-.m[data-mode="mix"]::after {
-  background: radial-gradient(34% 17% at 76% 24%, rgba(12, 13, 12, .3), rgba(12, 13, 12, 0) 100%),
-    radial-gradient(22% 12% at 16% 66%, rgba(12, 13, 12, .25), rgba(12, 13, 12, 0) 100%); }
-.m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output {
-  text-shadow: 0 0 calc(2.5px * var(--d)) rgba(255, 255, 250, calc(.3 + .08 * var(--d))); }
+  --panel: #000; --ink: #fff; --muted: rgba(255, 255, 255, .7);
+  --tint: rgba(255, 255, 255, .08); --tint-2: rgba(255, 255, 255, .14); --ghost: rgba(255, 255, 255, .13); --led: #fff;
+  --rule: 1px solid rgba(255, 255, 255, .4);
+  background-image: none; }
+.m[data-mode="mix"]::after { background: none; }
+.m[data-mode="mix"], .m[data-mode="mix"] button, .m[data-mode="mix"] .m-title, .m[data-mode="mix"] .m-flab, .m[data-mode="mix"] .m-vf output { text-shadow: none; }
 .m[data-mode="mix"] .m-vtrack i, .m[data-mode="mix"] .m-seq-steps i::after, .m[data-mode="mix"] .m-seq-steps i::before, .m[data-mode="mix"] .m-gr i b { filter: none; }
 .m[data-mode="mix"] :is(.m-btn, .m-toggle, .m-pload, .m-tabs button, .m-xy, .m-seq-len, .m-xyrow select) { box-shadow: none; }
 .m[data-mode] .m-tabs button:not([aria-selected="true"]) { box-shadow: none; }
@@ -198,6 +191,11 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m .m-title { background: none; padding: 0; min-height: 36px; text-align: left; white-space: nowrap; cursor: pointer; }
 .m .m-title:active { opacity: .6; }
 .m-top { align-items: center; }
+/* the mode buttons: synth, beat, mix, the one showing inverted */
+.m-modes-top { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; flex: 0 1 230px; }
+.m .m-modes-top .m-btn { min-height: 40px; padding: 0 2px; font-size: min(var(--fs-xs), 4vw, 16.5px) !important; letter-spacing: .04em; }
+.m .m-modes-top .m-btn[aria-selected="true"] { background: var(--ink) !important; color: var(--panel) !important; text-shadow: none; }
+.m-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .m-pagename { white-space: nowrap; font-family: var(--display); font-size: 1.5rem; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
 
 /* play, rec, and the step light */
