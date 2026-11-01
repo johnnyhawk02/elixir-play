@@ -228,6 +228,10 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');
+  { const was = await pg.evaluate(() => mode); const r = [];
+    for (const k of ['z', 'x', 'c']) { await pg.keyboard.press(k); r.push(await pg.evaluate(() => mode)); }
+    check(r.join() === 'mix,synth,beat', `keys z, x and c go to mix, synth and beat (${r})`);
+    await pg.evaluate((m) => setMode(m), was); }
   // modes: the cauldron steps mix → synth → beat → mix, each with its own pages
   await pg.click('#m-mode');
   check(await pg.evaluate(() => mode) === 'beat' && await tabs() === 'beat bsteps kit presets' && await page() === 'beat' && await pg.textContent('#m-modename') === 'beat', 'the title turns to elixir-beat');

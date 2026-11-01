@@ -41,7 +41,7 @@ Presets keep all three. A preset saved before the modes leaves the beat and the 
 
 ## Synth pages
 
-Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops. Dragging a fader, the x/y pad or the steps never
+Swipe across the screen, or tap the page buttons along the bottom. The space bar starts and stops; keys z, x and c go to mix, synth and beat. Dragging a fader, the x/y pad or the steps never
 turns the page. The case is plain black, and along the top a second LCD in the same colours as the screen below it (black on blue, grey-green or grey for synth, beat or mix), joined to it by a thin line of bezel, holds everything on one line: the cauldron (tap it for the next mode, hold it for preferences, where *download my presets* saves your presets and pad sets as one file and *new pads from factory* clears the pads and fills them with eight factory presets picked at random; the version is stamped in its middle), play, record and the synth, beat and mix keys, with the sixteen step lights under them.
 
 - **PERF**: twelve dials, and the randomise column: everything, sound, alter, notes, undo, and

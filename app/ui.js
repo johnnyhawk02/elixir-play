@@ -89,6 +89,12 @@ addEventListener('keydown', (e) => {
   e.preventDefault();
   if (!e.repeat) $('m-play').click();
 }, true);
+// z, x and c go to mix, synth and beat (not while typing, nor with a modifier held)
+addEventListener('keydown', (e) => {
+  const m = { KeyZ: 'mix', KeyX: 'synth', KeyC: 'beat' }[e.code];
+  if (!m || e.repeat || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input[type="text"], textarea, select')) return;
+  setMode(m); requestAnimationFrame(mDepth);
+});
 addEventListener('keyup', (e) => { if (e.code === 'Space' && !e.target.closest('input[type="text"], textarea, select')) e.preventDefault(); }, true);
 // the step light: sixteen segments, the one playing lit
 const mLedCells = Array.from({ length: 16 }, () => { const i = document.createElement('i'); $('m-led').append(i); return i; });
