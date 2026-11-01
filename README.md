@@ -34,7 +34,7 @@ they were on.
   the beat's groove: on by default, the same switch as **groove** on the synth's seq page), **rnd drm** (the whole beat: a kit and a pattern), **alt drm** (a new pattern on the same
   kit), **rnd syn** (the whole synth: a sound and notes), **alt syn** (new notes on the same sound), **rnd fx** (all the
   effects) and **alt fx** (a nudge to them); each can be undone. Each pad has a small copy button along its top: press it and it flashes and reads cancel while every other pad's reads paste, and a paste makes a real copy of the copied pad's preset (a new one of yours, Fenka Shizu 2), puts it on that pad and plays it, as a tap would, so the two pads can be changed apart. Hold a pad to pick the preset it plays, or to save what's playing as a new preset on it or over its own. Under the pads, **pad sets** keep the eight pads' layout under a name: pick one in the list to put all eight back, *save set* keeps the pads as a new set, *over* writes them into the set picked, and ✕ deletes it. Sets go in the exported presets file too. Every button has a faint shadow under it. **MIX** has a channel each for the synth, kick, tom, snare, cymbal and hats: level, meter, mute, and
-  echo and reverb sends (the synth's are the same as its FX page's). **FX** and **MSTR** live only in mix: the
+  echo and reverb sends (the only place the sends are). **FX** and **MSTR** live only in mix: the
   echo, reverb and master are shared by everything.
 
 Presets keep all three. A preset saved before the modes leaves the beat and the mixer as they are.
@@ -68,7 +68,7 @@ turns the page. The case is plain black, and along the top a second LCD in the s
   on all four.
 - **VOICE**: every DR1 parameter, on four tabs: tone, shape, filter, mod.
 - **X/Y**: one pad moving any two DR1 parameters.
-- **FX**: the echo (tempo-synced on musical lengths, ping pong, tone, feedback, width), the reverb (send, predelay,
+- **FX**: the echo (tempo-synced on musical lengths, ping pong, tone, feedback, width), the reverb (predelay,
   decay, tone, early reflections; at the top its decay holds) and the ring mod, with random, alter and undo.
 - **MSTR**: distortion (tube, fold or rat) on the whole mix, then the compressor.
 - **PRST**: presets, kept in this browser: save new, save over, load, delete, import and export. While playing, a

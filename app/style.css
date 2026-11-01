@@ -328,7 +328,8 @@ body { padding: max(6px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-i
 .m-fxhead .m-chk i { width: 22px; height: 22px; }
 /* five to a row everywhere small faders sit in rows, so the columns line up */
 .m-row { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 4px; min-height: 0; }
-#m-echo, #m-comp, #m-verb { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#m-comp { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#m-echo, #m-verb { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 #m-ring { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 /* ---- mstr: the distortion, then the compressor, each a heading and a row ---- */
