@@ -32,6 +32,7 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   // it opens on mix's patterns page: eight pads, and the crossfader
   check(await pg.evaluate(() => mode === 'mix' && [...document.querySelectorAll('[data-to-mode]')].map((b) => b.dataset.toMode).join() === 'mix,synth,beat') && await page() === 'home', 'it opens on mix, the keys in the order mix, synth, beat');
   check(await pg.evaluate(() => document.querySelectorAll('#m-pats .m-pat').length === 8) && await fits('home'), 'the patterns page has eight pads and fits');
+  check(await pg.evaluate(() => pCur === patPreset(0) && tempo === patPreset(0).tempo && document.querySelector('#m-pats .m-pat').getAttribute('aria-pressed') === 'true'), 'the app starts on pad 1');
   await pg.evaluate(() => { tempo = 97; sendAll(); });
   await pg.click('#m-pats .m-pat >> nth=1');
   check(await pg.evaluate(() => pCur === patPreset(1) && tempo === 97 && document.querySelector('#m-pats .m-patw:nth-child(2) .m-pat').getAttribute('aria-pressed') === 'true'), 'a pad loads its preset, keeping the tempo');
@@ -228,6 +229,8 @@ for (const [w, h] of [[412, 915], [360, 640]]) {
   check(await pg.evaluate(() => JSON.stringify([bPat, bs, values[PAR.VELOD4]])) === beatWas, 'a synth preset leaves the beat alone');
   await pg.click('#m-psave');
   check(await pg.evaluate(() => JSON.parse(localStorage.getItem('elixir-synth-presets')).length === 1), 'save new keeps a preset in its own storage');
+  await pg.keyboard.press('3');
+  check(await pg.evaluate(() => (pCur === patPreset(2) || pPending === patPreset(2)) && patOn === 2), 'key 3 plays pad 3');
   { const was = await pg.evaluate(() => mode); const r = [];
     for (const k of ['z', 'x', 'c']) { await pg.keyboard.press(k); r.push(await pg.evaluate(() => mode)); }
     check(r.join() === 'mix,synth,beat', `keys z, x and c go to mix, synth and beat (${r})`);

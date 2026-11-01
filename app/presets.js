@@ -104,6 +104,12 @@ const patBtns = PAT0.map((_, i) => {
   $('m-pats').append(w); b.copyBtn = c; return b;
 });
 let patCopy = null;
+// keys 1 to 8 play pads 1 to 8, as a tap would (not while typing, nor with a modifier held)
+addEventListener('keydown', (e) => {
+  const m = /^Digit([1-8])$/.exec(e.code);
+  if (!m || e.repeat || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input[type="text"], textarea, select')) return;
+  const i = +m[1] - 1; patOn = i; pLoad(patPreset(i), true);
+});
 // the pad last pressed: the one lit while its preset plays, so two pads on the same preset don't both light
 let patOn = null;
 function patDraw() {
@@ -211,6 +217,8 @@ $('m-picksover').addEventListener('click', () => {
 modeHooks.push(patClose);
 { const d = pDraw; pDraw = function () { d(); patDraw(); }; }
 patDraw();
+// on start everything (synth, drums, tempo) is pad 1's preset, and pad 1 is lit
+{ const k = patPreset(0); useSnapshot(k); pCur = k; patOn = 0; pDraw(); }
 $('m-psave').addEventListener('click', () => {
   const k = { name: newName(), ...snapshot(), saved: true };
   presetList.push(k); storePresets(); pCur = k; pPending = null;

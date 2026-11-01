@@ -657,7 +657,7 @@ body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) en
 
 <main class="m" id="m">
   <header class="m-top">
-    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">44</small></button>
+    <button class="m-title" id="m-mode" type="button"><i class="m-cauldron" aria-hidden="true"></i><span class="m-sr">elixir-<span id="m-modename">mix</span></span><small class="m-ver">45</small></button>
     <b class="m-sr" id="m-pagename" aria-live="polite">perform</b>
     <div class="m-trans">
       <button class="m-play" id="m-play" type="button" aria-pressed="false" aria-label="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4.5v15l13-7.5z"/><rect class="i-stop" x="5.5" y="5.5" width="13" height="13" rx="2"/></svg></button>
@@ -825,7 +825,7 @@ body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) en
         <button class="m-btn" id="m-pexport" type="button">export</button>
         <button class="m-btn m-install" id="m-install" type="button" hidden>install app</button>
       </div>
-      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v44, 1 Nov, 00:48</footer>
+      <footer class="m-foot">Erica Synths LXR-02 drum 1 port, GPL-3.0, unofficial<br><a href="https://github.com/johnnyhawk02/elixir-synth">Source</a> · v45, 1 Nov, 00:55</footer>
     </section>
   </div>
   </div>
@@ -6583,6 +6583,12 @@ const patBtns = PAT0.map((_, i) => {
   $('m-pats').append(w); b.copyBtn = c; return b;
 });
 let patCopy = null;
+// keys 1 to 8 play pads 1 to 8, as a tap would (not while typing, nor with a modifier held)
+addEventListener('keydown', (e) => {
+  const m = /^Digit([1-8])$/.exec(e.code);
+  if (!m || e.repeat || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input[type="text"], textarea, select')) return;
+  const i = +m[1] - 1; patOn = i; pLoad(patPreset(i), true);
+});
 // the pad last pressed: the one lit while its preset plays, so two pads on the same preset don't both light
 let patOn = null;
 function patDraw() {
@@ -6690,6 +6696,8 @@ $('m-picksover').addEventListener('click', () => {
 modeHooks.push(patClose);
 { const d = pDraw; pDraw = function () { d(); patDraw(); }; }
 patDraw();
+// on start everything (synth, drums, tempo) is pad 1's preset, and pad 1 is lit
+{ const k = patPreset(0); useSnapshot(k); pCur = k; patOn = 0; pDraw(); }
 $('m-psave').addEventListener('click', () => {
   const k = { name: newName(), ...snapshot(), saved: true };
   presetList.push(k); storePresets(); pCur = k; pPending = null;
